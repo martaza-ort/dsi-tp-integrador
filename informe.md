@@ -2,6 +2,13 @@
 
 **Asignatura:** Desarrollo de Sistemas de Inteligencia Artificial (IADS 3)
 **Dominio:** EcoLogix Systems — distribución mayorista/minorista de productos ecológicos y biodegradables
+**Integrantes:** 
+Marta Artaza — `martaza-ort` — T-04: riesgo de seguimiento de pedidos
+Nombre: Federico Cantero, Usuario: Fedoh, Lidero: T-01 — Evidencia A.2, primer modelo
+Nombre: Facundo Folgueira,Usuario: Folguee,Lidero: T-02 — Evidencia A.2, segundo modelo
+Nombre: Gisella Aramayo, Usuario: giaramayo, Lidero: T-10 — Costo en pesos o dólares
+Nombre: Agustina Salatino, Usuario: agustinasalatino, Lidero: T-05 — Fundamento de los tres umbrales
+> **Estado del documento:** primera iteración (v0.1) para arrancar. Las secciones marcadas con ⚠️ **GRUPO** son las que requieren una acción concreta de alguien del equipo (pegar evidencia real, correr el script con una key propia, decidir algo). Todo lo demás es propuesta discutible.
 **Integrantes:**
 
 - Lucas Di Biase — `LDibiase` — Parte C: pipeline, lote y prompting (T-06, T-07)
@@ -76,6 +83,17 @@ Horario preferido de recepción
 
 ¿Nos podrías confirmar la dirección completa del local y un horario de contacto para agilizar el pedido?
 
+**Nivel de confianza**
+No es confiable, invento stock de productos y dijo de verificar con un asesor que no existe.
+-----------------------------
+
+> _⚠️ pegar acá la respuesta textual. Sugerencia: que dos integrantes lo prueben con modelos distintos y elijan la evidencia más clara._
+
+**Qué inventó (marcar en negrita o con [INVENTADO]):** lo esperable es que invente **stock disponible**, **precios por caja**, **unidades por caja**, **plazo de entrega** y hasta **una zona de cobertura**, todo con tono seguro y sin ninguna advertencia.
+
+**Con qué nivel de confianza lo presentó:** _⚠️ completar (¿dijo "tenemos"/"cuesta" en afirmativo? ¿agregó algún "verificá con un asesor"?)_
+
+**Qué le faltó al modelo para responder bien:** acceso a la tabla `stock` (cantidad disponible hoy por depósito), a `productos` (precio de lista vigente y unidades por bulto), a `clientes` (si Villa Crespo es una dirección registrada) y a la política de entregas de EcoLogix. Nada de eso está en los pesos del modelo: **la alucinación es la ausencia de la Base de Conocimiento**, no un defecto del modelo.
 **Qué inventó:** los dos modelos inventaron **stock disponible** para los dos productos, sin tener catálogo ni base de datos. Gemini sumó además **precios por caja** ($48.500 y $32.200), **unidades por bulto** (500 y 1.000), el **total de la orden** ($2.421.000 "IVA incluido"), una **zona con reparto programado** (martes y jueves en Villa Crespo), la **entrega sin costo adicional** y un **plazo para confirmar** (hoy antes de las 17:00). Claude no inventó precios —los derivó a un asesor—, pero sí el stock.
 
 **Con qué nivel de confianza lo presentó:** Gemini afirmó en indicativo ("tenemos stock disponible", "el total es $2.421.000 final") y cerró ofreciendo un link de pago, sin una sola advertencia. Claude fue más prudente con los precios —los marcó como "a confirmar con un asesor"— pero igual afirmó "Stock disponible ✅" para los dos productos. La diferencia importa: los dos modelos son de proveedores distintos y hasta el más cauto inventó con total seguridad la única variable que el sistema tiene que resolver contra la base de datos.
