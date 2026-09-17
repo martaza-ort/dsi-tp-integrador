@@ -190,9 +190,11 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 ### Integrante 4 — Pipeline vectorial y uso del dominio
 **Tareas:**
 - B.3 — Pipeline vectorial con FAISS
-- apoyo a C.2 para conectar el caso de negocio con la consulta real
+- apoyo a C.2 para conectar el caso de negocio con la consulta real:
+    Validar que el pipeline vectorial recupera contexto correcto cuando cambia el estado del negocio (stock, discontinuación o reemplazo de productos), comprobando la evolución del ranking antes y después del evento y confirmando que el filtro nativo de ChromaDB excluye documentos no activos
 **Esfuerzo total:** Major + Medium
 **Rol:** conecta la recuperación vectorial con el uso práctico del sistema de EcoLogix.
+    Asegurando que la búsqueda semántica responda de manera útil y consistente a cambios reales del dominio.
 
 ### Integrante 5 — Validación y métricas de calidad
 **Tareas:**
