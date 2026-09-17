@@ -97,3 +97,42 @@ Cada corrida se registra en `logs/interacciones.jsonl` (ignorado por Git).
 - `.env` está en `.gitignore` desde el primer commit. Solo se sube `.env.example`.
 - Si una key se filtró en un commit, **rotarla** (darla de baja y generar una nueva); borrar el
   archivo no alcanza porque queda en el historial.
+
+---
+
+## Entrega 2 — De contexto estático a conocimiento vectorial
+
+Segundo paso del Proyecto Integrador: se indexa el dominio de EcoLogix con FAISS y se migra a una
+base vectorial persistente con ChromaDB, con filtrado híbrido (similitud + reglas de negocio vía
+`where`). Detalle completo, evidencia y decisiones en [`informe_entrega2.md`](informe_entrega2.md).
+
+| Archivo | Contenido |
+|---|---|
+| `base_conocimiento.json` | Corpus del dominio: 18 documentos (productos, políticas, operativa) con texto y metadatos. |
+| `etl_purga.py` | Normaliza y limpia el corpus → `base_conocimiento_limpia.json`. |
+| `similitud_coseno.py` | Similitud coseno calculada a mano con NumPy + generación de embeddings locales (`sentence-transformers`). |
+| `construir_indice_faiss.py` | Construye y persiste el índice FAISS (`indice_faiss/`, no se commitea). |
+| `pipeline_vectorial.py` | Consulta semántica sobre el índice FAISS, enriquecida por intención de negocio. |
+| `vector_db.py` | Migración a ChromaDB persistente (`chroma/`, no se commitea): `upsert`, búsqueda con filtros nativos `where`. |
+| `simular_evento_caliente.py` | Simula un cambio real de catálogo (producto discontinuado + reemplazo) y prueba que la recuperación lo refleja. |
+| `resultados_evento_caliente.md` | Evidencia real de la simulación anterior. |
+| `informe_entrega2.md` | Informe final: autopsia del contexto estático, coherencia con el PEAS y la Matriz de Intenciones de la Entrega 1, umbral de aceptación y pendientes. |
+| `resultados_killer_queries.md` | **Pendiente** (C.3) — ver estado en `informe_entrega2.md`. |
+
+### Cómo correr (Entrega 2)
+
+```bash
+pip install -r requirements.txt        # suma numpy, faiss-cpu, sentence-transformers, chromadb
+
+python etl_purga.py                    # genera base_conocimiento_limpia.json
+python similitud_coseno.py             # similitud coseno a mano, validación con NumPy
+python construir_indice_faiss.py       # arma y persiste el índice FAISS en indice_faiss/
+python pipeline_vectorial.py           # consulta interactiva sobre el índice FAISS
+
+python vector_db.py                    # migra el corpus a ChromaDB (chroma/) y corre búsquedas con where
+python simular_evento_caliente.py      # simula el evento de negocio y regenera resultados_evento_caliente.md
+python simular_evento_caliente.py --restaurar   # vuelve la base al corpus original
+```
+
+> `indice_faiss/` y `chroma/` son binarios derivados: no se commitean (`.gitignore`) y se
+> reconstruyen desde `base_conocimiento.json` corriendo los scripts de arriba.

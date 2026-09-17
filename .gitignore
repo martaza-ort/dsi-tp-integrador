@@ -14,6 +14,10 @@ logs/
 # Base vectorial persistente (se regenera con vector_db.py)
 chroma/
 
+# Indice FAISS persistido (se regenera con construir_indice_faiss.py)
+indice_faiss/
+*.index
+
 # Python
 __pycache__/
 *.py[cod]
