@@ -1,0 +1,367 @@
+{
+  "version": "1.0",
+  "dominio": "EcoLogix Systems",
+  "tipo": "base_conocimiento_vectorial",
+  "descripcion": "Corpus inicial de conocimiento del dominio para la Entrega 2. Incluye catalogo, políticas operativas y documentos de servicio para recuperación semántica.",
+  "documentos": [
+    {
+      "id": "doc-001",
+      "tipo": "producto",
+      "categoria": "bolsas",
+      "titulo": "Bolsas compostables 40x50 cm",
+      "texto": "Las bolsas compostables de 40x50 cm son un producto de alta rotación para supermercados, verdulerías y comercios minoristas. Se venden por caja y se recomienda para compras de retail, delivery y puntos de venta con atención directa. El material es PLA o bioplástico compostable y es compatible con uso cotidiano de compra por volumen.",
+      "tags": [
+        "bolsa",
+        "compostable",
+        "retail",
+        "supermercado",
+        "empaque"
+      ],
+      "metadatos": {
+        "sku": "ECO-BOL-40X50",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 500,
+        "material": "PLA",
+        "uso_principal": "retail"
+      }
+    },
+    {
+      "id": "doc-002",
+      "tipo": "producto",
+      "categoria": "vajilla",
+      "titulo": "Vasos de bagazo 12 oz",
+      "texto": "Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.",
+      "tags": [
+        "vaso",
+        "bagazo",
+        "cafeteria",
+        "para_llevar",
+        "vajilla"
+      ],
+      "metadatos": {
+        "sku": "ECO-VAS-12OZ",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 1000,
+        "material": "bagazo",
+        "uso_principal": "cafe"
+      }
+    },
+    {
+      "id": "doc-003",
+      "tipo": "producto",
+      "categoria": "vajilla",
+      "titulo": "Platos y bowls de bagazo",
+      "texto": "La vajilla de bagazo incluye platos y bowls para servicio rápido, catering y eventos. Es una alternativa ecológica para uso en alimentos calientes y húmedos, con buena resistencia y costo competitivo frente a plástico desechable. Se suele vender por caja a restaurantes, eventos y proveedores del sector gastronómico.",
+      "tags": [
+        "plato",
+        "bowl",
+        "bagazo",
+        "evento",
+        "catering"
+      ],
+      "metadatos": {
+        "sku": "ECO-VAJ-BAG",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 250,
+        "material": "bagazo",
+        "uso_principal": "catering"
+      }
+    },
+    {
+      "id": "doc-004",
+      "tipo": "producto",
+      "categoria": "sorbetes",
+      "titulo": "Sorbetes de papel",
+      "texto": "Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.",
+      "tags": [
+        "sorbete",
+        "papel",
+        "cafeteria",
+        "comida_rapida",
+        "biodegradable"
+      ],
+      "metadatos": {
+        "sku": "ECO-SOR-PAP",
+        "unidad_venta": "bulto",
+        "unidades_por_bulto": 2000,
+        "material": "papel",
+        "uso_principal": "bebidas"
+      }
+    },
+    {
+      "id": "doc-005",
+      "tipo": "producto",
+      "categoria": "envases",
+      "titulo": "Envases de cartón para alimentos",
+      "texto": "Los envases de cartón cumplen un rol clave para delivery y catering. Se usan para alimentos calientes, postres y empaques de menús. Son un producto útil para locales con servicio para llevar, cuota de restaurante y eventos de catering. La venta se realiza generalmente por caja con una cantidad estándar por bulto.",
+      "tags": [
+        "carton",
+        "envase",
+        "delivery",
+        "catering",
+        "comida_para_llevar"
+      ],
+      "metadatos": {
+        "sku": "ECO-ENV-CARTON",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 300,
+        "material": "carton",
+        "uso_principal": "delivery"
+      }
+    },
+    {
+      "id": "doc-006",
+      "tipo": "producto",
+      "categoria": "limpieza",
+      "titulo": "Limpieza ecológica concentrada",
+      "texto": "Los productos de limpieza ecológica incluyen soluciones concentradas para pisos, superficies y desinfección general. Se venden en envases reutilizables o en presentaciones de mayor volumen para locales, gimnasios y comercios con alta rotación. La categoría considera soluciones con formulaciones menos agresivas y mayor compatibilidad con uso institucional.",
+      "tags": [
+        "limpieza",
+        "ecologica",
+        "concentrado",
+        "superficie",
+        "institucional"
+      ],
+      "metadatos": {
+        "sku": "ECO-LIM-CONC",
+        "unidad_venta": "rollo",
+        "unidades_por_bulto": 20,
+        "material": "quimico",
+        "uso_principal": "limpieza"
+      }
+    },
+    {
+      "id": "doc-007",
+      "tipo": "politica",
+      "categoria": "operativa",
+      "titulo": "Mínimo de compra por cliente",
+      "texto": "EcoLogix establece un mínimo de compra por cliente para pedidos no registrados o para compras fuera de la política comercial. En general, los pedidos pequeños deben sumar un monto mínimo para ser aceptados en la programación de entrega o retiro. La regla concreta se evalúa con el backend sobre el total del pedido y no sobre la intención del cliente.",
+      "tags": [
+        "minimo",
+        "pedido",
+        "politica",
+        "comercial"
+      ],
+      "metadatos": {
+        "tipo_regla": "comercial",
+        "aplica_a": "pedido",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-008",
+      "tipo": "politica",
+      "categoria": "operativa",
+      "titulo": "Zonas de entrega y cobertura",
+      "texto": "La cobertura de entrega se define por zona y por ruta. Algunas zonas tienen servicio programado, mientras que otras requieren coordinación previa o retiro por depósito. La información de cobertura se usa para filtrar pedidos y determinar si una solicitud puede satisfacearse de forma directa o requiere revisión comercial.",
+      "tags": [
+        "entrega",
+        "zona",
+        "cobertura",
+        "ruta"
+      ],
+      "metadatos": {
+        "tipo_regla": "logistica",
+        "aplica_a": "entrega",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-009",
+      "tipo": "operativo",
+      "categoria": "stock",
+      "titulo": "Stock por depósito central",
+      "texto": "El stock se controla por depósito y por SKU. El depósito central es el origen principal para ventas locales y entregas programadas. Cuando una consulta refiere disponibilidad, el sistema debe verificar cantidad disponible y cantidad reservada para no aceptar pedidos que ya estén comprometidos. La reserva se realiza solo a partir de una operación determinista del backend.",
+      "tags": [
+        "stock",
+        "deposito",
+        "cantidad",
+        "reserva"
+      ],
+      "metadatos": {
+        "tipo_regla": "stock",
+        "deposito": "central",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-010",
+      "tipo": "operativo",
+      "categoria": "stock",
+      "titulo": "Reserva de stock al confirmar pedido",
+      "texto": "Una vez confirmado el pedido, el backend debe reservar la cantidad solicitada para el SKU antes de generar el pedido final. Esto evita que la misma mercadería se venda dos veces en el mismo período. En caso de que no haya disponibilidad suficiente, el sistema debe responder con una alternativa o derivar la solicitud a un operador.",
+      "tags": [
+        "confirmacion",
+        "pedido",
+        "reserva",
+        "stock"
+      ],
+      "metadatos": {
+        "tipo_regla": "stock",
+        "aplica_a": "pedido",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-011",
+      "tipo": "operativo",
+      "categoria": "servicio",
+      "titulo": "Retiro por depósito versus entrega domiciliaria",
+      "texto": "Los clientes pueden optar por retirar en depósito o solicitar entrega a domicilio según la zona y la ruta disponible. Para retiro, el sistema suele priorizar la disponibilidad en el depósito y la reserva del pedido. Para entrega domiciliaria, se deben considerar horario, cobertura y coordinación previa con logística.",
+      "tags": [
+        "retiro",
+        "deposito",
+        "entrega",
+        "domicilio"
+      ],
+      "metadatos": {
+        "tipo_regla": "logistica",
+        "aplica_a": "servicio",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-012",
+      "tipo": "operativo",
+      "categoria": "servicio",
+      "titulo": "Reclamos por productos rotos o faltantes",
+      "texto": "Los reclamos por entrega pueden referirse a productos rotos, faltantes o diferencias entre lo solicitado y lo recibido. La operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo. Las decisiones financieras o de crédito requieren revisión humana; el sistema no puede emitir nota de crédito de forma automática.",
+      "tags": [
+        "reclamo",
+        "falta",
+        "dañado",
+        "logistica",
+        "ticket"
+      ],
+      "metadatos": {
+        "tipo_regla": "reclamo",
+        "aplica_a": "pedido",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-013",
+      "tipo": "producto",
+      "categoria": "bolsas",
+      "titulo": "Bolsas de papel kraft para comercio",
+      "texto": "Las bolsas de papel kraft se venden para establecimientos con imagen premium o para la entrega de productos a clientes finales. Incluyen variedad de tamaños y se usan con frecuencia para compras de mayor volumen en comercios minoristas, panaderías y locales de productos frescos. La presentación es por caja y la demanda suele ser más consistente en períodos de exigencia ambiental.",
+      "tags": [
+        "bolsa",
+        "kraft",
+        "papel",
+        "minorista",
+        "premium"
+      ],
+      "metadatos": {
+        "sku": "ECO-BOL-KRAFT",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 400,
+        "material": "papel",
+        "uso_principal": "minorista"
+      }
+    },
+    {
+      "id": "doc-014",
+      "tipo": "producto",
+      "categoria": "vajilla",
+      "titulo": "Cubiertos y utensilios de bioplástico",
+      "texto": "Los cubiertos y utensilios de bioplástico son una alternativa para catering y eventos que requieren servicio rápido y descartable. La categoría se usa para lugares con alto flujo de clientes y con presión por servicio en línea o para llevar. La venta se estructura por caja y bulto según el volumen del cliente.",
+      "tags": [
+        "cubiertos",
+        "utensilios",
+        "bioplastico",
+        "evento",
+        "delivery"
+      ],
+      "metadatos": {
+        "sku": "ECO-CUB-BIO",
+        "unidad_venta": "caja",
+        "unidades_por_bulto": 500,
+        "material": "bioplastico",
+        "uso_principal": "evento"
+      }
+    },
+    {
+      "id": "doc-015",
+      "tipo": "dominio",
+      "categoria": "cliente",
+      "titulo": "Tipos de clientes y canales",
+      "texto": "EcoLogix atiende a comercios, cadenas, mayoristas y clientes de eventos. Los pedidos pueden llegar por WhatsApp, mail o la web interna, pero el backend siempre debe resolver contra la base de verdad del negocio. La solicitud por texto libre puede ser informal, incluir abreviaturas, errores de tipeo o menciones de cantidades como caja, bulto o paquete.",
+      "tags": [
+        "cliente",
+        "canal",
+        "whatsapp",
+        "email",
+        "mayorista"
+      ],
+      "metadatos": {
+        "tipo_cliente": "multiples",
+        "canales": [
+          "whatsapp",
+          "email",
+          "web"
+        ]
+      }
+    },
+    {
+      "id": "doc-016",
+      "tipo": "operativo",
+      "categoria": "ventas",
+      "titulo": "Pedidos multitema y confirmación previa",
+      "texto": "Los pedidos multitema son comunes: un cliente puede pedir varios productos distintos en una misma consulta, como 20 cajas de vasos y un bulto de sorbetes para el jueves. Antes de reservar stock, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega. La confirmación final no debe producirse sin revisar la coherencia del pedido y la política del negocio.",
+      "tags": [
+        "pedido_multiitem",
+        "confirmacion",
+        "fecha_entrega",
+        "validacion"
+      ],
+      "metadatos": {
+        "tipo_regla": "pedido",
+        "aplica_a": "multitema",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-017",
+      "tipo": "operativo",
+      "categoria": "desarrollo",
+      "titulo": "Jerga comercial del dominio",
+      "texto": "El lenguaje del negocio incluye referencias como bolsa compostable, vasos de bagazo, cartón para delivery, bulto, caja, material ecológico, para llevar, servicio por café y local. La jerga comercial puede variar entre clientes y canales, por lo que el sistema debe mapear términos cotidianos hacia el catálogo real antes de resolver la operación.",
+      "tags": [
+        "jerga",
+        "alias",
+        "producto",
+        "terminos"
+      ],
+      "metadatos": {
+        "tipo_regla": "semantica",
+        "aplica_a": "catalogo",
+        "estado": "activo"
+      }
+    },
+    {
+      "id": "doc-018",
+      "tipo": "operativo",
+      "categoria": "soporte",
+      "titulo": "Derivación a humano cuando no hay certeza",
+      "texto": "Cuando el sistema no puede resolver la consulta con datos seguros, debe derivarla a un operador humano. Esto aplica especialmente cuando faltan datos de stock, la zona de entrega no está en la cobertura, la cantidad solicitada no puede validarse o el pedido implica decisiones comerciales diferentes de la política base. La derivación es una salida segura y no una falla del sistema.",
+      "tags": [
+        "humano",
+        "derivacion",
+        "incertidumbre",
+        "seguridad"
+      ],
+      "metadatos": {
+        "tipo_regla": "escalacion",
+        "aplica_a": "atencion",
+        "estado": "activo"
+      }
+    }
+  ],
+  "meta": {
+    "total_original": 18,
+    "total_limpio": 18,
+    "estado": "limpio",
+    "proceso": "etl_purga"
+  }
+}
