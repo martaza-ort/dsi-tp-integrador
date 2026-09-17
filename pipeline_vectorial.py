@@ -17,10 +17,8 @@ DOCUMENTOS_PATH = DIRECTORIO_INDICE / "documentos.json"
 
 
 class PipelineVectorial:
-    """Pipeline de búsqueda vectorial para EcoLogix."""
 
     def __init__(self) -> None:
-        """Carga el índice FAISS y sus documentos."""
 
         if not INDEX_PATH.exists():
             raise FileNotFoundError(
@@ -42,7 +40,6 @@ class PipelineVectorial:
         self._validar_indice()
 
     def _validar_indice(self) -> None:
-        """Comprueba que el índice coincida con los documentos."""
 
         cantidad_vectores = self.indice.ntotal
         cantidad_documentos = len(self.documentos)
