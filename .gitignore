@@ -11,6 +11,9 @@ logs/
 *.sqlite
 *.sqlite3
 
+# Base vectorial persistente (se regenera con vector_db.py)
+chroma/
+
 # Python
 __pycache__/
 *.py[cod]
