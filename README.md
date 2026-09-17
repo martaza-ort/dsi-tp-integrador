@@ -1,7 +1,7 @@
 # EcoLogix Systems — TP Integrador (Entrega 1): Del diagnóstico al pipeline validado
 
 **Asignatura:** Desarrollo de Sistemas de Inteligencia Artificial — IADS 3, ORT
-**Grupo:**
+**Grupo: 1**
 
 - Lucas Di Biase — `LDibiase` — Parte C: pipeline, lote y prompting (T-06, T-07)
 - Marta Artaza — `martaza-ort` — T-04: riesgo de `SEGUIMIENTO_PEDIDO`
