@@ -117,7 +117,8 @@ base vectorial persistente con ChromaDB, con filtrado híbrido (similitud + regl
 | `simular_evento_caliente.py` | Simula un cambio real de catálogo (producto discontinuado + reemplazo) y prueba que la recuperación lo refleja. |
 | `resultados_evento_caliente.md` | Evidencia real de la simulación anterior. |
 | `informe_entrega2.md` | Informe final: autopsia del contexto estático, coherencia con el PEAS y la Matriz de Intenciones de la Entrega 1, umbral de aceptación y pendientes. |
-| `resultados_killer_queries.md` | **Pendiente** (C.3) — ver estado en `informe_entrega2.md`. |
+| `killer_queries.py` | Corre las 3 Killer Queries de C.3 contra ChromaDB y regenera `resultados_killer_queries.md`. |
+| `resultados_killer_queries.md` | Evidencia real de las 3 Killer Queries (C.3), con el umbral de aceptación justificado con datos. |
 
 ### Cómo correr (Entrega 2)
 
@@ -132,6 +133,8 @@ python pipeline_vectorial.py           # consulta interactiva sobre el índice F
 python vector_db.py                    # migra el corpus a ChromaDB (chroma/) y corre búsquedas con where
 python simular_evento_caliente.py      # simula el evento de negocio y regenera resultados_evento_caliente.md
 python simular_evento_caliente.py --restaurar   # vuelve la base al corpus original
+
+python killer_queries.py               # corre las 3 killer queries de C.3 y regenera resultados_killer_queries.md
 ```
 
 > `indice_faiss/` y `chroma/` son binarios derivados: no se commitean (`.gitignore`) y se
