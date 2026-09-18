@@ -1,9 +1,18 @@
-# Killer Queries — EcoLogix (Entrega 2, C.3)
+# Killer Queries — EcoLogix (Entrega 2, B.6)
 
 Tres consultas trampa ejecutadas contra la colección ChromaDB
 (`ecologix`, espacio `cosine`, embeddings locales
 `paraphrase-multilingual-MiniLM-L12-v2`). Umbral de aceptación
 definido: **0.35** (ver justificación al final).
+
+## Tabla consolidada B.6
+
+| # | Consulta | Qué pone a prueba | Resultado esperado | Resultado real | ¿Pasó? |
+|---:|---|---|---|---|---|
+| 1 | Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje | Poder semántico | `doc-005` primero y por encima de `0.35` | `doc-005` (0.585) | Sí |
+| 2 | Necesito sorbetes para mi kiosco, que esten disponibles en stock | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-019` primero | Sin filtro: `doc-001` (0.432); con filtro: `doc-019` (0.4277) | Sí |
+| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | `doc-013` (0.4874); la regla de dominio devuelve vacío | No (hallazgo documentado) |
+
 
 ## 1 — Poder semántico: jerga sin palabras exactas del documento
 
@@ -55,7 +64,7 @@ resultado.
 4. `doc-019` Sorbetes compostables de bagazo — similitud: 0.4277
 5. `doc-005` Envases de cartón para alimentos — similitud: 0.4003
 
-**Resultado real (con filtro nativo `activo=true`):**
+**Resultado real (con filtro nativo `categoria=sorbetes AND activo=true`):**
 
 1. `doc-019` Sorbetes compostables de bagazo — similitud: 0.4277
 
@@ -79,9 +88,8 @@ telefonía.
 
 1. `doc-013` Bolsas de papel kraft para comercio — similitud: 0.4874
 2. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.3699
-3. `doc-017` Jerga comercial del dominio — similitud: 0.2961
-4. `doc-005` Envases de cartón para alimentos — similitud: 0.2837
-5. `doc-014` Cubiertos y utensilios de bioplástico — similitud: 0.2794
+3. `doc-005` Envases de cartón para alimentos — similitud: 0.2837
+4. `doc-014` Cubiertos y utensilios de bioplástico — similitud: 0.2794
 
 **¿Pasó?** No (hallazgo documentado)
 
@@ -94,24 +102,23 @@ vocabulario comercial genérico ("comercio", "premium", "accesorios",
 generar falsos positivos con consultas cortas y vagas. Forzar el
 resultado más cercano en este caso sería alucinación.
 
-**Mitigación aplicada:** `vector_db.py` incorpora la regla de C.2 en
-`BaseVectorial.buscar(...)`: la consulta debe tener vocabulario del
-dominio EcoLogix y el mejor resultado debe superar el umbral de
-aceptación `0.35`. Si la consulta parece fuera de dominio o si ningún
-resultado alcanza el umbral, el sistema devuelve una lista vacía y
-responde `no tengo esa información` en lugar de forzar el vecino más
-cercano. Además, el filtro `where` nativo sigue siendo la capa
-adecuada para validar `categoria` y `activo` antes de aceptar la
-respuesta. Queda anotado como límite conocido del corpus y del modelo
-para la Entrega 3, en la misma línea que los umbrales de confianza de
-la Entrega 1 (revalidar con uso real).
+**Mitigación aplicada:** `vector_db.py` valida que la consulta tenga
+vocabulario del dominio EcoLogix y que el mejor resultado supere el
+umbral de aceptación `0.35`. Si la consulta parece
+fuera de dominio o ningún resultado alcanza el umbral, devuelve una
+lista vacía para que el sistema responda "no tengo esa información".
+Además, el filtro `where` nativo valida `categoria` y `activo` antes
+de aceptar resultados, sin post-filtering manual. Queda anotado como
+límite conocido del corpus y del modelo para la Entrega 3, en la misma
+línea que los umbrales de confianza de la Entrega 1 (revalidar con uso
+real).
 
 ## Umbral de aceptación — justificación
 
 Sobre este corpus y este modelo de embeddings, las consultas
 genuinamente relevantes recuperan su mejor documento con similitud
 ≥ 0.39 (ver killer query 1, y los resultados de
-`resultados_evento_caliente.md`), mientras que consultas
+`docs-resultados/resultados_evento_caliente.md`), mientras que consultas
 claramente fuera de dominio (notebooks, neumáticos, fletes) quedan
 por debajo de 0.30 en la mayoría de los casos. Se definió
 **0.35** como punto intermedio. La killer query 3

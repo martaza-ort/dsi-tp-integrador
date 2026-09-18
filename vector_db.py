@@ -163,6 +163,7 @@ class BaseVectorial:
         cantidad: int = 3,
         donde: dict | None = None,
         umbral: float = UMBRAL_ACEPTACION,
+        validar_dominio: bool = True,
     ) -> list[dict]:
         """
         Busca los documentos más parecidos a la consulta.
@@ -176,7 +177,7 @@ class BaseVectorial:
         if not consulta or not consulta.strip():
             return []
 
-        if not consulta_es_relevante(consulta):
+        if validar_dominio and not consulta_es_relevante(consulta):
             return []
 
         cantidad = min(cantidad, self.coleccion.count())

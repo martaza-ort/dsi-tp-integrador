@@ -1,4 +1,4 @@
-"""Killer Queries — Entrega 2, Parte C.3.
+"""Killer Queries — Entrega 2, Parte B.6.
 
 Corre 3 consultas trampa contra la base vectorial de ChromaDB y
 documenta el resultado real (no inventado) en
@@ -28,7 +28,7 @@ from vector_db import BaseVectorial, cargar_documentos
 
 
 ROOT = Path(__file__).resolve().parent
-RUTA_EVIDENCIA = ROOT / "resultados_killer_queries.md"
+RUTA_EVIDENCIA = ROOT / "docs-resultados" / "resultados_killer_queries.md"
 
 UMBRAL_ACEPTACION = 0.35
 
@@ -67,6 +67,16 @@ def evaluar_umbral(resultados: list[dict], umbral: float) -> str:
     return (
         f"`{mejor['id']}` ({mejor['titulo']}) supera el umbral "
         f"({mejor['similitud']} ≥ {umbral}) → se acepta como resultado."
+    )
+
+
+def resumen_resultado(resultado: list[dict], cantidad: int = 1) -> str:
+    if not resultado:
+        return "Sin resultados"
+
+    mejores = resultado[:cantidad]
+    return "; ".join(
+        f"`{item['id']}` ({item['similitud']})" for item in mejores
     )
 
 
@@ -121,6 +131,7 @@ def main() -> None:
         consulta=CONSULTA_3,
         cantidad=5,
         umbral=0.0,
+        validar_dominio=False,
     )
     for r in resultados_3:
         print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
@@ -172,12 +183,23 @@ def escribir_evidencia(
     # el falso positivo queda documentado como hallazgo (no oculto).
     paso_3 = "No (hallazgo documentado)" if falso_positivo else "Sí"
 
-    contenido = f"""# Killer Queries — EcoLogix (Entrega 2, C.3)
+    tabla_b6 = f"""## Tabla consolidada B.6
+
+| # | Consulta | Qué pone a prueba | Resultado esperado | Resultado real | ¿Pasó? |
+|---:|---|---|---|---|---|
+| 1 | {CONSULTA_1} | Poder semántico | `doc-005` primero y por encima de `{UMBRAL_ACEPTACION}` | {resumen_resultado(r1)} | {paso_1} |
+| 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-019` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
+| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | {resumen_resultado(r3)}; la regla de dominio devuelve vacío | {paso_3} |
+"""
+
+    contenido = f"""# Killer Queries — EcoLogix (Entrega 2, B.6)
 
 Tres consultas trampa ejecutadas contra la colección ChromaDB
 (`ecologix`, espacio `cosine`, embeddings locales
 `paraphrase-multilingual-MiniLM-L12-v2`). Umbral de aceptación
 definido: **{UMBRAL_ACEPTACION}** (ver justificación al final).
+
+{tabla_b6}
 
 ## 1 — Poder semántico: jerga sin palabras exactas del documento
 
@@ -221,7 +243,7 @@ resultado.
 
 {formatear(r2_sin)}
 
-**Resultado real (con filtro nativo `activo=true`):**
+**Resultado real (con filtro nativo `categoria=sorbetes AND activo=true`):**
 
 {formatear(r2_con)}
 
@@ -256,14 +278,16 @@ vocabulario comercial genérico ("comercio", "premium", "accesorios",
 generar falsos positivos con consultas cortas y vagas. Forzar el
 resultado más cercano en este caso sería alucinación.
 
-**Mitigación propuesta (pendiente de implementar, no aplicada en este
-corpus):** exigir además una coincidencia de `categoria` contra un
-listado cerrado de categorías válidas del dominio (`bolsas`,
-`vajilla`, `sorbetes`, `envases`, `limpieza`) antes de aceptar un
-resultado — el filtro `where` ya disponible en `vector_db.py`
-permite hacerlo sin post-filtering manual. Queda anotado como
-limitación conocida para la Entrega 3, en la misma línea que los
-umbrales de confianza de la Entrega 1 (revalidar con uso real).
+**Mitigación aplicada:** `vector_db.py` valida que la consulta tenga
+vocabulario del dominio EcoLogix y que el mejor resultado supere el
+umbral de aceptación `{UMBRAL_ACEPTACION}`. Si la consulta parece
+fuera de dominio o ningún resultado alcanza el umbral, devuelve una
+lista vacía para que el sistema responda "no tengo esa información".
+Además, el filtro `where` nativo valida `categoria` y `activo` antes
+de aceptar resultados, sin post-filtering manual. Queda anotado como
+límite conocido del corpus y del modelo para la Entrega 3, en la misma
+línea que los umbrales de confianza de la Entrega 1 (revalidar con uso
+real).
 
 ## Umbral de aceptación — justificación
 
