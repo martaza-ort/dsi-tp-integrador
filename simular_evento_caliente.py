@@ -17,7 +17,7 @@ CONSULTA = (
 )
 
 DOCUMENTO_DISCONTINUADO = {
-    "texto": (
+    "descripcion_semantica": (
         "Los sorbetes de papel fueron discontinuados del catalogo "
         "de EcoLogix por la nueva politica ambiental. A partir de la "
         "proxima temporada no se aceptan pedidos de este producto. "
@@ -25,40 +25,44 @@ DOCUMENTO_DISCONTINUADO = {
         "bagazo (ECO-SOR-BAGAZO), aptos para bebidas frias y "
         "calientes, en presentacion por bulto."
     ),
-    "tags": [
-        "sorbete",
-        "papel",
-        "discontinuado",
-        "fuera_de_catalogo",
-    ],
+    "metadatos": {
+        "activo": False,
+        "categoria": "sorbetes",
+        "tags_regionales": [
+            "sorbete",
+            "papel",
+            "discontinuado",
+            "fuera_de_catalogo",
+        ],
+    },
 }
 
 DOCUMENTO_REEMPLAZO = {
     "id": "doc-019",
-    "tipo": "producto",
-    "categoria": "sorbetes",
-    "titulo": "Sorbetes compostables de bagazo",
-    "texto": (
+    "descripcion_semantica": (
         "Sorbetes compostables de bagazo disponibles en stock para "
         "kioscos y locales de bebidas. EcoLogix ofrece sorbetes de "
         "bagazo como reemplazo del sorbete de papel discontinuado. "
         "Son aptos para bebidas frias y calientes y se entregan por "
         "bulto con gran volumen para puntos de venta masivos."
     ),
-    "tags": [
-        "sorbete",
-        "bagazo",
-        "compostable",
-        "bebidas",
-        "reemplazo",
-    ],
     "metadatos": {
+        "tipo": "producto",
+        "categoria": "sorbetes",
+        "titulo": "Sorbetes compostables de bagazo",
         "sku": "ECO-SOR-BAGAZO",
         "unidad_venta": "bulto",
         "unidades_por_bulto": 2000,
         "material": "bagazo",
         "uso_principal": "bebidas",
-        "estado": "activo",
+        "activo": True,
+        "tags_regionales": [
+            "sorbete",
+            "bagazo",
+            "compostable",
+            "bebidas",
+            "reemplazo",
+        ],
     },
 }
 
@@ -75,15 +79,22 @@ def construir_corpus_con_evento(
     corpus_evento = []
 
     for documento in documentos:
+        if documento["id"] == DOCUMENTO_REEMPLAZO["id"]:
+            continue
+
         evento = dict(documento)
         evento["metadatos"] = dict(documento.get("metadatos", {}))
 
         if documento["id"] == "doc-004":
-            evento["texto"] = DOCUMENTO_DISCONTINUADO["texto"]
-            evento["tags"] = DOCUMENTO_DISCONTINUADO["tags"]
-            evento["metadatos"]["estado"] = "discontinuado"
+            evento["descripcion_semantica"] = DOCUMENTO_DISCONTINUADO[
+                "descripcion_semantica"
+            ]
+            evento["metadatos"]["activo"] = False
+            evento["metadatos"]["tags_regionales"] = (
+                DOCUMENTO_DISCONTINUADO["metadatos"]["tags_regionales"]
+            )
         else:
-            evento["metadatos"]["estado"] = "activo"
+            evento["metadatos"]["activo"] = True
 
         corpus_evento.append(evento)
 
@@ -144,14 +155,14 @@ def escribir_evidencia(
 Cambio de politica comercial y de oferta de EcoLogix:
 
 1. **Revalidacion del catalogo**: todos los productos pasan a tener
-   metadata de estado `estado: "activo"` (mantenimiento del stock).
+    metadata `activo: true` (mantenimiento del stock).
 2. Los **sorbetes de papel** (`doc-004`) se **discontinuan** por la
    nueva politica ambiental: su texto pasa a indicar que el producto
    queda fuera de catalogo y su metadata se marca
-   `estado: "discontinuado"`.
+    `activo: false`.
 3. Entra en catalogo el reemplazo activo, los **sorbetes compostables
    de bagazo** (`doc-019`, SKU `ECO-SOR-BAGAZO`), con
-   `estado: "activo"`.
+    `activo: true`.
 
 Los cambios se aplican en caliente con `upsert` de ChromaDB, solo
 sobre los documentos afectados, sin reconstruir toda la base.
@@ -168,14 +179,14 @@ sobre los documentos afectados, sin reconstruir toda la base.
 
 {filas(ranking_despues)}
 
-## Resultados despues del evento (filtro nativo `estado=activo`)
+## Resultados despues del evento (filtro nativo `activo=true`)
 
 {filas(ranking_filtrado)}
 
 ## Persistencia del nuevo estado
 
 Con un cliente ChromaDB nuevo se reconsulto la misma consulta con el
-filtro `estado=activo` y el ranking se mantuvo identico:
+filtro `activo=true` y el ranking se mantuvo identico:
 
 {filas(ranking_persistido)}
 
@@ -189,7 +200,7 @@ recuperacion vectorial:
   contenido ahora describe un producto fuera de catalogo. El
   reemplazo activo `doc-019` entra en el top de resultados.
 - **Reglas de negocio via filtros nativos**: con el filtro
-  `where={{\"estado\": \"activo\"}}` aplicado en la base (sin
+    `where={{\"activo\": true}}` aplicado en la base (sin
   post-filtering), el producto discontinuado queda garantizado fuera
   de toda recomendacion, y para la consulta de sorbetes el resultado
   correcto (`doc-019`) lidera la recuperacion.
@@ -258,14 +269,14 @@ def main() -> None:
 
     ranking_filtrado = consultar(
         base,
-        donde={
-            "$and": [
-                {"categoria": "sorbetes"},
-                {"estado": "activo"},
-            ]
-        },
+            donde={
+                "$and": [
+                    {"categoria": {"$eq": "sorbetes"}},
+                    {"activo": {"$eq": True}},
+                ]
+            },
     )
-    print("\nRanking despues del evento (filtro categoria=sorbetes y estado=activo):")
+    print("\nRanking despues del evento (filtro categoria=sorbetes y activo=true):")
     for puesto, item in enumerate(ranking_filtrado, start=1):
         print(
             f"  {puesto}. {item['titulo']} "
@@ -275,12 +286,12 @@ def main() -> None:
     base_reabierta = BaseVectorial()
     ranking_persistido = consultar(
         base_reabierta,
-        donde={
-            "$and": [
-                {"categoria": "sorbetes"},
-                {"estado": "activo"},
-            ]
-        },
+            donde={
+                "$and": [
+                    {"categoria": {"$eq": "sorbetes"}},
+                    {"activo": {"$eq": True}},
+                ]
+            },
     )
 
     escribir_evidencia(

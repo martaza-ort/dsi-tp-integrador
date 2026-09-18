@@ -95,9 +95,14 @@ def main() -> None:
     resultados_2_con_filtro = base.buscar(
         consulta=CONSULTA_2,
         cantidad=5,
-        donde={"$and": [{"categoria": "sorbetes"}, {"estado": "activo"}]},
+        donde={
+            "$and": [
+                {"categoria": {"$eq": "sorbetes"}},
+                {"activo": {"$eq": True}},
+            ]
+        },
     )
-    print("  Con filtro where categoria=sorbetes AND estado=activo:")
+    print("  Con filtro where categoria=sorbetes AND activo=true:")
     for r in resultados_2_con_filtro:
         print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
 
@@ -186,7 +191,7 @@ específicamente sorbetes.
 
 **Resultado esperado:** sin filtro, `doc-019` queda mezclado (o
 directamente superado) por productos de otras categorías; con el
-filtro nativo `where={{"categoria": "sorbetes", "estado": "activo"}}`,
+filtro nativo `where={{"categoria": "sorbetes", "activo": true}}`,
 sólo queda `doc-019` — el único sorbete activo — al frente del
 resultado.
 
@@ -194,7 +199,7 @@ resultado.
 
 {formatear(r2_sin)}
 
-**Resultado real (con filtro nativo `estado=activo`):**
+**Resultado real (con filtro nativo `activo=true`):**
 
 {formatear(r2_con)}
 
