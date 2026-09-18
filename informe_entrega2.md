@@ -8,17 +8,15 @@
 - Agustina Salatino (`agustinasalatino`) — `killer_queries.py`, `resultados_killer_queries.md`
 - Gisella Aramayo (`giaramayo`) — este informe, cierre del repo
 
-Sigue el orden A.1–A.5 / B.1–B.6 / C.1–C.3 de la consigna. Lo hecho, con evidencia real. Lo que falta, señalado con a quién le toca — sin inventar resultados. **Pendiente real:** `base_conocimiento.json` no usa las claves exactas pedidas (A.3), falta la prueba de volatilidad (A.5), y el ETL no hace purga semántica, solo dedup exacto (B.5).
-
 ---
 
 ## Parte A — Embeddings y Búsqueda Semántica
 
-**A.1 — Los tres problemas.** Meter los 18 documentos del catálogo en cada prompt cuesta 3.444 tokens (`tiktoken`), + 894 del System Prompt de la Entrega 1 = 4.338/consulta; recuperando los 3 más relevantes por similitud baja a 1.539 (−81%), y el catálogo real de EcoLogix tiene más SKUs todavía. *Lost in the Middle*: el modelo presta menos atención a lo que queda en el medio de un bloque largo (Liu et al., 2023) — con 18 documentos ya es un riesgo. *Estado concurrente*: stock, discontinuados y reemplazos cambian en vivo; probado en B.3, donde discontinuamos un producto y el sistema lo reflejó sin tocar ningún prompt. Un `LIKE '%...%'` tampoco alcanza porque matchea texto literal, no significado, y no rankea por relevancia.
+**A.1 — Los tres problemas.** Meter los 22 registros sucios del catálogo en cada prompt cuesta más tokens que el corpus original de 18 documentos; recuperando solo los más relevantes por similitud se evita enviar documentos irrelevantes en cada consulta. *Lost in the Middle*: el modelo presta menos atención a lo que queda en el medio de un bloque largo. *Estado concurrente*: stock, discontinuados y reemplazos cambian en vivo; el evento de B.3 lo demuestra sin modificar ningún prompt. Un `LIKE '%...%'` tampoco alcanza porque matchea texto literal, no significado, y no rankea por relevancia.
 
 **A.2 — Similitud coseno a mano.** Dos ejes: X=afinidad con bebidas, Y=afinidad con empaque seco. Consulta "vaso para café caliente" → Q=(0,8; 0,2); vasos de bagazo A=(0,9; 0,1). Paso a paso: producto punto `0,8×0,9 + 0,2×0,1 = 0,74`; normas `‖Q‖≈0,8246`, `‖A‖≈0,9055`; división `0,74/(0,8246×0,9055) ≈ 0,991`. Igual con bolsas B=(0,1;0,9) da 0,348 y cartón C=(0,5;0,5) da 0,857 — orden con sentido de negocio. Validado con NumPy (`np.dot(a,b)/(norm(a)*norm(b))`, mismos resultados). Acá 0,85 "es lo mismo" y 0,35 "no tiene que ver", pero esa escala no se traslada tal cual a embeddings reales (ver C.2).
 
-**A.3 — `base_conocimiento.json`.** 18 documentos (≥15 ✓), texto en párrafo, metadatos filtrables. No usa los nombres de campo exactos de la consigna: `texto` en vez de `descripcion_semantica`, `estado` es string no booleano, `tags` vive fuera de `metadatos` y no se llama `tags_regionales`. No lo tocamos (es de `@martaza-ort`), pero pega en el criterio 3 de la rúbrica.
+**A.3 — `base_conocimiento.json`.** El corpus contiene 22 registros de entrada, con 20 documentos después de la purga. El contrato canónico usa `id`, `descripcion_semantica` y `metadatos`; los campos filtrables (`categoria`, `activo`, `tags_regionales`, SKU y unidad de venta) viven en metadatos, según la Regla del Arquitecto. Dos inconsistencias estructurales y una colisión de ID se conservan deliberadamente como fixtures para B.5.
 
 **A.4 — Índice FAISS.** Repartido en `similitud_coseno.py` (embeddings locales), `construir_indice_faiss.py` (arma y persiste con `write_index()`) y `pipeline_vectorial.py` (recarga con `read_index()`, busca con umbral). Falta un log fijo de 3 consultas de prueba — hoy corre interactivo.
 
@@ -30,15 +28,31 @@ Sigue el orden A.1–A.5 / B.1–B.6 / C.1–C.3 de la consigna. Lo hecho, con e
 
 **B.1 — Migración.** `vector_db.py`: `PersistentClient` sobre `chroma/`, `hnsw:space: cosine`, ingesta con `upsert`.
 
-**B.2 — Los tres límites de FAISS que ChromaDB resuelve.** Sin persistencia transaccional (FAISS en RAM puede quedar a medias si el proceso muere; ChromaDB escribe a disco por operación) · sin filtrado híbrido nativo (FAISS solo rankea por distancia; ChromaDB filtra con `where` antes de rankear) · CRUD ineficiente (dar de baja un SKU en FAISS exige reconstruir todo; ChromaDB opera por id con `upsert`/`delete`).
+**B.2 — Los tres límites de FAISS que ChromaDB resuelve.**
+
+| Límite de FAISS | Cómo se manifiesta en EcoLogix | Cómo lo resuelve ChromaDB |
+|---|---|---|
+| Sin persistencia transaccional / atomicidad | El índice FAISS en memoria se pierde al reiniciar si no se ejecuta `write_index()`. Además, el índice y el archivo de documentos deben mantenerse sincronizados manualmente. | `PersistentClient` guarda la colección en disco y permite reabrirla desde otro proceso. `upsert` actualiza documentos por ID y evita duplicarlos al reejecutar la ingesta. |
+| Sin filtrado híbrido nativo | FAISS rankea por similitud vectorial, pero no descarta antes de calcular el ranking los productos discontinuados o de otra categoría. No puede combinar por sí mismo una consulta semántica con reglas como `categoria=sorbetes` y `activo=true`. | ChromaDB aplica filtros nativos mediante `where`, usando operadores como `$and` y `$eq`, antes de devolver los resultados vectoriales. |
+| CRUD ineficiente / sin concurrencia | Dar de baja o reemplazar un SKU exige coordinar el índice, los documentos asociados y la persistencia. Las actualizaciones incrementales no forman parte del flujo básico de FAISS. | ChromaDB permite `upsert` y `delete` por ID sobre una colección persistente, lo que facilita altas, modificaciones y bajas puntuales del catálogo. |
+
+La tabla refleja el uso real del proyecto: FAISS resuelve la similitud semántica, mientras que ChromaDB agrega persistencia administrada, metadatos filtrables y operaciones incrementales sobre el conocimiento del dominio.
 
 **B.3 — Evento en caliente.** Discontinuamos sorbetes de papel, alta del reemplazo de bagazo, con `upsert` puntual. Antes: el discontinuado lidera (0,46). Después sin filtro: cae al 2°. Con `where={"estado":"activo"}`: gana el reemplazo. `upsert` y no `add`/`update` porque necesitamos alta y modificación juntas en la misma corrida.
 
-**B.4 — Búsqueda híbrida.** `buscar(consulta, cantidad, donde)` manda el filtro directo al `where` — cero post-filtering en Python. La consigna pide un `solo_activos` booleano dedicado; acá es un dict genérico (consistente con que `estado` no es booleano, A.3).
+**B.4 — Búsqueda híbrida.** `buscar(consulta, cantidad, donde)` manda el filtro directo al `where` — cero post-filtering en Python. El estado se representa como el booleano canónico `activo`, y los operadores `$and` y `$eq` se aplican dentro de ChromaDB.
 
-**B.5 — ETL y purga semántica.** `etl_purga.py` normaliza texto/tags/claves y saca duplicados exactos. Falta: casi-duplicados sembrados a mano en el dataset, y la purga semántica en sí (comparar embeddings por umbral de distancia) — hoy solo compara strings iguales. La pieza que falta ya existe en `similitud_coseno.py`, solo hay que conectarla.
+**B.5 — ETL y purga semántica.** `etl_purga.py` normaliza el contrato canónico, convierte `activo` a booleano, mueve los campos filtrables a `metadatos`, resuelve la colisión de IDs y vectoriza los documentos para comparar distancia coseno. Con umbral `0.15`, elimina los casi-duplicados documentados en `resultados_etl.md` y explica por qué `SELECT DISTINCT` no los habría detectado.
 
-**B.6 — Killer Queries.** Corridas en `killer_queries.py` (`resultados_killer_queries.md`). Las tres pasan: (1) "packaging para comida caliente a domicilio" trae los envases de cartón sin nombrarlos, 0,585; (2) sin filtro el sorbete discontinuado empata/gana, con `where` gana el reemplazo; (3) "venden celulares?" es el caso interesante — el resultado más parecido (0,487) supera igual el umbral por vocabulario genérico compartido con el corpus chico, documentado como hallazgo real, no tapado.
+**B.6 — Killer Queries.** Corridas en `killer_queries.py` y documentadas en `resultados_killer_queries.md`. La tercera consulta no se marca como aprobada: el falso positivo supera el umbral y queda registrado como limitación real del corpus, tal como exige la consigna.
+
+| # | Consulta | Qué pone a prueba | Resultado esperado | Resultado real | ¿Pasó? |
+|---:|---|---|---|---|---|
+| 1 | "Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje" | Poder semántico: jerga sin palabras exactas del documento | `doc-005` — Envases de cartón para alimentos en el primer puesto y por encima de `0.35`. | `doc-005` primero, similitud `0.585`. | Sí |
+| 2 | "Necesito sorbetes para mi kiosco, que esten disponibles en stock" | El metadato salva el día: la semántica cruda trae resultados de otras categorías y el filtro los bloquea. | Sin filtro, `doc-019` queda mezclado o superado; con `where` `categoria=sorbetes` y `activo=true`, queda primero. | Sin filtro, `doc-019` queda cuarto con `0.4277`; con filtro nativo, queda primero con `0.4277`. | Sí |
+| 3 | "Venden celulares o accesorios de telefonia?" | Prueba de estrés fuera del catálogo: el sistema debería responder "no tengo eso". | Ningún resultado relevante debería superar el umbral `0.35`. | `doc-013` queda primero con `0.4874`, aunque es irrelevante. Falso positivo documentado. | No: hallazgo |
+
+La tabla muestra por qué el umbral no debe usarse para forzar siempre el resultado más cercano: la consulta 3 supera `0.35` pese a estar fuera del dominio. El sistema debe combinar similitud con reglas de dominio y, cuando no puede validar la intención o categoría, responder que no tiene esa información.
 
 ---
 
