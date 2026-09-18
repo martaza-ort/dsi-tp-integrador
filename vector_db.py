@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import chromadb
@@ -19,6 +20,47 @@ NOMBRE_COLECCION = "ecologix"
 DATASET_PATH = ROOT / "base_conocimiento_limpia.json"
 
 CAMPOS_PRINCIPALES = ("id",)
+UMBRAL_ACEPTACION = 0.35
+CATEGORIAS_VALIDAS = {
+    "bolsas",
+    "vajilla",
+    "sorbetes",
+    "envases",
+    "limpieza",
+}
+PALABRAS_DOMINIO = {
+    "bolsa",
+    "bolsas",
+    "vaso",
+    "vasos",
+    "sorbete",
+    "sorbetes",
+    "envase",
+    "envases",
+    "carton",
+    "papel",
+    "bagazo",
+    "compostable",
+    "biodegradable",
+    "cafeteria",
+    "cafe",
+    "delivery",
+    "catering",
+    "comida",
+    "bebida",
+    "kiosco",
+    "retail",
+    "supermercado",
+    "limpieza",
+    "desinfeccion",
+    "plato",
+    "bowls",
+    "packaging",
+    "empaque",
+    "accesorio",
+    "comercio",
+    "comercial",
+}
 
 TIPOS_SIMPLES = (str, int, float, bool)
 
@@ -30,6 +72,19 @@ def cargar_documentos() -> list[dict]:
         datos = json.load(archivo)
 
     return datos["documentos"]
+
+
+def consulta_es_relevante(consulta: str) -> bool:
+    """Valida que la consulta tenga vocabulario del dominio EcoLogix."""
+
+    if not consulta or not consulta.strip():
+        return False
+
+    tokens = set(
+        re.findall(r"[a-záéíóúüñ]+", consulta.lower())
+    )
+
+    return bool(tokens & PALABRAS_DOMINIO)
 
 
 class BaseVectorial:
@@ -107,15 +162,21 @@ class BaseVectorial:
         consulta: str,
         cantidad: int = 3,
         donde: dict | None = None,
+        umbral: float = UMBRAL_ACEPTACION,
     ) -> list[dict]:
         """
         Busca los documentos más parecidos a la consulta.
 
-        El filtro se aplica con el `where` nativo de ChromaDB,
-        sin post-filtering manual.
+        Se aplica la regla de C.2: la consulta debe tener vocabulario del
+        dominio EcoLogix y el mejor resultado debe superar el umbral de
+        aceptación. Si no se cumplen estas condiciones, se devuelve una
+        lista vacía y el sistema responde "no tengo esa información".
         """
 
-        if not consulta.strip():
+        if not consulta or not consulta.strip():
+            return []
+
+        if not consulta_es_relevante(consulta):
             return []
 
         cantidad = min(cantidad, self.coleccion.count())
@@ -144,6 +205,13 @@ class BaseVectorial:
             documentos,
         ):
             similitud = round(1 - float(distancia), 4)
+
+            if similitud < umbral:
+                continue
+
+            categoria = str(metadata.get("categoria", "")).lower()
+            if categoria and categoria not in CATEGORIAS_VALIDAS:
+                continue
 
             resultados.append(
                 {

@@ -94,14 +94,17 @@ vocabulario comercial genérico ("comercio", "premium", "accesorios",
 generar falsos positivos con consultas cortas y vagas. Forzar el
 resultado más cercano en este caso sería alucinación.
 
-**Mitigación propuesta (pendiente de implementar, no aplicada en este
-corpus):** exigir además una coincidencia de `categoria` contra un
-listado cerrado de categorías válidas del dominio (`bolsas`,
-`vajilla`, `sorbetes`, `envases`, `limpieza`) antes de aceptar un
-resultado — el filtro `where` ya disponible en `vector_db.py`
-permite hacerlo sin post-filtering manual. Queda anotado como
-limitación conocida para la Entrega 3, en la misma línea que los
-umbrales de confianza de la Entrega 1 (revalidar con uso real).
+**Mitigación aplicada:** `vector_db.py` incorpora la regla de C.2 en
+`BaseVectorial.buscar(...)`: la consulta debe tener vocabulario del
+dominio EcoLogix y el mejor resultado debe superar el umbral de
+aceptación `0.35`. Si la consulta parece fuera de dominio o si ningún
+resultado alcanza el umbral, el sistema devuelve una lista vacía y
+responde `no tengo esa información` en lugar de forzar el vecino más
+cercano. Además, el filtro `where` nativo sigue siendo la capa
+adecuada para validar `categoria` y `activo` antes de aceptar la
+respuesta. Queda anotado como límite conocido del corpus y del modelo
+para la Entrega 3, en la misma línea que los umbrales de confianza de
+la Entrega 1 (revalidar con uso real).
 
 ## Umbral de aceptación — justificación
 
