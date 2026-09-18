@@ -22,8 +22,8 @@ en el primer puesto, por encima del umbral.
 1. `doc-005` Envases de cartón para alimentos — similitud: 0.585
 2. `doc-003` Platos y bowls de bagazo — similitud: 0.5403
 3. `doc-004` Sorbetes de papel — similitud: 0.4812
-4. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.4132
-5. `doc-002` Vasos de bagazo 12 oz — similitud: 0.3953
+4. `doc-019` Vasos compostables para cafe — similitud: 0.4416
+5. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.4132
 
 **¿Pasó?** Sí — `doc-005` (Envases de cartón para alimentos) supera el umbral (0.585 ≥ 0.35) → se acepta como resultado.
 
@@ -43,7 +43,7 @@ específicamente sorbetes.
 
 **Resultado esperado:** sin filtro, `doc-019` queda mezclado (o
 directamente superado) por productos de otras categorías; con el
-filtro nativo `where={"categoria": "sorbetes", "estado": "activo"}`,
+filtro nativo `where={"categoria": "sorbetes", "activo": true}`,
 sólo queda `doc-019` — el único sorbete activo — al frente del
 resultado.
 
@@ -55,7 +55,7 @@ resultado.
 4. `doc-019` Sorbetes compostables de bagazo — similitud: 0.4277
 5. `doc-005` Envases de cartón para alimentos — similitud: 0.4003
 
-**Resultado real (con filtro nativo `estado=activo`):**
+**Resultado real (con filtro nativo `activo=true`):**
 
 1. `doc-019` Sorbetes compostables de bagazo — similitud: 0.4277
 

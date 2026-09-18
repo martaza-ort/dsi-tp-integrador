@@ -5,14 +5,14 @@
 Cambio de politica comercial y de oferta de EcoLogix:
 
 1. **Revalidacion del catalogo**: todos los productos pasan a tener
-   metadata de estado `estado: "activo"` (mantenimiento del stock).
+  metadata `activo: true` (mantenimiento del stock).
 2. Los **sorbetes de papel** (`doc-004`) se **discontinuan** por la
    nueva politica ambiental: su texto pasa a indicar que el producto
    queda fuera de catalogo y su metadata se marca
-   `estado: "discontinuado"`.
+  `activo: false`.
 3. Entra en catalogo el reemplazo activo, los **sorbetes compostables
    de bagazo** (`doc-019`, SKU `ECO-SOR-BAGAZO`), con
-   `estado: "activo"`.
+  `activo: true`.
 
 Los cambios se aplican en caliente con `upsert` de ChromaDB, solo
 sobre los documentos afectados, sin reconstruir toda la base.
@@ -25,7 +25,7 @@ sobre los documentos afectados, sin reconstruir toda la base.
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
-| 1 | doc-004 | Sorbetes de papel | 0.4616 |
+| 1 | doc-004 | Sorbetes de papel | 0.4617 |
 | 2 | doc-001 | Bolsas compostables 40x50 cm | 0.432 |
 | 3 | doc-002 | Vasos de bagazo 12 oz | 0.4297 |
 | 4 | doc-013 | Bolsas de papel kraft para comercio | 0.4278 |
@@ -41,7 +41,7 @@ sobre los documentos afectados, sin reconstruir toda la base.
 | 4 | doc-019 | Sorbetes compostables de bagazo | 0.4277 |
 | 5 | doc-005 | Envases de cartón para alimentos | 0.4003 |
 
-## Resultados despues del evento (filtro nativo `categoria=sorbetes` + `estado=activo`)
+## Resultados despues del evento (filtro nativo `activo=true`)
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
@@ -50,8 +50,7 @@ sobre los documentos afectados, sin reconstruir toda la base.
 ## Persistencia del nuevo estado
 
 Con un cliente ChromaDB nuevo se reconsulto la misma consulta con el
-filtro `categoria=sorbetes` + `estado=activo` y el ranking se mantuvo
-identico:
+filtro `activo=true` y el ranking se mantuvo identico:
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
@@ -66,11 +65,11 @@ recuperacion vectorial:
   primer puesto del ranking aunque no exista filtro, porque su
   contenido ahora describe un producto fuera de catalogo. El
   reemplazo activo `doc-019` entra en el top de resultados.
-- **Reglas de negocio via filtros nativos**: con el filtro nativo
-  `where={"categoria": "sorbetes", "estado": "activo"}` aplicado en
-  la base (sin post-filtering), el producto discontinuado queda
-  garantizado fuera de toda recomendacion, y para la consulta de
-  sorbetes el resultado correcto (`doc-019`) lidera la recuperacion.
+- **Reglas de negocio via filtros nativos**: con el filtro
+  `where={"activo": true}` aplicado en la base (sin
+  post-filtering), el producto discontinuado queda garantizado fuera
+  de toda recomendacion, y para la consulta de sorbetes el resultado
+  correcto (`doc-019`) lidera la recuperacion.
 - El cambio de estado (stock/politica) se propaga a la busqueda
   reindexando solo los documentos afectados con `upsert`, sin
   reindexar el corpus completo.
