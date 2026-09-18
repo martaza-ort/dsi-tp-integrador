@@ -78,7 +78,11 @@ def main() -> None:
 
     # --- Killer Query 1: poder semántico ------------------------------
     print("\n[1] Poder semántico (jerga sin palabras exactas)")
-    resultados_1 = base.buscar(consulta=CONSULTA_1, cantidad=5)
+    resultados_1 = base.buscar(
+        consulta=CONSULTA_1,
+        cantidad=5,
+        umbral=UMBRAL_ACEPTACION,
+    )
     for r in resultados_1:
         print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
 
@@ -87,7 +91,11 @@ def main() -> None:
     print("  Aplicando evento: doc-004 discontinuado, doc-019 activo...")
     base.indexar_documentos(construir_corpus_con_evento(cargar_documentos()))
 
-    resultados_2_sin_filtro = base.buscar(consulta=CONSULTA_2, cantidad=5)
+    resultados_2_sin_filtro = base.buscar(
+        consulta=CONSULTA_2,
+        cantidad=5,
+        umbral=0.0,
+    )
     print("  Sin filtro:")
     for r in resultados_2_sin_filtro:
         print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
@@ -101,6 +109,7 @@ def main() -> None:
                 {"activo": {"$eq": True}},
             ]
         },
+        umbral=UMBRAL_ACEPTACION,
     )
     print("  Con filtro where categoria=sorbetes AND activo=true:")
     for r in resultados_2_con_filtro:
@@ -108,9 +117,22 @@ def main() -> None:
 
     # --- Killer Query 3: prueba de estrés fuera de catálogo ------------
     print("\n[3] Prueba de estrés (fuera de catálogo)")
-    resultados_3 = base.buscar(consulta=CONSULTA_3, cantidad=5)
+    resultados_3 = base.buscar(
+        consulta=CONSULTA_3,
+        cantidad=5,
+        umbral=0.0,
+    )
     for r in resultados_3:
         print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
+
+    resultados_3_aceptados = base.buscar(
+        consulta=CONSULTA_3,
+        cantidad=5,
+        umbral=UMBRAL_ACEPTACION,
+    )
+    print("  Aceptados por umbral:")
+    for r in resultados_3_aceptados:
+        print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
 
     # --- Deja la base en el estado canónico para el resto del equipo ---
     print("\nRestaurando corpus canónico...")
