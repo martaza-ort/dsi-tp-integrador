@@ -40,7 +40,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - riesgo de `Lost in the Middle`
 - inconsistencia de estado concurrente en stock, catálogo o entregas
 - explicación de por qué `SELECT ... WHERE descripcion LIKE '%...%'` tampoco resuelve el problema
-**Entregable:** sección A.1 de `informe_entrega2.md`.
+**Entregable:** sección A.1 de `informes/informe_entrega2.md`.
 **Dependencias:** Entrega 1.
 **Commit sugerido:** `docs: documenta limites del contexto estatico`
 
@@ -68,7 +68,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - vectorización y eliminación de casi-duplicados por distancia coseno con umbral justificado
 - reporte de documentos eliminados y explicación de por qué `SELECT DISTINCT` no alcanza
 - preparación del dataset para FAISS/Chroma
-**Entregable:** dataset limpio y consistente más `resultados_etl.md`.
+**Entregable:** dataset limpio y consistente más `docs-resultados/resultados_etl.md`.
 **Dependencias:** A.3.
 **Commit sugerido:** `feat: implementa ETL de purga y normalización`
 
@@ -106,7 +106,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - comparar resultados top-K, reproducibilidad y consistencia entre la versión volátil y la persistida
 - documentar el impacto de un reinicio de proceso, un reinicio del host y la coexistencia de múltiples servidores o instancias sobre el mismo corpus
 - dejar evidencia concreta de que la persistencia permite reconstruir el índice sin volver a calcularlo desde cero
-**Entregable:** evidencia de volatilidad y persistencia documentada en `informe_entrega2.md`.
+**Entregable:** evidencia de volatilidad y persistencia documentada en `informes/informe_entrega2.md`.
 **Dependencias:** A.4.
 **Commit sugerido:** `test: demuestra volatilidad y persistencia de FAISS`
 
@@ -129,7 +129,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 **Incluye:**
 - explicar los tres límites aplicados al dominio EcoLogix
 - documentar la solución concreta que aporta ChromaDB en cada caso
-- completar la tabla comparativa en `informe_entrega2.md`
+- completar la tabla comparativa en `informes/informe_entrega2.md`
 **Entregable:** tabla de límites de FAISS y resolución con ChromaDB.
 **Dependencias:** A.4, A.5 y B.1.
 **Commit sugerido:** `docs: compara limites de FAISS y ChromaDB`
@@ -166,7 +166,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - definir 3 “Killer Queries” basadas en intenciones reales del negocio
 - ejecutar consultas sobre FAISS/ChromaDB y comparar resultados semánticos con filtros reales
 - evaluar relevancia, precisión y utilidad del contexto recuperado
-- documentar resultados en `resultados_killer_queries.md`
+- documentar resultados en `docs-resultados/resultados_killer_queries.md`
 - justificar un umbral de aceptación y una respuesta de “no tengo esa información” cuando no hay coincidencias suficientes
 **Entregable:** validación de recuperación con evidencia numérica y cualitativa.
 **Dependencias:** B.3 y B.4.
@@ -179,18 +179,19 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - columna Base de Conocimiento del PEAS -> documentos de ChromaDB
 - campos de filtrado -> metadatos
 - parámetros extraídos por el LLM -> filtros de la query
-**Entregable:** sección C.1 de `informe_entrega2.md`.
+**Entregable:** sección C.1 de `informes/informe_entrega2.md`.
 **Dependencias:** B.1 y B.4.
 **Commit sugerido:** `docs: conecta entrega 2 con PEAS y matriz`
 
 ### C.2 — Umbral de aceptación
 **Esfuerzo:** Medium
-**Objetivo:** justificar el threshold y la respuesta cuando no hay coincidencias suficientes.
+**Objetivo:** establecer la regla de aceptación de resultados y evitar respuestas inventadas cuando la evidencia es insuficiente.
 **Incluye:**
 - definir el threshold con evidencia de las Killer Queries
-- responder `no tengo esa información` cuando ningún resultado lo supera
-- evitar forzar el resultado más cercano
-**Entregable:** sección C.2 de `informe_entrega2.md`.
+- validar que la consulta pertenezca al dominio EcoLogix antes de aceptar un resultado
+- responder `no tengo esa información` cuando ningún resultado supera el umbral
+- evitar forzar el resultado más cercano cuando no hay evidencia suficiente
+**Entregable:** sección C.2 de `informes/informe_entrega2.md`.
 **Dependencias:** B.6.
 **Commit sugerido:** `docs: justifica umbral de aceptación`
 
@@ -201,7 +202,7 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - aclarar que la búsqueda híbrida devuelve un `dict` de Python
 - identificar el orquestador RAG como siguiente capa
 - ubicar LangChain/orquestación en la entrega posterior
-**Entregable:** sección C.3 de `informe_entrega2.md`.
+**Entregable:** sección C.3 de `informes/informe_entrega2.md`.
 **Dependencias:** C.1 y C.2.
 **Commit sugerido:** `docs: documenta conexion con orquestador RAG`
 
@@ -305,7 +306,7 @@ La entrega se considera cerrada cuando se cumplen estas condiciones:
 - están documentados los tres límites de FAISS y su resolución con ChromaDB,
 - la CLI combina consulta semántica y filtros nativos sin post-filtering,
 - se ejecutaron 3 Killer Queries con evidencia documentada,
-- se generaron `informe_entrega2.md`, `resultados_killer_queries.md` y el reporte del ETL,
+- se generaron `informes/informe_entrega2.md`, `docs-resultados/resultados_killer_queries.md` y el reporte del ETL,
 - no hay claves, `.index` ni bases vectoriales en el repositorio.
 
 ---

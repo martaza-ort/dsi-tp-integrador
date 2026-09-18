@@ -13,20 +13,20 @@ el backend determinista es el "chef" (valida con Pydantic y resuelve contra SQL)
 
 ## Archivos y a qué parte del TP responden
 
-- `informe.md` — Partes A (diagnóstico, PEAS, tiktoken) y B (matriz de intenciones, decisión reglas/LLM,
+- `informes/informe.md` — Partes A (diagnóstico, PEAS, tiktoken) y B (matriz de intenciones, decisión reglas/LLM,
   JSON + SQL + System Prompt, flujo, hipótesis) + narrativa C.4/C.5. Cerrado para la Entrega 1.
 - `schemas.py` — C.1. Contrato Pydantic V2. `IntencionEcoLogix` es un `Literal` de 5 valores.
 - `app.py` — C.2. Pipeline: `.env` → OpenAI con `response_format` json_schema estricto → Pydantic → enrutador.
-- `lote.py` — C.3. 6 inputs fijos → `resultados_lote.md`. `--tecnica zero|few` para el experimento de C.4.
+- `lote.py` — C.3. 6 inputs fijos → `docs-resultados/resultados_lote.md`. `--tecnica zero|few` para el experimento de C.4.
 - `schema.sql` — B.5b. SQLite, probado. Incluye la tabla `interacciones`.
 - `test_schemas.py` — tests del contrato sin API.
 
 ## Invariantes que NO se pueden romper (criterio 9 de la rúbrica: coherencia transversal)
 
-1. `Literal` de `schemas.py` == filas de la Matriz B.3 en `informe.md` == valores en `resultados_lote.md`
+1. `Literal` de `schemas.py` == filas de la Matriz B.3 en `informes/informe.md` == valores en `docs-resultados/resultados_lote.md`
    == intenciones nombradas en el System Prompt de `app.py`. Si se agrega/quita una intención, tocar los 4.
 2. `UnidadVenta` de `schemas.py` == valores de `productos.unidad_venta` en `schema.sql`.
-3. El JSON de salida de ejemplo en informe.md B.5 debe validar contra `MensajeClasificado`.
+3. El JSON de salida de ejemplo en informes/informe.md B.5 debe validar contra `MensajeClasificado`.
 4. El LLM nunca ve precios, stock ni decide escrituras. Toda regla de negocio va en código o SQL.
 
 ## Reglas de seguridad (penalizaciones del TP)

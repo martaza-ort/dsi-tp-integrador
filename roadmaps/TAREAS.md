@@ -47,13 +47,13 @@ Esto se repite en cada tarea. El `pull --rebase` del principio evita el 90% de l
 ```bash
 git pull --rebase                  # traer lo que subieron los demás — SIEMPRE primero
 # ... editar el archivo ...
-git add informe.md
+git add informes/informe.md
 git commit -m "docs(informe): describí acá qué hiciste"
 git push
 ```
 
 Si el `push` es rechazado, alguien subió algo en el medio: `git pull --rebase` y `git push` otra
-vez. Si el rebase marca **conflicto** en `informe.md`, pará y avisá en el grupo antes de tocar nada.
+vez. Si el rebase marca **conflicto** en `informes/informe.md`, pará y avisá en el grupo antes de tocar nada.
 
 ---
 
@@ -68,7 +68,7 @@ Dos ediciones de una línea cada una. Conviene hacerlas en **commits separados**
 
 - [x] **T-00b — Agregar tu nombre en el informe** · *cada integrante*
   - Lo mismo en la línea `**Integrantes:** ⚠️ completar…` del encabezado.
-  - **Dónde:** `informe.md`, línea 5
+  - **Dónde:** `informes/informe.md`, línea 5
   - **Commit:** `docs(informe): agrega <nombre> a integrantes`
 
 ---
@@ -83,7 +83,7 @@ identifique en el README les vamos poniendo nombre.
     que ya está escrito en la sección A.2. Después pegar la respuesta **textual** en el informe y
     marcar lo que el modelo inventó: precios, stock, plazos de entrega. Ese invento es la evidencia
     de por qué el sistema necesita una base de datos como autoridad.
-  - **Dónde:** `informe.md` § A.2, buscar el ⚠️ (líneas 19-38)
+  - **Dónde:** `informes/informe.md` § A.2, buscar el ⚠️ (líneas 19-38)
   - **Entrega:** la respuesta pegada + completar "Con qué nivel de confianza lo presentó"
   - **Commit:** `docs(informe): evidencia A.2 con alucinaciones marcadas`
 
@@ -91,7 +91,7 @@ identifique en el README les vamos poniendo nombre.
   - El mismo prompt que T-01 pero en otro modelo, para comparar. La sección pide justamente que dos
     integrantes lo prueben con modelos distintos y elijan la evidencia más clara. Coordinar con
     quien tome T-01 para no usar el mismo.
-  - **Dónde:** `informe.md` § A.2
+  - **Dónde:** `informes/informe.md` § A.2
   - **Entrega:** segunda respuesta pegada; entre los dos eligen cuál queda
   - **Commit:** `docs(informe): segunda evidencia A.2 para comparar`
 
@@ -100,7 +100,7 @@ identifique en el README les vamos poniendo nombre.
     puede actualizar en tiempo real; la alternativa dice que los clientes describen los productos
     con precisión suficiente para mapearlos al catálogo. Elegir cuál es más riesgosa *para este
     negocio* y borrar la otra o bajarla a nota al pie.
-  - **Dónde:** `informe.md` § B.7, línea 296
+  - **Dónde:** `informes/informe.md` § B.7, línea 296
   - **Entrega:** una sola hipótesis en firme, con el porqué de la elección
   - **Commit:** `docs(informe): elige hipótesis más riesgosa de B.7`
 
@@ -109,7 +109,7 @@ identifique en el README les vamos poniendo nombre.
     titularidad se filtra el pedido de otro cliente. La cátedra tiende a marcar toda lectura como
     BAJO. Decidir si lo defendemos con ese argumento o lo bajamos, y dejarlo escrito con su
     fundamento.
-  - **Dónde:** `informe.md` § B.3 (tabla) + "Decisiones abiertas" #4
+  - **Dónde:** `informes/informe.md` § B.3 (tabla) + "Decisiones abiertas" #4
   - **Entrega:** decisión escrita, con el mismo formato que ya tiene el punto 2
   - **Commit:** `docs(informe): fundamenta el riesgo de SEGUIMIENTO_PEDIDO`
 
@@ -119,15 +119,15 @@ identifique en el README les vamos poniendo nombre.
     número perfecto: hace falta poder contestar "¿por qué 0.60?" en la oral. Un fundamento honesto
     sirve — por ejemplo, que es el default de la cátedra, que sin datos de uso no hay con qué
     moverlo, y que se valida con la primera corrida real.
-  - **Dónde:** `informe.md` "Decisiones abiertas" #3
+  - **Dónde:** `informes/informe.md` "Decisiones abiertas" #3
   - **Entrega:** un fundamento por umbral, aunque sea provisorio
   - **Commit:** `docs(informe): fundamenta umbrales de confianza y cantidad`
 
 - [x] **T-06 — C.3: correr el lote y pegar la tabla real** · `@LDibiase` · ⚠️ necesita API key
   - Correr los 6 inputs del dominio con few-shot y reemplazar el placeholder de
-    `resultados_lote.md` por la tabla generada. Después completar la lectura de los resultados.
+    `docs-resultados/resultados_lote.md` por la tabla generada. Después completar la lectura de los resultados.
   - **Comando:** `python lote.py`
-  - **Dónde:** `resultados_lote.md` + `informe.md` § C.3
+  - **Dónde:** `docs-resultados/resultados_lote.md` + `informes/informe.md` § C.3
   - **Commit:** `docs(lote): resultados reales del lote few-shot - C.3`
 
 - [x] **T-07 — C.4: comparar zero-shot contra few-shot** · `@LDibiase` · ⚠️ necesita API key
@@ -135,8 +135,8 @@ identifique en el README les vamos poniendo nombre.
     (el pedido ambiguo, donde zero-shot tiende a inventar un ítem para "completar") y en el #6 (el
     intento de injection, que zero-shot puede clasificar como `SEGUIMIENTO_PEDIDO` por el número
     4521). Si ningún caso difiere, eso también es un resultado y hay que decirlo.
-  - **Comando:** `python lote.py --tecnica zero --salida resultados_lote_zero.md`
-  - **Dónde:** `informe.md` § C.4, línea 335
+  - **Comando:** `python lote.py --tecnica zero --salida docs-resultados/resultados_lote_zero.md`
+  - **Dónde:** `informes/informe.md` § C.4, línea 335
   - **Entrega:** un caso documentado: el input, la salida zero-shot y la few-shot
   - **Commit:** `docs(informe): comparativa zero-shot vs few-shot - C.4`
 
@@ -150,17 +150,17 @@ Estas no tienen dueño: se deciden entre todos y las escribe quien esté a mano.
   - ¿Alguien conoce un negocio parecido para robarle detalles reales — unidades por bulto, mínimos
     de compra, zonas de entrega? Un detalle real vale más que tres inventados. Si nadie tiene, se
     confirma que queda inventado y listo.
-  - **Dónde:** `informe.md` § A.1 + "Decisiones abiertas" #1
+  - **Dónde:** `informes/informe.md` § A.1 + "Decisiones abiertas" #1
 
 - [~] **T-09 — Repartir la defensa oral** · *grupal* · ⏸️ **postergada**
   - La Entrega 1 no incluye defensa y todavía no sabemos cómo se evalúa el TP al cierre del
     cuatrimestre. Se retoma cuando la cátedra lo comunique.
-  - **Dónde:** `informe.md` "Decisiones abiertas" #7
+  - **Dónde:** `informes/informe.md` "Decisiones abiertas" #7
 
 - [x] **T-10 — Costo en pesos o dólares (opcional)** · `@giaramayo` · *grupal*
   - A.4 deja el cálculo en tokens porque los precios cambian. Si lo quieren en plata, buscar el
     precio vigente por millón de tokens de `gpt-4o-mini` y multiplicar.
-  - **Dónde:** `informe.md` § A.4, línea 76
+  - **Dónde:** `informes/informe.md` § A.4, línea 76
 
 ---
 
@@ -170,7 +170,7 @@ Estas no tienen dueño: se deciden entre todos y las escribe quien esté a mano.
    que alcanza con no forzarlo. Una key en el historial del repo cuesta **−15 puntos** y hay que
    rotarla.
 
-2. **Avisar en el grupo antes de editar `informe.md`.** Casi todas las tareas caen en ese archivo.
+2. **Avisar en el grupo antes de editar `informes/informe.md`.** Casi todas las tareas caen en ese archivo.
    No es que un conflicto no se pueda resolver: es que resolverlo a mano es tiempo tirado. Avisar
    al empezar y al pushear alcanza.
 
@@ -184,5 +184,5 @@ Estas no tienen dueño: se deciden entre todos y las escribe quien esté a mano.
 
 ---
 
-> Las líneas citadas (`informe.md` 296, 335, …) se corren apenas alguien edite más arriba. Si no
+> Las líneas citadas (`informes/informe.md` 296, 335, …) se corren apenas alguien edite más arriba. Si no
 > coinciden, buscá la sección o el marcador ⚠️, que son estables.

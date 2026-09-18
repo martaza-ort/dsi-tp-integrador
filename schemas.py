@@ -12,7 +12,7 @@ stock, descuentos): solo define QUÉ puede decir el modelo y en QUÉ formato.
 
 Invariante transversal (criterio 9 de la rúbrica):
     Literal de IntencionEcoLogix == filas de la Matriz de Intenciones (B.3)
-                                 == valores posibles en resultados_lote.md (C.3)
+                                 == valores posibles en docs-resultados/resultados_lote.md (C.3)
 Si se agrega o quita una intención, hay que tocar los tres lugares.
 """
 

@@ -22,7 +22,7 @@ from similitud_coseno import generar_embeddings, preparar_texto
 ROOT = Path(__file__).resolve().parent
 INPUT_PATH = ROOT / "base_conocimiento.json"
 OUTPUT_PATH = ROOT / "base_conocimiento_limpia.json"
-REPORT_PATH = ROOT / "resultados_etl.md"
+REPORT_PATH = ROOT / "docs-resultados" / "resultados_etl.md"
 DISTANCIA_UMBRAL = 0.15
 
 CLAVES_ALTERNATIVAS = {

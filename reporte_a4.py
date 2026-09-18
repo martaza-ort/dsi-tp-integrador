@@ -6,7 +6,7 @@ from pipeline_vectorial import PipelineVectorial
 
 
 ROOT = Path(__file__).resolve().parent
-RUTA_RESULTADOS = ROOT / "resultados_a4.md"
+RUTA_RESULTADOS = ROOT / "docs-resultados" / "resultados_a4.md"
 
 CONSULTAS_PRUEBA = [
     (

@@ -9,7 +9,7 @@ from vector_db import (
 
 
 ROOT = Path(__file__).resolve().parent
-RUTA_EVIDENCIA = ROOT / "resultados_evento_caliente.md"
+RUTA_EVIDENCIA = ROOT / "docs-resultados" / "resultados_evento_caliente.md"
 
 CONSULTA = (
     "Necesito sorbetes para mi kiosco, "

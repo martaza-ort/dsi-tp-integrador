@@ -56,22 +56,25 @@ del proyecto.
 ├── schemas.py
 ├── schema.sql
 ├── test_schemas.py
-├── informe.md
-├── resultados_lote.md
-├── resultados_lote_zero.md
 ├── base_conocimiento.json
 ├── base_conocimiento_limpia.json
 ├── etl_purga.py
-├── resultados_etl.md
 ├── similitud_coseno.py
 ├── construir_indice_faiss.py
 ├── pipeline_vectorial.py
 ├── vector_db.py
 ├── simular_evento_caliente.py
-├── resultados_evento_caliente.md
 ├── killer_queries.py
-├── resultados_killer_queries.md
-├── informe_entrega2.md
+├── docs-resultados/
+│   ├── resultados_a4.md
+│   ├── resultados_etl.md
+│   ├── resultados_evento_caliente.md
+│   ├── resultados_killer_queries.md
+│   ├── resultados_lote.md
+│   └── resultados_lote_zero.md
+├── informes/
+│   ├── informe.md
+│   └── informe_entrega2.md
 ├── roadmaps/
 │   ├── TAREAS.md
 │   └── TAREAS2.md
@@ -96,22 +99,22 @@ del proyecto.
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
 | `test_schemas.py` | Tests del contrato Pydantic sin consumo de API. | Entrega 1 |
-| `informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
-| `resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
-| `resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
+| `informes/informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
+| `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
+| `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
 | `base_conocimiento.json` | Corpus fuente del dominio y casos de prueba estructurales. | Entrega 2 |
 | `base_conocimiento_limpia.json` | Corpus normalizado y purgado para indexación. | Entrega 2 |
 | `etl_purga.py` | Normalización, resolución de IDs y purga semántica. | Entrega 2 |
-| `resultados_etl.md` | Reporte de correcciones y casi-duplicados eliminados. | Entrega 2 |
+| `docs-resultados/resultados_etl.md` | Reporte de correcciones y casi-duplicados eliminados. | Entrega 2 |
 | `similitud_coseno.py` | Similitud coseno y generación de embeddings locales. | Entrega 2 |
 | `construir_indice_faiss.py` | Construcción y persistencia del índice FAISS. | Entrega 2 |
 | `pipeline_vectorial.py` | Consulta semántica reutilizable sobre FAISS. | Entrega 2 |
 | `vector_db.py` | Colección ChromaDB persistente, `upsert` y filtros `where`. | Entrega 2 |
 | `simular_evento_caliente.py` | Simulación de discontinuación y reemplazo de producto. | Entrega 2 |
-| `resultados_evento_caliente.md` | Evidencia del evento de negocio en caliente. | Entrega 2 |
+| `docs-resultados/resultados_evento_caliente.md` | Evidencia del evento de negocio en caliente. | Entrega 2 |
 | `killer_queries.py` | Ejecución de las tres consultas trampa. | Entrega 2 |
-| `resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
-| `informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
+| `docs-resultados/resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
+| `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
 | `logs/` | Registro local de interacciones; no se versiona. | General |
 | `indice_faiss/` | Índice FAISS derivado; se reconstruye y no se versiona. | Entrega 2 |
 | `chroma/` | Base persistente ChromaDB derivada; se reconstruye y no se versiona. | Entrega 2 |
@@ -194,7 +197,7 @@ python app.py --tecnica zero "hola como viene el pedido #4521?"
 
 # Ejecutar el lote few-shot y zero-shot
 python lote.py
-python lote.py --tecnica zero --salida resultados_lote_zero.md
+python lote.py --tecnica zero --salida docs-resultados/resultados_lote_zero.md
 python lote.py --extra
 ```
 

@@ -7,8 +7,8 @@ Markdown de resultados_lote.md. Incluye, como exige el TP:
     - 1 intento de prompt injection / lenguaje hostil (#6)
 
 Uso:
-    python lote.py                                   # few-shot -> resultados_lote.md
-    python lote.py --tecnica zero --salida resultados_lote_zero.md   # para C.4
+    python lote.py                                   # few-shot -> docs-resultados/resultados_lote.md
+    python lote.py --tecnica zero --salida docs-resultados/resultados_lote_zero.md   # para C.4
 """
 
 from __future__ import annotations
@@ -165,7 +165,11 @@ def generar_tabla(resultados: list[tuple[dict, ResultadoPipeline]], tecnica: str
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Corre el lote de 6 inputs y arma la tabla.")
     parser.add_argument("--tecnica", choices=["zero", "few"], default="few")
-    parser.add_argument("--salida", default="resultados_lote.md")
+    parser.add_argument(
+        "--salida",
+        type=Path,
+        default=BASE_DIR / "docs-resultados" / "resultados_lote.md",
+    )
     parser.add_argument("--extra", action="store_true", help="Incluir también los casos de LOTE_EXTRA")
     args = parser.parse_args(argv)
 
