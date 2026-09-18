@@ -110,19 +110,18 @@ class PipelineVectorial:
                 continue
 
             documento = self.documentos[int(posicion)]
+            metadatos = documento.get("metadatos", {})
 
             resultados.append(
                 {
                     "id": documento.get("id"),
-                    "titulo": documento.get("titulo"),
-                    "tipo": documento.get("tipo"),
-                    "categoria": documento.get("categoria"),
-                    "texto": documento.get("texto"),
-                    "tags": documento.get("tags", []),
-                    "metadatos": documento.get(
-                        "metadatos",
-                        {},
+                    "titulo": metadatos.get("titulo"),
+                    "tipo": metadatos.get("tipo"),
+                    "categoria": metadatos.get("categoria"),
+                    "descripcion_semantica": documento.get(
+                        "descripcion_semantica"
                     ),
+                    "metadatos": metadatos,
                     "similitud": round(similitud, 4),
                 }
             )
@@ -203,7 +202,7 @@ class PipelineVectorial:
                 f"Documento: {resultado['titulo']}\n"
                 f"Tipo: {resultado['tipo']}\n"
                 f"Categoría: {resultado['categoria']}\n"
-                f"Contenido: {resultado['texto']}\n"
+                f"Contenido: {resultado['descripcion_semantica']}\n"
                 f"Metadatos: {resultado['metadatos']}\n"
                 f"Similitud: {resultado['similitud']}"
             )

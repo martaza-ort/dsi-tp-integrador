@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import numpy as np
-from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 
 
@@ -29,10 +27,11 @@ def cargar_documentos() -> list[dict]:
 def preparar_texto(documento: dict) -> str:
     """Une los campos relevantes que representarán al documento."""
 
-    titulo = documento.get("titulo", "")
-    texto = documento.get("texto", "")
-    categoria = documento.get("categoria", "")
-    tags = " ".join(documento.get("tags", []))
+    metadatos = documento.get("metadatos", {})
+    titulo = metadatos.get("titulo", "")
+    texto = documento.get("descripcion_semantica", "")
+    categoria = metadatos.get("categoria", "")
+    tags = " ".join(metadatos.get("tags_regionales", []))
 
     return (
         f"Título: {titulo}. "

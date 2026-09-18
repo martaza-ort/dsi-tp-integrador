@@ -18,7 +18,7 @@ DIRECTORIO_CHROMA = ROOT / "chroma"
 NOMBRE_COLECCION = "ecologix"
 DATASET_PATH = ROOT / "base_conocimiento_limpia.json"
 
-CAMPOS_PRINCIPALES = ("id", "titulo", "tipo", "categoria")
+CAMPOS_PRINCIPALES = ("id",)
 
 TIPOS_SIMPLES = (str, int, float, bool)
 
@@ -59,11 +59,7 @@ class BaseVectorial:
         tipos simples, sin valores None).
         """
 
-        metadatos = {
-            campo: documento[campo]
-            for campo in CAMPOS_PRINCIPALES
-            if campo in documento
-        }
+        metadatos = dict(documento.get("metadatos", {}))
 
         for clave, valor in documento.get("metadatos", {}).items():
             es_lista_valida = (
@@ -73,7 +69,11 @@ class BaseVectorial:
             )
 
             if isinstance(valor, TIPOS_SIMPLES) or es_lista_valida:
-                metadatos[clave] = valor
+                metadatos[clave] = (
+                    " ".join(str(item) for item in valor)
+                    if isinstance(valor, list)
+                    else valor
+                )
 
         return metadatos
 
@@ -151,7 +151,7 @@ class BaseVectorial:
                     "titulo": metadata.get("titulo"),
                     "tipo": metadata.get("tipo"),
                     "categoria": metadata.get("categoria"),
-                    "texto": texto,
+                    "descripcion_semantica": texto,
                     "metadatos": {
                         clave: valor
                         for clave, valor in metadata.items()
@@ -215,7 +215,7 @@ def main() -> None:
         base.buscar(
             consulta=consulta,
             cantidad=3,
-            donde={"unidad_venta": "caja"},
+            donde={"unidad_venta": {"$eq": "caja"}},
         ),
         start=1,
     ):
@@ -231,7 +231,7 @@ def main() -> None:
             cantidad=3,
             donde={
                 "$and": [
-                    {"categoria": "vajilla"},
+                    {"categoria": {"$eq": "vajilla"}},
                     {"material": {"$eq": "bagazo"}},
                 ]
             },
@@ -248,7 +248,7 @@ def main() -> None:
         base.buscar(
             consulta=consulta,
             cantidad=2,
-            donde={"material": "carton"},
+            donde={"material": {"$eq": "carton"}},
         ),
         start=1,
     ):
