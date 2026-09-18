@@ -106,7 +106,7 @@ def main() -> None:
         documento = resultado["documento"]
 
         print(
-            f"- {documento['titulo']} "
+            f"- {documento.get('metadatos', {}).get('titulo', '')} "
             f"(similitud: {resultado['similitud']:.4f})"
         )
 

@@ -18,7 +18,7 @@
 
 **A.3 — `base_conocimiento.json`.** El corpus contiene 22 registros de entrada, con 20 documentos después de la purga. El contrato canónico usa `id`, `descripcion_semantica` y `metadatos`; los campos filtrables (`categoria`, `activo`, `tags_regionales`, SKU y unidad de venta) viven en metadatos, según la Regla del Arquitecto. Dos inconsistencias estructurales y una colisión de ID se conservan deliberadamente como fixtures para B.5.
 
-**A.4 — Índice FAISS.** Repartido en `similitud_coseno.py` (embeddings locales), `construir_indice_faiss.py` (arma y persiste con `write_index()`) y `pipeline_vectorial.py` (recarga con `read_index()`, busca con umbral). Falta un log fijo de 3 consultas de prueba — hoy corre interactivo.
+**A.4 — Índice FAISS.** Repartido en `similitud_coseno.py` (embeddings locales), `construir_indice_faiss.py` (arma y persiste con `write_index()`) y `pipeline_vectorial.py` (recarga con `read_index()`, busca con umbral). Log fijo de 3 consultas de prueba con score y distancia coseno en `resultados_a4.md`, generado por `reporte_a4.py`.
 
 **A.5 — Prueba de volatilidad. No está hecha.** Falta mostrar "sin `write_index()` → se pierde al reiniciar"; solo existe la mitad persistida (`verificar_persistencia()`). Mayor riesgo de la Parte A, la rúbrica la pide explícita.
 

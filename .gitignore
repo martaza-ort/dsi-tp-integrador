@@ -16,6 +16,9 @@ chroma/
 
 # Indice FAISS persistido (se regenera con construir_indice_faiss.py)
 indice_faiss/
+
+# Indice FAISS persistido (se regenera con construir_indice_faiss.py)
+indice_faiss/
 *.index
 
 # Python
