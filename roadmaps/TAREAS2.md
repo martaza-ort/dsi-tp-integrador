@@ -32,32 +32,47 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 
 ## 3. Tareas de la Entrega 2 por dominio funcional
 
-### A.1 — Construcción del corpus base y `base_conocimiento.json`
+### A.1 — Autopsia del contexto estático
+**Esfuerzo:** Medium
+**Objetivo:** demostrar con datos del dominio por qué no escala incluir toda la base en cada prompt.
+**Incluye:**
+- desangre de tokens y costo de enviar todo el corpus
+- riesgo de `Lost in the Middle`
+- inconsistencia de estado concurrente en stock, catálogo o entregas
+- explicación de por qué `SELECT ... WHERE descripcion LIKE '%...%'` tampoco resuelve el problema
+**Entregable:** sección A.1 de `informe_entrega2.md`.
+**Dependencias:** Entrega 1.
+**Commit sugerido:** `docs: documenta limites del contexto estatico`
+
+### A.3 — Construcción del corpus base y `base_conocimiento.json`
 **Esfuerzo:** Major
 **Objetivo:** crear el dataset del dominio EcoLogix con documentos ricos en texto y metadatos.
 **Incluye:**
-- definir el esquema de `base_conocimiento.json`
+- respetar la estructura exacta de la consigna: `id`, `descripcion_semantica` y `metadatos`
 - incluir al menos 15 documentos del dominio
-- agregar texto, categorías, metadatos y claves de negocio
+- agregar párrafos semánticos, campos categóricos, booleanos de estado y `tags_regionales`
 - preparar el corpus para FAISS y ChromaDB
 **Entregable:** `base_conocimiento.json` con dataset listo para indexación.
 **Dependencias:** PEAS y Matriz de Intenciones de la Entrega 1.
 **Commit sugerido:** `feat: agrega base_conocimiento inicial del dominio`
 
-### A.2 — ETL de purga, normalización y casi-duplicados
+### B.5 — ETL de purga, normalización y casi-duplicados
 **Esfuerzo:** Major
 **Objetivo:** limpiar el corpus para que luego pueda indexarse y consultarse sin ruido semántico.
 **Incluye:**
 - `etl_purga.py`
+- agregar al dataset 2-3 casi-duplicados y 2 inconsistencias estructurales controladas
 - normalización de tipos y claves
+- resolución y reporte de colisiones de IDs
 - limpieza de textos inconsistentes
-- eliminación de casi-duplicados por umbral semántico
+- vectorización y eliminación de casi-duplicados por distancia coseno con umbral justificado
+- reporte de documentos eliminados y explicación de por qué `SELECT DISTINCT` no alcanza
 - preparación del dataset para FAISS/Chroma
-**Entregable:** dataset limpio y consistente.
-**Dependencias:** A.1.
+**Entregable:** dataset limpio y consistente más `resultados_etl.md`.
+**Dependencias:** A.3.
 **Commit sugerido:** `feat: implementa ETL de purga y normalización`
 
-### B.1 — Similitud coseno y validación matemática
+### A.2 — Similitud coseno y validación matemática
 **Esfuerzo:** Major
 **Objetivo:** validar la base matemática del enfoque vectorial.
 **Incluye:**
@@ -66,10 +81,10 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - validación de la forma del embedding
 - comparación de documentos relevantes por similitud
 **Entregable:** evidencia matemática de similitud y justificación del enfoque.
-**Dependencias:** A.1.
+**Dependencias:** A.3.
 **Commit sugerido:** `feat: valida similitud coseno con NumPy`
 
-### B.2 — FAISS y persistencia en disco
+### A.4 — Índice FAISS y búsqueda semántica
 **Esfuerzo:** Major
 **Objetivo:** crear el índice vectorial persistente y probar su reconstrucción.
 **Incluye:**
@@ -77,37 +92,47 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - `write_index()`
 - prueba de volatilidad con y sin persistencia
 - verificación de que el índice puede reconstruirse desde el corpus
-**Entregable:** índice FAISS persistido y prueba de consistencia.
-**Dependencias:** A.1 y B.1.
+ - ejecutar tres consultas de prueba y reportar resultados y distancias
+**Entregable:** índice FAISS persistido y búsqueda top-K reproducible.
+**Dependencias:** A.2 y A.3.
 **Commit sugerido:** `feat: crea indice FAISS persistido en disco`
 
-### B.3 — Pipeline vectorial con FAISS
+### A.5 — Prueba destructiva de volatilidad de FAISS
 **Esfuerzo:** Major
-**Objetivo:** encapsular la recuperación vectorial en una capa reutilizable.
+**Objetivo:** demostrar con evidencia qué ocurre con el índice en RAM y con el índice persistido.
 **Incluye:**
-- `pipeline_vectorial.py`
-- carga del dataset y embeddings
-- consulta semántica con FAISS
-- recuperación de contexto relevante por intención de negocio
-- preparación de la respuesta para usarla en el pipeline real
-**Entregable:** pipeline vectorial funcional.
-**Dependencias:** A.1, B.1 y B.2.
-**Commit sugerido:** `feat: implementa pipeline vectorial de consulta`
+- construir un índice sin `write_index()` y demostrar que se pierde al reiniciar
+- construir otro con `write_index()` y recargarlo con `read_index()` sin regenerar embeddings
+- documentar el impacto de un reinicio y de múltiples servidores
+**Entregable:** evidencia de volatilidad y persistencia en `informe_entrega2.md`.
+**Dependencias:** A.4.
+**Commit sugerido:** `test: demuestra volatilidad y persistencia de FAISS`
 
-### C.1 — Migración a ChromaDB y filtros nativos
+### B.1 — Migración a ChromaDB
 **Esfuerzo:** Major
-**Objetivo:** migrar el corpus a ChromaDB persistente y utilizar filtrado híbrido con `where`.
+**Objetivo:** cargar la misma base de A.3 en una colección ChromaDB persistente.
 **Incluye:**
 - `vector_db.py`
 - `PersistentClient` y `upsert`
 - persistencia local de la base vectorial
-- uso de filtros nativos `where` (sin post-filtering manual)
-- validación del flujo de inserción y consulta
-**Entregable:** base ChromaDB funcionando con búsqueda filtrada.
-**Dependencias:** A.1, A.2 y B.3.
+ - colección con `metadata={"hnsw:space": "cosine"}`
+ - reejecución sin duplicar documentos
+**Entregable:** colección ChromaDB persistente.
+**Dependencias:** A.3 y B.5.
 **Commit sugerido:** `feat: migra el corpus a ChromaDB persistente`
 
-### C.2 — Simulación de evento de negocio en caliente
+### B.2 — Límites de FAISS que resuelve ChromaDB
+**Esfuerzo:** Medium
+**Objetivo:** comparar FAISS con ChromaDB en persistencia, filtrado híbrido y operaciones CRUD.
+**Incluye:**
+- explicar los tres límites aplicados al dominio EcoLogix
+- documentar la solución concreta que aporta ChromaDB en cada caso
+- completar la tabla comparativa en `informe_entrega2.md`
+**Entregable:** tabla de límites de FAISS y resolución con ChromaDB.
+**Dependencias:** A.4, A.5 y B.1.
+**Commit sugerido:** `docs: compara limites de FAISS y ChromaDB`
+
+### B.3 — Simulación de evento de negocio en caliente
 **Esfuerzo:** Medium
 **Objetivo:** validar cómo la recuperación vectorial reacciona ante un cambio real del estado del negocio.
 **Incluye:**
@@ -116,10 +141,22 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - comprobación de reindexado o reconsultas en ChromaDB
 - documentación del efecto del estado dinámico sobre la búsqueda
 **Entregable:** evidencia del caso de negocio en caliente.
-**Dependencias:** C.1.
+**Dependencias:** B.1.
 **Commit sugerido:** `feat: simula evento de negocio en caliente`
 
-### C.3 — Killer queries y validación de recuperación
+### B.4 — CLI de búsqueda híbrida
+**Esfuerzo:** Major
+**Objetivo:** combinar consulta semántica con filtros duros mediante operadores nativos.
+**Incluye:**
+- función de búsqueda del dominio con consulta, filtro, `solo_activos` y cantidad
+- uso de `query_texts` o embeddings más filtros dentro de `where`
+- operadores nativos como `$and` y `$eq`
+- prohibición de post-filtering manual en Python
+**Entregable:** CLI de búsqueda híbrida en `vector_db.py`.
+**Dependencias:** B.1.
+**Commit sugerido:** `feat: agrega busqueda hibrida con filtros nativos`
+
+### B.6 — Killer queries y validación de recuperación
 **Esfuerzo:** Major
 **Objetivo:** medir la calidad del sistema con tres consultas críticas del negocio.
 **Incluye:**
@@ -129,37 +166,47 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 - documentar resultados en `resultados_killer_queries.md`
 - decidir umbral de aceptación justificado
 **Entregable:** validación de recuperación con evidencia numérica y cualitativa.
-**Dependencias:** B.3, C.1 y C.2.
+**Dependencias:** B.3 y B.4.
 **Commit sugerido:** `feat: ejecuta y documenta killer queries`
 
-### C.4 — Informe final y coherencia con la Entrega 1
+### C.1 — Cadena de coherencia con la Entrega 1
 **Esfuerzo:** Medium
-**Objetivo:** cerrar la entrega conectando explícitamente con PEAS, Matriz de Intenciones y decisión de arquitectura.
+**Objetivo:** conectar la colección y sus metadatos con el PEAS y la Matriz de Intenciones.
 **Incluye:**
-- `informe_entrega2.md`
-- explicar el problema del contexto estático
-- enganche con el PEAS y la Matriz de Intenciones
-- justificar el umbral de aceptación
-- documentar la decisión de pasar a conocimiento vectorial
-**Entregable:** informe final de la Entrega 2.
-**Dependencias:** todas las tareas anteriores.
-**Commit sugerido:** `docs: escribe informe final de entrega 2`
+- columna Base de Conocimiento del PEAS -> documentos de ChromaDB
+- campos de filtrado -> metadatos
+- parámetros extraídos por el LLM -> filtros de la query
+**Entregable:** sección C.1 de `informe_entrega2.md`.
+**Dependencias:** B.1 y B.4.
+**Commit sugerido:** `docs: conecta entrega 2 con PEAS y matriz`
 
-### C.5 — Cierre del repositorio y requisitos de entrega
-**Esfuerzo:** Low
-**Objetivo:** dejar el repositorio listo para entrega según la consigna.
+### C.2 — Umbral de aceptación
+**Esfuerzo:** Medium
+**Objetivo:** justificar el threshold y la respuesta cuando no hay coincidencias suficientes.
 **Incluye:**
-- `base_conocimiento.json`
-- `pipeline_vectorial.py`
-- `vector_db.py`
-- `etl_purga.py`
-- `informe_entrega2.md`
-- `resultados_killer_queries.md`
-- `requirements.txt` actualizado
-- `.env` no commitado
-- no incluir ChromaDB ni `.index` generados
-**Entregable:** repo listo y consistente con la entrega.
-**Dependencias:** todas las tareas anteriores.
+- definir el threshold con evidencia de las Killer Queries
+- responder `no tengo esa información` cuando ningún resultado lo supera
+- evitar forzar el resultado más cercano
+**Entregable:** sección C.2 de `informe_entrega2.md`.
+**Dependencias:** B.6.
+**Commit sugerido:** `docs: justifica umbral de aceptación`
+
+### C.3 — Cierre: conexión con el orquestador
+**Esfuerzo:** Low
+**Objetivo:** explicar qué componente falta para convertir la recuperación en una respuesta al usuario.
+**Incluye:**
+- aclarar que la búsqueda híbrida devuelve un `dict` de Python
+- identificar el orquestador RAG como siguiente capa
+- ubicar LangChain/orquestación en la entrega posterior
+**Entregable:** sección C.3 de `informe_entrega2.md`.
+**Dependencias:** C.1 y C.2.
+**Commit sugerido:** `docs: documenta conexion con orquestador RAG`
+
+### Cierre transversal de la entrega
+**Esfuerzo:** Low
+**Objetivo:** verificar los archivos y restricciones de entrega sin inventar un nuevo ID de la consigna.
+**Incluye:** `README.md`, `.env.example`, `.gitignore`, `requirements.txt`, informe y evidencias; ningún secreto, índice o base binaria versionada.
+**Dependencias:** A.1–A.5, B.1–B.6 y C.1–C.3.
 **Commit sugerido:** `chore: deja repositorio listo para entrega 2`
 
 ---
@@ -168,29 +215,30 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 
 ### Integrante 1 — Dataset y limpieza del conocimiento
 **Tareas:**
-- A.1 — Construcción del corpus base y `base_conocimiento.json`
-- A.2 — ETL de purga y normalización
+- A.3 — Construcción del corpus base y `base_conocimiento.json`
+- B.5 — ETL de purga y normalización
 **Esfuerzo total:** Major + Major
 **Rol:** provee el material base que alimenta todo el resto.
 
 ### Integrante 2 — Embeddings y FAISS
 **Tareas:**
-- B.1 — Similitud coseno y validación matemática
-- B.2 — FAISS y persistencia en disco
-**Esfuerzo total:** Major + Major
-**Rol:** responsable de la base vectorial semántica y la prueba técnica del índice.
+- A.2 — Similitud coseno y validación matemática
+- A.4 — Índice FAISS y búsqueda semántica
+- A.5 — Prueba destructiva de volatilidad de FAISS
+**Esfuerzo total:** Major + Major + Major
+**Rol:** responsable de la base vectorial semántica, su persistencia y su evidencia experimental.
 
 ### Integrante 3 — ChromaDB y recuperación filtrada
 **Tareas:**
-- C.1 — Migración a ChromaDB y filtros nativos
-- C.2 — Simulación de evento de negocio en caliente
+- B.1 — Migración a ChromaDB
+- B.3 — Simulación de evento de negocio en caliente
 **Esfuerzo total:** Major + Medium
 **Rol:** responsable de la base persistente y la búsqueda con filtros reales.
 
 ### Integrante 4 — Pipeline vectorial y uso del dominio
 **Tareas:**
-- B.3 — Pipeline vectorial con FAISS
-- apoyo a C.2 para conectar el caso de negocio con la consulta real:
+- B.4 — CLI de búsqueda híbrida
+- apoyo a B.3 para conectar el caso de negocio con la consulta real:
     Validar que el pipeline vectorial recupera contexto correcto cuando cambia el estado del negocio (stock, discontinuación o reemplazo de productos), comprobando la evolución del ranking antes y después del evento y confirmando que el filtro nativo de ChromaDB excluye documentos no activos
 **Esfuerzo total:** Major + Medium
 **Rol:** conecta la recuperación vectorial con el uso práctico del sistema de EcoLogix.
@@ -198,32 +246,46 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 
 ### Integrante 5 — Validación y métricas de calidad
 **Tareas:**
-- C.3 — Killer queries y validación de recuperación
-- apoyo a C.4 para la parte de evidencia y conclusiones
+- B.6 — Killer queries y validación de recuperación
+- C.2 — Umbral de aceptación
 **Esfuerzo total:** Major + Medium
-**Rol:** responsable de la calidad y de la sustentación experimental de la entrega.
+**Rol:** responsable de la calidad, el umbral y la sustentación experimental de la entrega.
 
 ### Integrante 6 — Informe y cierre del repositorio
 **Tareas:**
-- C.4 — Informe final y coherencia con la Entrega 1
-- C.5 — Cierre del repositorio y requisitos de entrega
-**Esfuerzo total:** Medium + Low
+- A.1 — Autopsia del contexto estático
+- C.1 — Cadena de coherencia con la Entrega 1
+- C.3 — Cierre: conexión con el orquestador
+- cierre transversal de archivos y requisitos
+**Esfuerzo total:** Medium + Medium + Low + Low
 **Rol:** garantiza la coherencia documental y la preparación final del repo.
+
+### Trabajo transversal
+**Tareas:**
+- apoyo de Integrante 4 a B.3 para verificar el cambio de ranking antes y después del evento
+- apoyo de Integrante 5 a C.1 para trasladar la evidencia de B.6 al informe
+**Esfuerzo total:** Major + Medium
+**Rol:** mantiene conectadas las pruebas técnicas con la evidencia del informe.
 
 ---
 
 ## 5. Orden recomendado de ejecución
 
-1. A.1 — dataset base
-2. A.2 — ETL y limpieza
-3. B.1 — similitud coseno
-4. B.2 — FAISS persistido
-5. B.3 — pipeline vectorial
-6. C.1 — ChromaDB persistente y filtros
-7. C.2 — evento de negocio en caliente
-8. C.3 — killer queries
-9. C.4 — informe final
-10. C.5 — cierre del repo y requisitos final
+1. A.1 — autopsia del contexto estático
+2. A.2 — similitud coseno a mano
+3. A.3 — corpus base
+4. A.4 — índice FAISS
+5. A.5 — prueba de volatilidad
+6. B.1 — migración a ChromaDB
+7. B.2 — límites de FAISS
+8. B.3 — evento de negocio en caliente
+9. B.4 — CLI de búsqueda híbrida
+10. B.5 — ETL y purga semántica
+11. B.6 — Killer Queries
+12. C.1 — coherencia con la Entrega 1
+13. C.2 — umbral de aceptación
+14. C.3 — conexión con el orquestador
+15. cierre transversal del repositorio
 
 Este orden mantiene una lógica de dependencia real: primero hay que construir y limpiar el conocimiento; después indexarlo, consultarlo, validarlo y finalmente cerrar la documentación.
 
@@ -235,11 +297,12 @@ La entrega se considera cerrada cuando se cumplen estas condiciones:
 
 - existe `base_conocimiento.json` con al menos 15 documentos del dominio y metadatos claros,
 - la base se limpió con ETL y casi-duplicados,
-- FAISS está persistido en disco y se validó la similitud coseno,
+- FAISS está persistido en disco, se validó la similitud coseno y se hizo la prueba de volatilidad,
 - ChromaDB está operando con persistencia y filtros nativos `where`,
-- el pipeline vectorial consulta documentos relevantes y funciona en casos reales,
+- están documentados los tres límites de FAISS y su resolución con ChromaDB,
+- la CLI combina consulta semántica y filtros nativos sin post-filtering,
 - se ejecutaron 3 Killer Queries con evidencia documentada,
-- se generó `informe_entrega2.md` y `resultados_killer_queries.md`,
+- se generaron `informe_entrega2.md`, `resultados_killer_queries.md` y el reporte del ETL,
 - no hay claves, `.index` ni bases vectoriales en el repositorio.
 
 ---
