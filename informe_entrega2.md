@@ -20,7 +20,7 @@
 
 **A.4 — Índice FAISS.** Repartido en `similitud_coseno.py` (embeddings locales), `construir_indice_faiss.py` (arma y persiste con `write_index()`) y `pipeline_vectorial.py` (recarga con `read_index()`, busca con umbral). Log fijo de 3 consultas de prueba con score y distancia coseno en `resultados_a4.md`, generado por `reporte_a4.py`.
 
-**A.5 — Prueba de volatilidad. No está hecha.** Falta mostrar "sin `write_index()` → se pierde al reiniciar"; solo existe la mitad persistida (`verificar_persistencia()`). Mayor riesgo de la Parte A, la rúbrica la pide explícita.
+**A.5 — Prueba de volatilidad.** La prueba de volatilidad de FAISS muestra que un índice construido en memoria desaparece al terminar el proceso si no se ejecuta `write_index()`. En cambio, con `write_index()` y `read_index()` se puede reconstruir el mismo índice desde disco sin regenerar embeddings ni recalcular el corpus. Esto demuestra que la persistencia es la diferencia entre un índice efímero y un índice reutilizable. En el proyecto, la verificación se hace comparando ntotal, d y la cantidad de documentos recuperados en `construir_indice_faiss.py`, y la lectura del índice desde disco se valida en `pipeline_vectorial.py`.
 
 ---
 

@@ -99,12 +99,14 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 
 ### A.5 — Prueba destructiva de volatilidad de FAISS
 **Esfuerzo:** Major
-**Objetivo:** demostrar con evidencia qué ocurre con el índice en RAM y con el índice persistido.
+**Objetivo:** demostrar con evidencia experimental qué ocurre con el índice en memoria RAM y con el índice persistido en disco.
 **Incluye:**
-- construir un índice sin `write_index()` y demostrar que se pierde al reiniciar
-- construir otro con `write_index()` y recargarlo con `read_index()` sin regenerar embeddings
-- documentar el impacto de un reinicio y de múltiples servidores
-**Entregable:** evidencia de volatilidad y persistencia en `informe_entrega2.md`.
+- construir un índice en memoria sin `write_index()` y verificar que se pierde al reiniciar el proceso o el entorno
+- construir un segundo índice con `write_index()` y recargarlo con `read_index()` sin regenerar embeddings
+- comparar resultados top-K, reproducibilidad y consistencia entre la versión volátil y la persistida
+- documentar el impacto de un reinicio de proceso, un reinicio del host y la coexistencia de múltiples servidores o instancias sobre el mismo corpus
+- dejar evidencia concreta de que la persistencia permite reconstruir el índice sin volver a calcularlo desde cero
+**Entregable:** evidencia de volatilidad y persistencia documentada en `informe_entrega2.md`.
 **Dependencias:** A.4.
 **Commit sugerido:** `test: demuestra volatilidad y persistencia de FAISS`
 
@@ -146,25 +148,26 @@ La entrega mantiene la misma arquitectura híbrida que definimos en la primera e
 
 ### B.4 — CLI de búsqueda híbrida
 **Esfuerzo:** Major
-**Objetivo:** combinar consulta semántica con filtros duros mediante operadores nativos.
+**Objetivo:** combinar relevancia semántica con filtros de negocio sin post-filtering manual.
 **Incluye:**
-- función de búsqueda del dominio con consulta, filtro, `solo_activos` y cantidad
-- uso de `query_texts` o embeddings más filtros dentro de `where`
-- operadores nativos como `$and` y `$eq`
-- prohibición de post-filtering manual en Python
-**Entregable:** CLI de búsqueda híbrida en `vector_db.py`.
+- función de búsqueda del dominio con `consulta`, `filtro`, `solo_activos` y `cantidad`
+- uso de embeddings + `where` dentro de ChromaDB, sin aplicar filtros en Python después del query
+- operadores nativos como `$and`, `$eq` y validación de estados del negocio (`activo`, `categoria`, etc.)
+- soporte explícito para `solo_activos` como atajo de `{"activo": {"$eq": True}}`
+- mantener la API determinista y reutilizable para el resto del pipeline
+**Entregable:** búsqueda híbrida operativa en `vector_db.py`.
 **Dependencias:** B.1.
 **Commit sugerido:** `feat: agrega busqueda hibrida con filtros nativos`
 
 ### B.6 — Killer queries y validación de recuperación
 **Esfuerzo:** Major
-**Objetivo:** medir la calidad del sistema con tres consultas críticas del negocio.
+**Objetivo:** medir la calidad real del sistema con tres consultas críticas del dominio y fijar un umbral de aceptación defendible.
 **Incluye:**
-- definir 3 “Killer Queries” basadas en intentos reales del dominio
-- ejecutar consultas sobre FAISS/ChromaDB
+- definir 3 “Killer Queries” basadas en intenciones reales del negocio
+- ejecutar consultas sobre FAISS/ChromaDB y comparar resultados semánticos con filtros reales
 - evaluar relevancia, precisión y utilidad del contexto recuperado
 - documentar resultados en `resultados_killer_queries.md`
-- decidir umbral de aceptación justificado
+- justificar un umbral de aceptación y una respuesta de “no tengo esa información” cuando no hay coincidencias suficientes
 **Entregable:** validación de recuperación con evidencia numérica y cualitativa.
 **Dependencias:** B.3 y B.4.
 **Commit sugerido:** `feat: ejecuta y documenta killer queries`
