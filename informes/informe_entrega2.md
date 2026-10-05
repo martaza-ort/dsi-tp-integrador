@@ -42,7 +42,7 @@ La tabla refleja el uso real del proyecto: FAISS resuelve la similitud semántic
 
 **B.4 — Búsqueda híbrida.** `buscar(consulta, cantidad, donde)` manda el filtro directo al `where` — cero post-filtering en Python. El estado se representa como el booleano canónico `activo`, y los operadores `$and` y `$eq` se aplican dentro de ChromaDB.
 
-**B.5 — ETL y purga semántica.** `etl_purga.py` normaliza el contrato canónico, convierte `activo` a booleano, mueve los campos filtrables a `metadatos`, resuelve la colisión de IDs y vectoriza los documentos para comparar distancia coseno. Con umbral `0.15`, elimina los casi-duplicados documentados en `docs-resultados/resultados_etl.md` y explica por qué `SELECT DISTINCT` no los habría detectado.
+**B.5 — ETL y purga semántica.** `etl_purga.py` normaliza el contrato canónico, convierte `activo` a booleano, mueve los campos filtrables a `metadatos`, resuelve la colisión de IDs y vectoriza los documentos para comparar distancia coseno. El umbral inicial `0.15` equivale a similitud coseno `>= 0.85`: captura los dos pares controlados del mismo producto (`0.1440` y `0.1177`), con `0.0060` de margen sobre el más distante. No se presenta como óptimo porque faltan pares negativos etiquetados para medir falsos positivos; esa limitación y el plan de calibración quedan documentados en `docs-resultados/resultados_etl.md`. También explica por qué `SELECT DISTINCT` no habría detectado estos casi-duplicados.
 
 **B.6 — Killer Queries.** Corridas en `killer_queries.py` y documentadas en `docs-resultados/resultados_killer_queries.md`. La tercera consulta no se marca como aprobada: el falso positivo supera el umbral y queda registrado como limitación real del corpus, tal como exige la consigna.
 

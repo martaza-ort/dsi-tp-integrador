@@ -224,6 +224,40 @@ def escribir_reporte(
         f"{item['distancia_coseno']} | {item['motivo']} |"
         for item in eliminados
     ) or "| Ninguno | - | - | - |"
+    distancias_eliminadas = [
+        float(item["distancia_coseno"])
+        for item in eliminados
+    ]
+    if distancias_eliminadas:
+        distancia_maxima = max(distancias_eliminadas)
+        margen_umbral = DISTANCIA_UMBRAL - distancia_maxima
+        pares_eliminados = ", ".join(
+            f"`{item['id_eliminado']}` vs. `{item['id_conservado']}` "
+            f"(`{float(item['distancia_coseno']):.4f}`)"
+            for item in eliminados
+        )
+        justificacion_umbral = (
+            f"La distancia coseno se calcula como `1 - similitud`; por eso, "
+            f"el umbral `{DISTANCIA_UMBRAL}` equivale a exigir similitud "
+            f"coseno >= `{1 - DISTANCIA_UMBRAL:.2f}`. En este corpus, los dos "
+            f"casos controlados corresponden a variantes del mismo producto "
+            f"(vasos de bagazo de 12 oz): {pares_eliminados}. El mayor valor "
+            f"observado es `{distancia_maxima:.4f}`; "
+            f"el corte queda `{margen_umbral:.4f}` por encima y captura ambos. "
+            "Este margen describe el ajuste a los ejemplos sembrados, no una "
+            "frontera universal de duplicidad. Como todavía no hay pares "
+            "negativos etiquetados, no se puede estimar la tasa de falsos "
+            "positivos ni afirmar que el valor sea óptimo. Se considera un "
+            "umbral inicial para este corpus, modelo y formato de texto; antes "
+            "de ampliarlo conviene evaluarlo con pares positivos y negativos "
+            "revisados, medir falsos positivos y falsos negativos, y recalibrarlo."
+        )
+    else:
+        justificacion_umbral = (
+            "No se detectaron casos eliminados para calibrar el umbral en esta "
+            "corrida. El valor debe considerarse inicial y validarse con pares "
+            "positivos y negativos etiquetados."
+        )
 
     contenido = f"""# Reporte de ETL y purga semántica
 
@@ -234,6 +268,10 @@ def escribir_reporte(
 - Umbral de distancia coseno: `{DISTANCIA_UMBRAL}`
 - Regla: se conserva el primer documento válido y se elimina el posterior
   cuando la distancia coseno es menor o igual al umbral.
+
+## Justificación y alcance del umbral
+
+{justificacion_umbral}
 
 ## Correcciones estructurales
 
