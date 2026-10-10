@@ -5,14 +5,14 @@
 Cambio de politica comercial y de oferta de EcoLogix:
 
 1. **Revalidacion del catalogo**: todos los productos pasan a tener
-  metadata `activo: true` (mantenimiento del stock).
+    metadata `activo: true` (mantenimiento del stock).
 2. Los **sorbetes de papel** (`doc-004`) se **discontinuan** por la
    nueva politica ambiental: su texto pasa a indicar que el producto
    queda fuera de catalogo y su metadata se marca
-  `activo: false`.
+    `activo: false`.
 3. Entra en catalogo el reemplazo activo, los **sorbetes compostables
    de bagazo** (`doc-019`, SKU `ECO-SOR-BAGAZO`), con
-  `activo: true`.
+    `activo: true`.
 
 Los cambios se aplican en caliente con `upsert` de ChromaDB, solo
 sobre los documentos afectados, sin reconstruir toda la base.
@@ -66,7 +66,7 @@ recuperacion vectorial:
   contenido ahora describe un producto fuera de catalogo. El
   reemplazo activo `doc-019` entra en el top de resultados.
 - **Reglas de negocio via filtros nativos**: con el filtro
-  `where={"activo": true}` aplicado en la base (sin
+    `where={"activo": true}` aplicado en la base (sin
   post-filtering), el producto discontinuado queda garantizado fuera
   de toda recomendacion, y para la consulta de sorbetes el resultado
   correcto (`doc-019`) lidera la recuperacion.
