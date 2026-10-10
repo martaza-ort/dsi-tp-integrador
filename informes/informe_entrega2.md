@@ -20,7 +20,7 @@
 
 **A.4 — Índice FAISS.** Repartido en `similitud_coseno.py` (embeddings locales), `construir_indice_faiss.py` (arma y persiste con `write_index()`) y `pipeline_vectorial.py` (recarga con `read_index()`, busca con umbral). Log fijo de 3 consultas de prueba con score y distancia coseno en `docs-resultados/resultados_a4.md`, generado por `reporte_a4.py`.
 
-**A.5 — Prueba de volatilidad.** La prueba de volatilidad de FAISS muestra que un índice construido en memoria desaparece al terminar el proceso si no se ejecuta `write_index()`. En cambio, con `write_index()` y `read_index()` se puede reconstruir el mismo índice desde disco sin regenerar embeddings ni recalcular el corpus. Esto demuestra que la persistencia es la diferencia entre un índice efímero y un índice reutilizable. En el proyecto, la verificación se hace comparando ntotal, d y la cantidad de documentos recuperados en `construir_indice_faiss.py`, y la lectura del índice desde disco se valida en `pipeline_vectorial.py`.
+**A.5 — Prueba de volatilidad.** Evidencia real (no solo narrativa) en `docs-resultados/resultados_a5_volatilidad.md`, generada por `prueba_volatilidad.py`: sin `write_index()`, el índice vive solo en RAM y al simular el reinicio del proceso el archivo no existe (`faiss.read_index()` falla), así que hay que regenerar los embeddings de cero. Con `write_index()`, el mismo escenario recarga el índice desde disco con idéntico `ntotal` (20) y dimensión (384), sin volver a llamar `generar_embeddings()`. Incluye además la reflexión pedida sobre qué pasa si el servidor se reinicia y qué pasa si hay dos servidores (FAISS no resuelve la concurrencia por sí solo; ChromaDB con `PersistentClient` sí, ver B.2).
 
 ---
 
