@@ -1,0 +1,66 @@
+{
+  "descripcion": "Golden dataset de EcoLogix (Entrega 3, C.1). Se reutiliza en las Entregas 4 y 5. Las respuestas esperadas salen de base_conocimiento_limpia.json; las de escape usan la frase de escape del prompt.",
+  "frase_escape": "No poseo información sobre eso en la base de conocimiento de EcoLogix.",
+  "preguntas": [
+    {
+      "id": "gd-01",
+      "categoria": "simple",
+      "pregunta": "¿De qué material son las bolsas compostables de 40x50 y cuántas trae cada caja?",
+      "referencia": "Son de PLA, un bioplástico de origen vegetal que se degrada en compostaje industrial, y se venden por caja de 500 unidades."
+    },
+    {
+      "id": "gd-02",
+      "categoria": "simple",
+      "pregunta": "¿Las tapas vienen incluidas en la caja de vasos de bagazo de 12 oz?",
+      "referencia": "No, las tapas no vienen incluidas en la caja de vasos de bagazo de 12 oz."
+    },
+    {
+      "id": "gd-03",
+      "categoria": "simple",
+      "pregunta": "¿En qué estados puede estar un ticket de reclamo por entrega?",
+      "referencia": "El ticket nace en estado ABIERTO, pasa a EN_REVISION mientras se analiza y termina como RESUELTO o RECHAZADO."
+    },
+    {
+      "id": "gd-04",
+      "categoria": "compleja",
+      "pregunta": "Si pido 20 cajas de vasos de bagazo de 12 oz y un bulto de sorbetes de papel, ¿cuántas unidades recibo de cada producto?",
+      "referencia": "Los vasos de bagazo de 12 oz vienen por caja de 1000 unidades, así que 20 cajas son 20.000 vasos; los sorbetes de papel vienen por bulto de 2000 unidades, así que un bulto son 2000 sorbetes."
+    },
+    {
+      "id": "gd-05",
+      "categoria": "compleja",
+      "pregunta": "¿Qué diferencia hay entre retirar el pedido por el depósito y pedir entrega a domicilio?",
+      "referencia": "Para retirar por el depósito el pedido tiene que estar confirmado y con la mercadería reservada, y el cliente se presenta con el número de pedido en el horario de atención; suele ser la opción más rápida. La entrega a domicilio depende de la cobertura de la zona: las zonas con ruta programada reciben entregas en días fijos, las zonas sin ruta requieren coordinación previa con logística, y el envío pasa por los estados PENDIENTE, EN_CAMINO y ENTREGADO."
+    },
+    {
+      "id": "gd-06",
+      "categoria": "compleja",
+      "pregunta": "Si mi pedido no llega al mínimo de compra y además mi zona no tiene cobertura de entrega, ¿qué hace el sistema?",
+      "referencia": "No rechaza el pedido en silencio: por el mínimo de compra avisa al cliente y le ofrece sumar productos o derivar la consulta a un vendedor, y por la zona sin cobertura deriva el pedido a revisión comercial para ofrecer una alternativa, como el retiro por depósito."
+    },
+    {
+      "id": "gd-07",
+      "categoria": "escape",
+      "pregunta": "¿Cuánto cuesta una caja de vasos de bagazo de 12 oz?",
+      "referencia": "No poseo información sobre eso en la base de conocimiento de EcoLogix."
+    },
+    {
+      "id": "gd-08",
+      "categoria": "escape",
+      "pregunta": "¿Venden servilletas de papel reciclado?",
+      "referencia": "No poseo información sobre eso en la base de conocimiento de EcoLogix."
+    },
+    {
+      "id": "gd-09",
+      "categoria": "informal",
+      "pregunta": "che, tenés pajitas de papel? de a cuántas vienen?",
+      "referencia": "Sí, EcoLogix vende sorbetes de papel, que los clientes también llaman pajitas, y se venden por bulto de 2000 unidades."
+    },
+    {
+      "id": "gd-10",
+      "categoria": "informal",
+      "pregunta": "me llegó todo roto el pedido, me devuelven la plata?",
+      "referencia": "Hay que hacer un reclamo: se abre un ticket asociado al número de pedido y conviene adjuntar una foto de la mercadería dañada. Devolver dinero, emitir una nota de crédito o reponer sin cargo requiere revisión humana; el sistema no lo puede prometer."
+    }
+  ]
+}
