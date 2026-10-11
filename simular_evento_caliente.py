@@ -116,12 +116,17 @@ def formatear_ranking(resultados: list[dict]) -> list[dict]:
     ]
 
 
-def consultar(base: BaseVectorial, donde: dict | None = None) -> list[dict]:
+def consultar(
+    base: BaseVectorial,
+    filtro_x: dict | None = None,
+    solo_activos: bool = False,
+) -> list[dict]:
     return formatear_ranking(
-        base.buscar(
-            consulta=CONSULTA,
-            cantidad=5,
-            donde=donde,
+        base.buscar_ecologix(
+            query_semantica=CONSULTA,
+            filtro_x=filtro_x,
+            solo_activos=solo_activos,
+            n_resultados=5,
         )
     )
 
@@ -269,12 +274,8 @@ def main() -> None:
 
     ranking_filtrado = consultar(
         base,
-            donde={
-                "$and": [
-                    {"categoria": {"$eq": "sorbetes"}},
-                    {"activo": {"$eq": True}},
-                ]
-            },
+        filtro_x={"categoria": {"$eq": "sorbetes"}},
+        solo_activos=True,
     )
     print("\nRanking despues del evento (filtro categoria=sorbetes y activo=true):")
     for puesto, item in enumerate(ranking_filtrado, start=1):
@@ -286,12 +287,8 @@ def main() -> None:
     base_reabierta = BaseVectorial()
     ranking_persistido = consultar(
         base_reabierta,
-            donde={
-                "$and": [
-                    {"categoria": {"$eq": "sorbetes"}},
-                    {"activo": {"$eq": True}},
-                ]
-            },
+        filtro_x={"categoria": {"$eq": "sorbetes"}},
+        solo_activos=True,
     )
 
     escribir_evidencia(

@@ -28,7 +28,8 @@ sobre los documentos afectados, sin reconstruir toda la base.
 | 1 | doc-004 | Sorbetes de papel | 0.4631 |
 | 2 | doc-019 | Vasos compostables para cafe | 0.4599 |
 | 3 | doc-013 | Bolsas de papel kraft para comercio | 0.4309 |
-| 4 | doc-002 | Vasos de bagazo 12 oz | 0.3987 |
+| 4 | doc-017 | Jerga comercial del dominio | 0.4106 |
+| 5 | doc-002 | Vasos de bagazo 12 oz | 0.3987 |
 
 ## Resultados despues del evento (sin filtro)
 
@@ -36,14 +37,14 @@ sobre los documentos afectados, sin reconstruir toda la base.
 |--------|----|-----------|-----------|
 | 1 | doc-019 | Vasos compostables para cafe | 0.4599 |
 | 2 | doc-013 | Bolsas de papel kraft para comercio | 0.4309 |
-| 3 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
+| 3 | doc-017 | Jerga comercial del dominio | 0.4106 |
 | 4 | doc-002 | Vasos de bagazo 12 oz | 0.3987 |
+| 5 | doc-001 | Bolsas compostables 40x50 cm | 0.3706 |
 
 ## Resultados despues del evento (filtro nativo `activo=true`)
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
-| 1 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
 
 ## Persistencia del nuevo estado
 
@@ -52,7 +53,6 @@ filtro `activo=true` y el ranking se mantuvo identico:
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
-| 1 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
 
 ## Analisis
 

@@ -11,7 +11,7 @@ definido: **0.35** (ver justificación al final).
 |---:|---|---|---|---|---|
 | 1 | Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje | Poder semántico | `doc-005` primero y por encima de `0.35` | `doc-005` (0.6202) | Sí |
 | 2 | Necesito sorbetes para mi kiosco, que esten disponibles en stock | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-022` primero | Sin filtro: `doc-019` (0.4599); con filtro: `doc-022` (0.4277) | Sí |
-| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | `doc-013` (0.335); rechazada solo por el umbral semántico, sin la regla de vocabulario | Sí |
+| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral 0.35 el sistema devuelve `doc-017` (0.3735) (ancla 0.2852) | No (hallazgo documentado) |
 
 
 ## 1 — Poder semántico: jerga sin palabras exactas del documento
@@ -61,7 +61,8 @@ resultado.
 1. `doc-019` Vasos compostables para cafe — similitud: 0.4599
 2. `doc-013` Bolsas de papel kraft para comercio — similitud: 0.4309
 3. `doc-022` Sorbetes compostables de bagazo — similitud: 0.4277
-4. `doc-002` Vasos de bagazo 12 oz — similitud: 0.3987
+4. `doc-017` Jerga comercial del dominio — similitud: 0.4106
+5. `doc-002` Vasos de bagazo 12 oz — similitud: 0.3987
 
 **Resultado real (con filtro nativo `categoria=sorbetes AND activo=true`):**
 
@@ -85,32 +86,50 @@ telefonía.
 
 **Resultado real:**
 
-1. `doc-013` Bolsas de papel kraft para comercio — similitud: 0.335
-2. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.2991
+1. `doc-017` Jerga comercial del dominio — similitud: 0.3735
+2. `doc-013` Bolsas de papel kraft para comercio — similitud: 0.335
+3. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.2991
+4. `doc-010` Reserva de stock al confirmar pedido — similitud: 0.2455
+5. `doc-007` Mínimo de compra por cliente — similitud: 0.2455
 
-**¿Pasó?** Sí
+**¿Pasó?** No (hallazgo documentado)
 
-**Hallazgo:** la búsqueda se corrió **sin** la regla de vocabulario
-del dominio (`validar_dominio=False`) y aun así el mejor resultado
-(`doc-013`, 0.335) queda por debajo del umbral
-(0.35): la semántica sola rechaza la consulta. En la
-versión anterior del corpus, con descripciones de ~300 caracteres, esta
-misma consulta daba un falso positivo de 0.4874 sobre `doc-013`; al
-enriquecer las descripciones (A.3), los documentos dejaron de
-compartir solo vocabulario comercial genérico y el margen se volvió
-semántico. El margen es chico (0.015), así que el umbral sigue
-siendo frágil frente a consultas nuevas.
+**Hallazgo:** el resultado con mayor similitud (`doc-017`,
+0.3735) **supera** el umbral definido
+(0.35), a pesar de ser completamente irrelevante al
+pedido. La causa es semántica: el corpus es chico y varios textos
+comparten vocabulario comercial genérico ("comercio", "accesorios",
+"clientes"), así que la consulta aterriza cerca de un producto de
+otra familia. Forzar ese resultado como respuesta sería alucinación.
 
-**Mitigación aplicada:** `vector_db.py` valida que la consulta tenga
-vocabulario del dominio EcoLogix y que el mejor resultado supere el
-umbral de aceptación `0.35`. Si la consulta parece
-fuera de dominio o ningún resultado alcanza el umbral, devuelve una
-lista vacía para que el sistema responda "no tengo esa información".
-Además, el filtro `where` nativo valida `categoria` y `activo` antes
-de aceptar resultados, sin post-filtering manual. Queda anotado como
-límite conocido del corpus y del modelo para la Entrega 3, en la misma
-línea que los umbrales de confianza de la Entrega 1 (revalidar con uso
-real).
+**Por qué se quitó el filtro de palabras.** Antes esta consulta
+devolvía "no tengo esa información" por un portero que exigía
+vocabulario del dominio. Se midió su comportamiento y no resolvía el
+problema: tapaba la KQ3 y además rechazaba consultas legítimas del
+propio negocio. Con 8 consultas válidas de EcoLogix, el portero
+rechazó 7, entre ellas:
+
+| Consulta válida | Mejor resultado (corpus actual) | Portero |
+|---|---|---|
+| "hay algo para servir café para llevar?" | `doc-002` (0.4759) | la rechazaba (el acento de "café" no matchea "cafe") |
+| "necesito unos pots" | `doc-019` (0.411) | la rechazaba |
+| "necesito algo para takeaway" | `doc-004` (0.4275) | la rechazaba |
+| "tengo un pedido en curso, como va?" | `doc-016` (0.4238) | la rechazaba |
+| "me llegaron unos paquetes rotos, quiero reclamar" | `doc-012` (0.4095) | la rechazaba |
+
+En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
+catálogo. Con el corpus actual, sin portero: "venden notebooks y laptops" (0.3839, supera el umbral); "busco contratos de alquiler" (0.3475, no supera el umbral). El
+balance —7 consultas legítimas tapadas contra 2 fuera de catálogo
+frenadas— es la razón del cambio.
+
+**Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
+ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
+Python. La aceptación la decide únicamente el umbral semántico
+(0.35). Cada resultado reporta además
+`similitud_ancla`: la cercanía de la consulta al centroide del corpus.
+Para esta consulta da 0.2852; 3 de las 5 consultas legítimas medidas quedan más abajo (la mínima, "necesito unos pots", da 0.2207). El ancla sirve como diagnóstico, pero no separa consultas del dominio de las de afuera, y por eso no decide la aceptación. Queda anotado como límite
+conocido del corpus y del modelo para la Entrega 3, en la misma línea
+que los umbrales de confianza de la Entrega 1.
 
 ## Umbral de aceptación — justificación
 
@@ -118,7 +137,7 @@ Sobre este corpus y este modelo de embeddings, las consultas
 genuinamente relevantes recuperan su mejor documento con similitud
 ≥ 0.4277 (killer queries 1 y 2, y los resultados de
 `resultados_evento_caliente.md`), mientras que la consulta fuera de
-dominio de la killer query 3 queda en 0.335. Se definió
+dominio de la killer query 3 queda en 0.3735. Se definió
 **0.35** como punto intermedio. La killer query 3
 muestra que ningún umbral fijo es infalible por sí solo con un
 corpus chico: cuando ninguna coincidencia supera el umbral, el

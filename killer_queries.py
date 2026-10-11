@@ -24,7 +24,7 @@ from simular_evento_caliente import (
     construir_corpus_con_evento,
     restaurar_estado_original,
 )
-from vector_db import BaseVectorial, cargar_documentos
+from vector_db import BaseVectorial, cargar_documentos, similitud_ancla
 
 
 ROOT = Path(__file__).resolve().parent
@@ -40,6 +40,25 @@ CONSULTA_1 = (
 CONSULTA_2 = "Necesito sorbetes para mi kiosco, que esten disponibles en stock"
 
 CONSULTA_3 = "Venden celulares o accesorios de telefonia?"
+
+# Consultas con las que se midió el portero por palabras clave que se
+# quitó en B.4. La columna del portero describe a la regla eliminada
+# (no depende del corpus); la similitud se vuelve a medir en cada corrida.
+CONSULTAS_VALIDAS_PORTERO = [
+    (
+        "hay algo para servir café para llevar?",
+        'la rechazaba (el acento de "café" no matchea "cafe")',
+    ),
+    ("necesito unos pots", "la rechazaba"),
+    ("necesito algo para takeaway", "la rechazaba"),
+    ("tengo un pedido en curso, como va?", "la rechazaba"),
+    ("me llegaron unos paquetes rotos, quiero reclamar", "la rechazaba"),
+]
+
+CONSULTAS_FUERA_PORTERO = [
+    "venden notebooks y laptops",
+    "busco contratos de alquiler",
+]
 
 
 def formatear(resultados: list[dict]) -> str:
@@ -88,10 +107,10 @@ def main() -> None:
 
     # --- Killer Query 1: poder semántico ------------------------------
     print("\n[1] Poder semántico (jerga sin palabras exactas)")
-    resultados_1 = base.buscar(
-        consulta=CONSULTA_1,
-        cantidad=5,
-        umbral=UMBRAL_ACEPTACION,
+    resultados_1 = base.buscar_ecologix(
+        query_semantica=CONSULTA_1,
+        solo_activos=True,
+        n_resultados=5,
     )
     for r in resultados_1:
         print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
@@ -110,16 +129,11 @@ def main() -> None:
     for r in resultados_2_sin_filtro:
         print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
 
-    resultados_2_con_filtro = base.buscar(
-        consulta=CONSULTA_2,
-        cantidad=5,
-        donde={
-            "$and": [
-                {"categoria": {"$eq": "sorbetes"}},
-                {"activo": {"$eq": True}},
-            ]
-        },
-        umbral=UMBRAL_ACEPTACION,
+    resultados_2_con_filtro = base.buscar_ecologix(
+        query_semantica=CONSULTA_2,
+        filtro_x={"categoria": {"$eq": "sorbetes"}},
+        solo_activos=True,
+        n_resultados=5,
     )
     print("  Con filtro where categoria=sorbetes AND activo=true:")
     for r in resultados_2_con_filtro:
@@ -127,11 +141,12 @@ def main() -> None:
 
     # --- Killer Query 3: prueba de estrés fuera de catálogo ------------
     print("\n[3] Prueba de estrés (fuera de catálogo)")
+    print("  similitud_ancla:", round(similitud_ancla(CONSULTA_3), 4))
+
     resultados_3 = base.buscar(
         consulta=CONSULTA_3,
         cantidad=5,
         umbral=0.0,
-        validar_dominio=False,
     )
     for r in resultados_3:
         print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
@@ -149,11 +164,29 @@ def main() -> None:
     print("\nRestaurando corpus canónico...")
     restaurar_estado_original()
 
+    # --- Re-medición de las consultas del análisis del portero --------
+    print("\n[Portero] Consultas válidas y fuera de catálogo")
+    validas = [
+        (consulta, nota, base.buscar(consulta=consulta, cantidad=1, umbral=0.0))
+        for consulta, nota in CONSULTAS_VALIDAS_PORTERO
+    ]
+    fuera = [
+        (consulta, base.buscar(consulta=consulta, cantidad=1, umbral=0.0))
+        for consulta in CONSULTAS_FUERA_PORTERO
+    ]
+    for consulta, _, r in validas:
+        print(f"  {consulta}: {resumen_resultado(r)}")
+    for consulta, r in fuera:
+        print(f"  {consulta}: {resumen_resultado(r)}")
+
     escribir_evidencia(
         resultados_1,
         resultados_2_sin_filtro,
         resultados_2_con_filtro,
         resultados_3,
+        resultados_3_aceptados,
+        validas,
+        fuera,
     )
 
 
@@ -162,6 +195,9 @@ def escribir_evidencia(
     r2_sin: list[dict],
     r2_con: list[dict],
     r3: list[dict],
+    r3_aceptados: list[dict],
+    validas: list[tuple[str, str, list[dict]]],
+    fuera: list[tuple[str, list[dict]]],
 ) -> None:
     top1_r1 = r1[0]["similitud"] if r1 else 0
     paso_1 = "Sí" if r1 and r1[0]["id"] == "doc-005" and top1_r1 >= UMBRAL_ACEPTACION else "No"
@@ -182,31 +218,54 @@ def escribir_evidencia(
     # "Pasa" la prueba si el sistema NO acepta ese resultado, es decir si
     # el falso positivo queda documentado como hallazgo (no oculto).
     paso_3 = "No (hallazgo documentado)" if falso_positivo else "Sí"
-    resultado_3 = (
-        "la regla de vocabulario del dominio devuelve vacío"
-        if falso_positivo
-        else "rechazada solo por el umbral semántico, sin la regla de vocabulario"
-    )
+    ancla_3 = round(similitud_ancla(CONSULTA_3), 4)
     if falso_positivo:
         hallazgo_3 = f"""**Hallazgo:** el resultado con mayor similitud (`{top1_r3['id']}`,
 {top1_r3['similitud']}) **supera** el umbral definido
 ({UMBRAL_ACEPTACION}), a pesar de ser completamente irrelevante al
-pedido. El corpus es chico (20 documentos) y varios textos comparten
-vocabulario comercial genérico ("comercio", "premium", "accesorios",
-"clientes"), lo que hace que un embedding semántico local pueda
-generar falsos positivos con consultas cortas y vagas. Forzar el
-resultado más cercano en este caso sería alucinación."""
+pedido. La causa es semántica: el corpus es chico y varios textos
+comparten vocabulario comercial genérico ("comercio", "accesorios",
+"clientes"), así que la consulta aterriza cerca de un documento de
+otra familia. Forzar ese resultado como respuesta sería alucinación."""
     else:
-        hallazgo_3 = f"""**Hallazgo:** la búsqueda se corrió **sin** la regla de vocabulario
-del dominio (`validar_dominio=False`) y aun así el mejor resultado
-(`{top1_r3['id'] if top1_r3 else '-'}`, {top1_r3['similitud'] if top1_r3 else '-'}) queda por debajo del umbral
-({UMBRAL_ACEPTACION}): la semántica sola rechaza la consulta. En la
-versión anterior del corpus, con descripciones de ~300 caracteres, esta
-misma consulta daba un falso positivo de 0.4874 sobre `doc-013`; al
-enriquecer las descripciones (A.3), los documentos dejaron de
-compartir solo vocabulario comercial genérico y el margen se volvió
-semántico. El margen es chico ({UMBRAL_ACEPTACION - top1_r3['similitud']:.3f}), así que el umbral sigue
-siendo frágil frente a consultas nuevas."""
+        hallazgo_3 = f"""**Hallazgo:** sin ningún portero por palabras clave, el mejor
+resultado (`{top1_r3['id'] if top1_r3 else '-'}`, {top1_r3['similitud'] if top1_r3 else '-'}) queda por debajo del umbral
+({UMBRAL_ACEPTACION}): la semántica sola rechaza la consulta. Con las
+descripciones originales de ~300 caracteres esta misma consulta daba
+un falso positivo de 0.4874 sobre `doc-013`; al enriquecer el corpus
+(A.3), los documentos dejaron de parecerse solo por vocabulario
+comercial genérico. El margen es chico
+({UMBRAL_ACEPTACION - (top1_r3['similitud'] if top1_r3 else 0):.3f}), así que el umbral
+sigue siendo frágil frente a consultas nuevas."""
+
+    filas_validas = "\n".join(
+        f'| "{consulta}" | {resumen_resultado(r)} | {nota} |'
+        for consulta, nota, r in validas
+    )
+    fuera_texto = "; ".join(
+        f'"{consulta}" ({r[0]["similitud"] if r else "-"}, '
+        f'{"supera" if r and r[0]["similitud"] >= UMBRAL_ACEPTACION else "no supera"} el umbral)'
+        for consulta, r in fuera
+    )
+    anclas_validas = [
+        (round(similitud_ancla(consulta), 4), consulta)
+        for consulta, _, _ in validas
+    ]
+    menores = [item for item in anclas_validas if item[0] < ancla_3]
+    if menores:
+        ancla_min, consulta_min = min(menores)
+        texto_ancla = (
+            f"{len(menores)} de las {len(anclas_validas)} consultas legítimas "
+            f'medidas quedan más abajo (la mínima, "{consulta_min}", da '
+            f"{ancla_min}). El ancla sirve como diagnóstico, pero no separa "
+            "consultas del dominio de las de afuera, y por eso no decide la "
+            "aceptación."
+        )
+    else:
+        texto_ancla = (
+            "es la más baja entre las consultas legítimas medidas, lo que "
+            "confirma el diagnóstico sin tapar el veredicto."
+        )
 
     relevantes = [r[0]["similitud"] for r in (r1, r2_con) if r]
     minimo_relevante = min(relevantes) if relevantes else "-"
@@ -217,7 +276,7 @@ siendo frágil frente a consultas nuevas."""
 |---:|---|---|---|---|---|
 | 1 | {CONSULTA_1} | Poder semántico | `doc-005` primero y por encima de `{UMBRAL_ACEPTACION}` | {resumen_resultado(r1)} | {paso_1} |
 | 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-022` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
-| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | {resumen_resultado(r3)}; {resultado_3} | {paso_3} |
+| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral {UMBRAL_ACEPTACION} el sistema devuelve {resumen_resultado(r3_aceptados)} (ancla {ancla_3}) | {paso_3} |
 """
 
     contenido = f"""# Killer Queries — EcoLogix (Entrega 2, B.6)
@@ -299,16 +358,30 @@ telefonía.
 
 {hallazgo_3}
 
-**Mitigación aplicada:** `vector_db.py` valida que la consulta tenga
-vocabulario del dominio EcoLogix y que el mejor resultado supere el
-umbral de aceptación `{UMBRAL_ACEPTACION}`. Si la consulta parece
-fuera de dominio o ningún resultado alcanza el umbral, devuelve una
-lista vacía para que el sistema responda "no tengo esa información".
-Además, el filtro `where` nativo valida `categoria` y `activo` antes
-de aceptar resultados, sin post-filtering manual. Queda anotado como
-límite conocido del corpus y del modelo para la Entrega 3, en la misma
-línea que los umbrales de confianza de la Entrega 1 (revalidar con uso
-real).
+**Por qué se quitó el filtro de palabras.** Antes esta consulta
+devolvía "no tengo esa información" por un portero que exigía
+vocabulario del dominio. Se midió su comportamiento y no resolvía el
+problema: tapaba la KQ3 y además rechazaba consultas legítimas del
+propio negocio. Con 8 consultas válidas de EcoLogix, el portero
+rechazó 7, entre ellas:
+
+| Consulta válida | Mejor resultado (corpus actual) | Portero |
+|---|---|---|
+{filas_validas}
+
+En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
+catálogo. Con el corpus actual, sin portero: {fuera_texto}. El
+balance —7 consultas legítimas tapadas contra 2 fuera de catálogo
+frenadas— es la razón del cambio.
+
+**Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
+ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
+Python. La aceptación la decide únicamente el umbral semántico
+({UMBRAL_ACEPTACION}). Cada resultado reporta además
+`similitud_ancla`: la cercanía de la consulta al centroide del corpus.
+Para esta consulta da {ancla_3}; {texto_ancla} Queda anotado como límite
+conocido del corpus y del modelo para la Entrega 3, en la misma línea
+que los umbrales de confianza de la Entrega 1.
 
 ## Umbral de aceptación — justificación
 
