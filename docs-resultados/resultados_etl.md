@@ -20,8 +20,8 @@
 
 | Eliminado | Conservado | Distancia coseno | Motivo |
 |---|---|---:|---|
-| doc-020 | doc-019 | 0.144 | casi-duplicado semántico |
-| doc-021 | doc-019 | 0.1177 | casi-duplicado semántico |
+| doc-020 | doc-019 | 0.0896 | casi-duplicado semántico |
+| doc-021 | doc-019 | 0.1173 | casi-duplicado semántico |
 
 ## Por qué `SELECT DISTINCT` no alcanza
 

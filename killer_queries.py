@@ -98,7 +98,7 @@ def main() -> None:
 
     # --- Killer Query 2: el metadato salva el día ----------------------
     print("\n[2] El metadato salva el día (evento en caliente)")
-    print("  Aplicando evento: doc-004 discontinuado, doc-019 activo...")
+    print("  Aplicando evento: doc-004 discontinuado, doc-022 activo...")
     base.indexar_documentos(construir_corpus_con_evento(cargar_documentos()))
 
     resultados_2_sin_filtro = base.buscar(
@@ -170,9 +170,9 @@ def escribir_evidencia(
     top1_con = r2_con[0] if r2_con else None
     metadato_salva = bool(
         top1_sin
-        and top1_sin["id"] != "doc-019"
+        and top1_sin["id"] != "doc-022"
         and top1_con
-        and top1_con["id"] == "doc-019"
+        and top1_con["id"] == "doc-022"
     )
     paso_2 = "Sí" if metadato_salva else "No"
 
@@ -182,14 +182,42 @@ def escribir_evidencia(
     # "Pasa" la prueba si el sistema NO acepta ese resultado, es decir si
     # el falso positivo queda documentado como hallazgo (no oculto).
     paso_3 = "No (hallazgo documentado)" if falso_positivo else "Sí"
+    resultado_3 = (
+        "la regla de vocabulario del dominio devuelve vacío"
+        if falso_positivo
+        else "rechazada solo por el umbral semántico, sin la regla de vocabulario"
+    )
+    if falso_positivo:
+        hallazgo_3 = f"""**Hallazgo:** el resultado con mayor similitud (`{top1_r3['id']}`,
+{top1_r3['similitud']}) **supera** el umbral definido
+({UMBRAL_ACEPTACION}), a pesar de ser completamente irrelevante al
+pedido. El corpus es chico (20 documentos) y varios textos comparten
+vocabulario comercial genérico ("comercio", "premium", "accesorios",
+"clientes"), lo que hace que un embedding semántico local pueda
+generar falsos positivos con consultas cortas y vagas. Forzar el
+resultado más cercano en este caso sería alucinación."""
+    else:
+        hallazgo_3 = f"""**Hallazgo:** la búsqueda se corrió **sin** la regla de vocabulario
+del dominio (`validar_dominio=False`) y aun así el mejor resultado
+(`{top1_r3['id'] if top1_r3 else '-'}`, {top1_r3['similitud'] if top1_r3 else '-'}) queda por debajo del umbral
+({UMBRAL_ACEPTACION}): la semántica sola rechaza la consulta. En la
+versión anterior del corpus, con descripciones de ~300 caracteres, esta
+misma consulta daba un falso positivo de 0.4874 sobre `doc-013`; al
+enriquecer las descripciones (A.3), los documentos dejaron de
+compartir solo vocabulario comercial genérico y el margen se volvió
+semántico. El margen es chico ({UMBRAL_ACEPTACION - top1_r3['similitud']:.3f}), así que el umbral sigue
+siendo frágil frente a consultas nuevas."""
+
+    relevantes = [r[0]["similitud"] for r in (r1, r2_con) if r]
+    minimo_relevante = min(relevantes) if relevantes else "-"
 
     tabla_b6 = f"""## Tabla consolidada B.6
 
 | # | Consulta | Qué pone a prueba | Resultado esperado | Resultado real | ¿Pasó? |
 |---:|---|---|---|---|---|
 | 1 | {CONSULTA_1} | Poder semántico | `doc-005` primero y por encima de `{UMBRAL_ACEPTACION}` | {resumen_resultado(r1)} | {paso_1} |
-| 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-019` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
-| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | {resumen_resultado(r3)}; la regla de dominio devuelve vacío | {paso_3} |
+| 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-022` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
+| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | {resumen_resultado(r3)}; {resultado_3} | {paso_3} |
 """
 
     contenido = f"""# Killer Queries — EcoLogix (Entrega 2, B.6)
@@ -223,20 +251,20 @@ en el primer puesto, por encima del umbral.
 
 **Qué pone a prueba:** que un filtro nativo `where` corrija lo que
 la semántica cruda haría mal. Tras simular el evento en caliente
-(`doc-004` sorbetes de papel discontinuado, `doc-019` sorbetes de
+(`doc-004` sorbetes de papel discontinuado, `doc-022` sorbetes de
 bagazo activos como reemplazo), la respuesta correcta a "necesito
-sorbetes disponibles" es `doc-019`. Pero por similitud pura, sin
+sorbetes disponibles" es `doc-022`. Pero por similitud pura, sin
 ningún filtro de categoría, productos de otras familias (bolsas,
-vasos, bolsas de papel kraft) empatan o superan a `doc-019` en el
+vasos, bolsas de papel kraft) empatan o superan a `doc-022` en el
 ranking — la semántica cruda no sabe que el cliente pidió
 específicamente sorbetes.
 
 > {CONSULTA_2}
 
-**Resultado esperado:** sin filtro, `doc-019` queda mezclado (o
+**Resultado esperado:** sin filtro, `doc-022` queda mezclado (o
 directamente superado) por productos de otras categorías; con el
 filtro nativo `where={{"categoria": "sorbetes", "activo": true}}`,
-sólo queda `doc-019` — el único sorbete activo — al frente del
+sólo queda `doc-022` — el único sorbete activo — al frente del
 resultado.
 
 **Resultado real (sin filtro):**
@@ -269,14 +297,7 @@ telefonía.
 
 **¿Pasó?** {paso_3}
 
-**Hallazgo:** el resultado con mayor similitud (`{r3[0]['id'] if r3 else '-'}`,
-{r3[0]['similitud'] if r3 else '-'}) **supera** el umbral definido
-({UMBRAL_ACEPTACION}), a pesar de ser completamente irrelevante al
-pedido. El corpus es chico (18 documentos) y varios textos comparten
-vocabulario comercial genérico ("comercio", "premium", "accesorios",
-"clientes"), lo que hace que un embedding semántico local pueda
-generar falsos positivos con consultas cortas y vagas. Forzar el
-resultado más cercano en este caso sería alucinación.
+{hallazgo_3}
 
 **Mitigación aplicada:** `vector_db.py` valida que la consulta tenga
 vocabulario del dominio EcoLogix y que el mejor resultado supere el
@@ -293,10 +314,9 @@ real).
 
 Sobre este corpus y este modelo de embeddings, las consultas
 genuinamente relevantes recuperan su mejor documento con similitud
-≥ 0.39 (ver killer query 1, y los resultados de
-`resultados_evento_caliente.md`), mientras que consultas
-claramente fuera de dominio (notebooks, neumáticos, fletes) quedan
-por debajo de 0.30 en la mayoría de los casos. Se definió
+≥ {minimo_relevante} (killer queries 1 y 2, y los resultados de
+`resultados_evento_caliente.md`), mientras que la consulta fuera de
+dominio de la killer query 3 queda en {top1_r3['similitud'] if top1_r3 else '-'}. Se definió
 **{UMBRAL_ACEPTACION}** como punto intermedio. La killer query 3
 muestra que ningún umbral fijo es infalible por sí solo con un
 corpus chico: cuando ninguna coincidencia supera el umbral, el
