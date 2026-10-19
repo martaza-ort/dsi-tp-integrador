@@ -1,26 +1,12 @@
-openai>=1.60
-pydantic>=2.5
-python-dotenv>=1.0
-pytest>=8.0
-tiktoken>=0.7
-numpy>=1.26
-faiss-cpu>=1.8
-sentence-transformers>=3.0
-chromadb>=1.5
-
-# Entrega 3 — RAG con LangChain LCEL y evaluación con RAGAS.
-# Se fija la línea 0.3 de LangChain: ragas 0.4.3 todavía importa
-# langchain_community.chat_models.vertexai, que la 0.4 eliminó.
-langchain>=0.3,<0.4
-langchain-core>=0.3,<0.4
-langchain-community>=0.3,<0.4
-langchain-openai>=0.3,<0.4
-langchain-chroma>=0.2,<0.3
-langchain-huggingface>=0.3,<0.4
-langchain-text-splitters>=0.3,<0.4
-datasets>=4.0
-# En Python 3.14, scikit-network (dependencia de ragas usada solo para
-# generar datasets sintéticos) no tiene wheel: instalar ragas aparte con
-#   pip install --no-deps ragas==0.4.3
-#   pip install nest-asyncio appdirs diskcache typer rich instructor pillow networkx
-ragas==0.4.3
+# Entregas 1 y 2. Versiones verificadas en Python 3.14 (tests, scripts de la
+# Entrega 2 y regeneración de evidencias). La Entrega 3 suma sus dependencias
+# en requirements-entrega3.txt.
+openai==3.35.1
+pydantic==2.14.1
+python-dotenv==1.2.4
+pytest==9.1.1
+tiktoken==0.14.0
+numpy==2.5.4
+faiss-cpu==1.15.1
+sentence-transformers==6.1.0
+chromadb==1.5.9

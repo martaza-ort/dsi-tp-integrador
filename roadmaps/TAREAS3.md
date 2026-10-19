@@ -16,7 +16,8 @@ Entrega 1). Eso lo garantiza el prompt con guardrails y se mide con Faithfulness
 
 1. Esta rama (`feat/entrega3-rag`) sale de `fix/entrega2-correcciones`. **Primero se
    mergea el PR de la Entrega 2 a `main`**, después el de esta entrega.
-2. Instalar dependencias: ver "Cómo correr — Entrega 3" en el `README.md` (en Python 3.14
+2. Instalar dependencias con `requirements-entrega3.txt` (suma LangChain y RAGAS a
+   `requirements.txt`): ver "Cómo correr — Entrega 3" en el `README.md` (en Python 3.14
    `ragas` se instala aparte).
 3. Copiar `.env.example` a `.env` y completar `OPENAI_API_KEY` y `LANGCHAIN_API_KEY`.
    **Las keys van solo en `.env`, nunca en `.env.example`** (se commitea y el repo es público).
