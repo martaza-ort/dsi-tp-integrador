@@ -69,6 +69,7 @@ del proyecto.
 ├── vector_db.py
 ├── simular_evento_caliente.py
 ├── killer_queries.py
+├── calibrar_umbral.py
 ├── reporte_a4.py
 ├── prueba_volatilidad.py
 ├── medir_tokens_a1.py
@@ -129,6 +130,8 @@ del proyecto.
 | `simular_evento_caliente.py` | Simulación de discontinuación y reemplazo de producto. | Entrega 2 |
 | `docs-resultados/resultados_evento_caliente.md` | Evidencia del evento de negocio en caliente. | Entrega 2 |
 | `killer_queries.py` | Ejecución de las tres consultas trampa. | Entrega 2 |
+| `calibrar_umbral.py` | Mide consultas válidas y fuera de catálogo y justifica el umbral de aceptación (C.2). | Entrega 2 |
+| `docs-resultados/resultados_umbral.md` | Evidencia de la calibración del umbral. | Entrega 2 |
 | `docs-resultados/resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
 | `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
@@ -255,6 +258,9 @@ python vector_db.py
 # B.3: simular evento caliente y regenerar evidencia
 python simular_evento_caliente.py
 python simular_evento_caliente.py --restaurar
+
+# C.2: recalibrar el umbral de aceptación y regenerar evidencia
+python calibrar_umbral.py
 
 # B.6: ejecutar las tres Killer Queries y regenerar evidencia
 python killer_queries.py
