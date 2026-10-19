@@ -131,11 +131,32 @@ def consultar(
     )
 
 
+IDS_VERIFICADOS = ["doc-004", "doc-022"]
+
+
+def verificar_con_get(base: BaseVectorial) -> list[dict]:
+    """Lee los documentos afectados con coleccion.get() (B.3)."""
+
+    lectura = base.coleccion.get(ids=IDS_VERIFICADOS, include=["metadatas"])
+
+    return [
+        {
+            "id": identificador,
+            "titulo": metadatos.get("titulo"),
+            "categoria": metadatos.get("categoria"),
+            "activo": metadatos.get("activo"),
+            "sku": metadatos.get("sku"),
+        }
+        for identificador, metadatos in zip(lectura["ids"], lectura["metadatas"])
+    ]
+
+
 def escribir_evidencia(
     ranking_antes: list[dict],
     ranking_despues: list[dict],
     ranking_filtrado: list[dict],
     ranking_persistido: list[dict],
+    verificacion_get: list[dict],
 ) -> None:
     """Escribe los resultados del evento en un archivo de evidencia."""
 
@@ -149,6 +170,20 @@ def escribir_evidencia(
             lineas.append(
                 f"| {puesto} | {item['id']} | "
                 f"{item['titulo']} | {item['similitud']} |"
+            )
+
+        return "\n".join(lineas)
+
+    def filas_get(lectura: list[dict]) -> str:
+        lineas = [
+            "| Id | Titulo | Categoria | SKU | activo |",
+            "|----|--------|-----------|-----|--------|",
+        ]
+
+        for item in lectura:
+            lineas.append(
+                f"| {item['id']} | {item['titulo']} | {item['categoria']} | "
+                f"{item['sku']} | {item['activo']} |"
             )
 
         return "\n".join(lineas)
@@ -187,6 +222,24 @@ sobre los documentos afectados, sin reconstruir toda la base.
 ## Resultados despues del evento (filtro nativo `activo=true`)
 
 {filas(ranking_filtrado)}
+
+## Verificacion con `coleccion.get()`
+
+Con un cliente ChromaDB nuevo, `coleccion.get(ids=["doc-004", "doc-022"])`
+devuelve el estado que quedo guardado en disco tras el `upsert`:
+
+{filas_get(verificacion_get)}
+
+`doc-004` quedo con `activo=False` y `doc-022` existe con `activo=True`.
+
+## Por que `upsert` y no `add` ni `update`
+
+`add` no sirve para re-ejecutar el evento: con un id que ya existe no
+lo modifica (lo ignora o falla segun la version), asi que `doc-004` no
+quedaria discontinuado. `update` falla con un id que no existe, y
+`doc-022` es un alta. `upsert` hace las dos cosas en la misma llamada
+(modifica `doc-004` y crea `doc-022`) y es idempotente, asi que el
+script se puede correr mas de una vez sin duplicar ni romper nada.
 
 ## Persistencia del nuevo estado
 
@@ -285,6 +338,10 @@ def main() -> None:
         )
 
     base_reabierta = BaseVectorial()
+    verificacion_get = verificar_con_get(base_reabierta)
+    print("\nVerificacion con coleccion.get():")
+    for item in verificacion_get:
+        print(f"  {item['id']}: activo={item['activo']} ({item['titulo']})")
     ranking_persistido = consultar(
         base_reabierta,
         filtro_x={"categoria": {"$eq": "sorbetes"}},
@@ -296,6 +353,7 @@ def main() -> None:
         ranking_despues,
         ranking_filtrado,
         ranking_persistido,
+        verificacion_get,
     )
 
 

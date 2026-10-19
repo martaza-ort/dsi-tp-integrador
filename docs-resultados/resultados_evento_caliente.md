@@ -29,7 +29,6 @@ sobre los documentos afectados, sin reconstruir toda la base.
 | 2 | doc-019 | Vasos compostables para cafe | 0.4599 |
 | 3 | doc-013 | Bolsas de papel kraft para comercio | 0.4309 |
 | 4 | doc-017 | Jerga comercial del dominio | 0.4106 |
-| 5 | doc-002 | Vasos de bagazo 12 oz | 0.3987 |
 
 ## Resultados despues del evento (sin filtro)
 
@@ -37,14 +36,35 @@ sobre los documentos afectados, sin reconstruir toda la base.
 |--------|----|-----------|-----------|
 | 1 | doc-019 | Vasos compostables para cafe | 0.4599 |
 | 2 | doc-013 | Bolsas de papel kraft para comercio | 0.4309 |
-| 3 | doc-017 | Jerga comercial del dominio | 0.4106 |
-| 4 | doc-002 | Vasos de bagazo 12 oz | 0.3987 |
-| 5 | doc-001 | Bolsas compostables 40x50 cm | 0.3706 |
+| 3 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
+| 4 | doc-017 | Jerga comercial del dominio | 0.4106 |
 
 ## Resultados despues del evento (filtro nativo `activo=true`)
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
+| 1 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
+
+## Verificacion con `coleccion.get()`
+
+Con un cliente ChromaDB nuevo, `coleccion.get(ids=["doc-004", "doc-022"])`
+devuelve el estado que quedo guardado en disco tras el `upsert`:
+
+| Id | Titulo | Categoria | SKU | activo |
+|----|--------|-----------|-----|--------|
+| doc-004 | Sorbetes de papel | sorbetes | ECO-SOR-PAP | False |
+| doc-022 | Sorbetes compostables de bagazo | sorbetes | ECO-SOR-BAGAZO | True |
+
+`doc-004` quedo con `activo=False` y `doc-022` existe con `activo=True`.
+
+## Por que `upsert` y no `add` ni `update`
+
+`add` no sirve para re-ejecutar el evento: con un id que ya existe no
+lo modifica (lo ignora o falla segun la version), asi que `doc-004` no
+quedaria discontinuado. `update` falla con un id que no existe, y
+`doc-022` es un alta. `upsert` hace las dos cosas en la misma llamada
+(modifica `doc-004` y crea `doc-022`) y es idempotente, asi que el
+script se puede correr mas de una vez sin duplicar ni romper nada.
 
 ## Persistencia del nuevo estado
 
@@ -53,6 +73,7 @@ filtro `activo=true` y el ranking se mantuvo identico:
 
 | Puesto | Id | Documento | Similitud |
 |--------|----|-----------|-----------|
+| 1 | doc-022 | Sorbetes compostables de bagazo | 0.4277 |
 
 ## Analisis
 
