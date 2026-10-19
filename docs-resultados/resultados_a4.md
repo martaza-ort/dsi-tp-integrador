@@ -19,27 +19,27 @@ Log de las 3 consultas de prueba sobre el índice persistido.
 
 | Puesto | Id | Documento | Score | Distancia |
 |--------|----|-----------|-------|-----------|
-| 1 | doc-019 | Vasos compostables para cafe | 0.6957 | 0.3043 |
-| 2 | doc-014 | Cubiertos y utensilios de bioplástico | 0.5775 | 0.4225 |
-| 3 | doc-001 | Bolsas compostables 40x50 cm | 0.4998 | 0.5002 |
+| 1 | doc-019 | Vasos compostables para cafe | 0.6717 | 0.3283 |
+| 2 | doc-014 | Cubiertos y utensilios de bioplástico | 0.5643 | 0.4357 |
+| 3 | doc-004 | Sorbetes de papel | 0.553 | 0.447 |
 ### CREAR_PEDIDO
 
 > Quiero encargar dos cajas de bolsas compostables para mi súper
 
 | Puesto | Id | Documento | Score | Distancia |
 |--------|----|-----------|-------|-----------|
-| 1 | doc-001 | Bolsas compostables 40x50 cm | 0.7775 | 0.2225 |
-| 2 | doc-019 | Vasos compostables para cafe | 0.5999 | 0.4001 |
-| 3 | doc-006 | Limpieza ecológica concentrada | 0.5689 | 0.4311 |
+| 1 | doc-001 | Bolsas compostables 40x50 cm | 0.7159 | 0.2841 |
+| 2 | doc-019 | Vasos compostables para cafe | 0.6348 | 0.3652 |
+| 3 | doc-017 | Jerga comercial del dominio | 0.6161 | 0.3839 |
 ### RECLAMO_ENTREGA
 
 > Se rompieron varios envases de cartón en la entrega, quiero reclamar
 
 | Puesto | Id | Documento | Score | Distancia |
 |--------|----|-----------|-------|-----------|
-| 1 | doc-012 | Reclamos por productos rotos o faltantes | 0.6942 | 0.3058 |
-| 2 | doc-016 | Pedidos multitema y confirmación previa | 0.4669 | 0.5331 |
-| 3 | doc-005 | Envases de cartón para alimentos | 0.4393 | 0.5607 |
+| 1 | doc-012 | Reclamos por productos rotos o faltantes | 0.7565 | 0.2435 |
+| 2 | doc-018 | Derivación a humano cuando no hay certeza | 0.4823 | 0.5177 |
+| 3 | doc-016 | Pedidos multitema y confirmación previa | 0.4631 | 0.5369 |
 
 ## Reactivación
 

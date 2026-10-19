@@ -6,7 +6,7 @@
     "documentos":  [
                        {
                            "id":  "doc-001",
-                           "descripcion_semantica":  "Las bolsas compostables de 40x50 cm son un producto de alta rotación para supermercados, verdulerías y comercios minoristas. Se venden por caja y se recomienda para compras de retail, delivery y puntos de venta con atención directa. El material es PLA o bioplástico compostable y es compatible con uso cotidiano de compra por volumen.",
+                           "descripcion_semantica":  "Las bolsas compostables de 40x50 cm son el producto de mayor rotación de EcoLogix para supermercados, autoservicios, verdulerías y comercios minoristas. Están hechas de PLA, un bioplástico de origen vegetal que se degrada en compostaje industrial, y reemplazan a la bolsa de polietileno tipo camiseta en la línea de cajas. Soportan el peso de una compra cotidiana de frutas, verduras y almacén. Se venden por caja de 500 unidades; los clientes suelen pedirlas como \"bolsitas compostables\", \"bolsas biodegradables\" o \"bolsas para el súper\". No conviene almacenarlas al sol ni cerca de fuentes de calor, porque el material pierde resistencia antes de tiempo. También se usan en delivery de comercios de barrio.",
                            "metadatos":  {
                                              "sku":  "ECO-BOL-40X50",
                                              "unidad_venta":  "caja",
@@ -28,7 +28,7 @@
                        },
                        {
                            "id":  "doc-002",
-                           "descripcion_semantica":  "Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.",
+                           "descripcion_semantica":  "Los vasos de bagazo de 12 oz (unos 350 ml) son el vaso descartable estándar de EcoLogix para cafeterías, kioscos y locales de takeaway. El bagazo es la fibra que queda de la caña de azúcar después de extraer el jugo: el vaso es compostable y aguanta bebidas calientes como café, té o mate cocido, y también bebidas frías. Es la medida más pedida para servicio en el local y para llevar. Se vende por caja de 1000 unidades, pensada para puntos de venta de alto volumen y cadenas de café. Los clientes lo piden como \"vasos de cartón ecológicos\", \"vasos para café\" o \"vasitos biodegradables\". Las tapas no vienen incluidas en la caja.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ",
                                              "unidad_venta":  "caja",
@@ -50,7 +50,7 @@
                        },
                        {
                            "id":  "doc-003",
-                           "descripcion_semantica":  "La vajilla de bagazo incluye platos y bowls para servicio rápido, catering y eventos. Es una alternativa ecológica para uso en alimentos calientes y húmedos, con buena resistencia y costo competitivo frente a plástico desechable. Se suele vender por caja a restaurantes, eventos y proveedores del sector gastronómico.",
+                           "descripcion_semantica":  "La vajilla de bagazo de EcoLogix incluye platos llanos, platos hondos y bowls para servicio rápido, catering, comedores y eventos. Al ser fibra de caña de azúcar moldeada, resiste comidas calientes, húmedas y con grasa sin deformarse ni filtrar, y puede ir al microondas por pocos minutos. Es la alternativa compostable al plato de plástico o de telgopor descartable. Se vende por caja de 250 unidades a restaurantes, organizadores de eventos, viandas y proveedores gastronómicos. Los clientes la piden como \"platos descartables ecológicos\", \"bandejas de caña\" o \"bowls para ensalada\". No se recomienda para hornear ni para contacto directo con fuego.",
                            "metadatos":  {
                                              "sku":  "ECO-VAJ-BAG",
                                              "unidad_venta":  "caja",
@@ -72,7 +72,7 @@
                        },
                        {
                            "id":  "doc-004",
-                           "descripcion_semantica":  "Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.",
+                           "descripcion_semantica":  "Sorbetes de papel para kioscos, cafeterías y locales de comida rápida: es el sorbete descartable que más se pide en EcoLogix. Sirven para bebidas frías y calientes y se mantienen firmes durante el consumo normal; en líquidos muy calientes conviene usarlos poco tiempo. Hechos de papel con adhesivo apto alimentario, se venden por bulto de 2000 unidades. Los clientes los llaman \"pajitas\", \"popotes\" o \"bombillas de papel\". Son una opción alineada con la imagen sustentable del comercio y con las ordenanzas que restringen los sorbetes plásticos de un solo uso en varios municipios.",
                            "metadatos":  {
                                              "sku":  "ECO-SOR-PAP",
                                              "unidad_venta":  "bulto",
@@ -94,7 +94,7 @@
                        },
                        {
                            "id":  "doc-005",
-                           "descripcion_semantica":  "Los envases de cartón cumplen un rol clave para delivery y catering. Se usan para alimentos calientes, postres y empaques de menús. Son un producto útil para locales con servicio para llevar, cuota de restaurante y eventos de catering. La venta se realiza generalmente por caja con una cantidad estándar por bulto.",
+                           "descripcion_semantica":  "Los envases de cartón de EcoLogix son la opción para delivery, comida para llevar y catering. Se usan para alimentos calientes, frituras, pastas, postres y menús completos: el cartón tiene un recubrimiento interno que evita que la grasa y la humedad lo traspasen, y el cierre de solapas mantiene el calor durante el traslado sin que la caja se desarme. Son un producto clave para restaurantes con servicio de reparto, rotiserías, food trucks y eventos. Se venden por caja de 300 unidades. Los clientes los piden como \"cajitas para delivery\", \"envases para comida\" o \"cajas de cartón para viandas\". Se guardan en un lugar seco, lejos de la humedad.",
                            "metadatos":  {
                                              "sku":  "ECO-ENV-CARTON",
                                              "unidad_venta":  "caja",
@@ -116,7 +116,7 @@
                        },
                        {
                            "id":  "doc-006",
-                           "descripcion_semantica":  "Los productos de limpieza ecológica incluyen soluciones concentradas para pisos, superficies y desinfección general. Se venden en envases reutilizables o en presentaciones de mayor volumen para locales, gimnasios y comercios con alta rotación. La categoría considera soluciones con formulaciones menos agresivas y mayor compatibilidad con uso institucional.",
+                           "descripcion_semantica":  "La línea de limpieza ecológica de EcoLogix incluye soluciones concentradas para pisos, superficies, cocinas y desinfección general. Son fórmulas biodegradables, sin fosfatos y menos agresivas que los productos tradicionales, pensadas para uso institucional en locales gastronómicos, gimnasios, oficinas y comercios con alta rotación. Al ser concentradas, se diluyen en agua antes de usar, siguiendo la dosis indicada en la etiqueta de cada producto. Se venden en envases reutilizables que pueden devolverse para recarga, agrupados de a 20 por unidad de venta. Los clientes los piden como \"productos de limpieza verdes\" o \"desengrasante ecológico\".",
                            "metadatos":  {
                                              "sku":  "ECO-LIM-CONC",
                                              "unidad_venta":  "rollo",
@@ -138,7 +138,7 @@
                        },
                        {
                            "id":  "doc-007",
-                           "descripcion_semantica":  "EcoLogix establece un mínimo de compra por cliente para pedidos no registrados o para compras fuera de la política comercial. En general, los pedidos pequeños deben sumar un monto mínimo para ser aceptados en la programación de entrega o retiro. La regla concreta se evalúa con el backend sobre el total del pedido y no sobre la intención del cliente.",
+                           "descripcion_semantica":  "EcoLogix establece un mínimo de compra por pedido, sobre todo para clientes no registrados y para compras que quedan fuera de la política comercial habitual. Los pedidos chicos tienen que sumar un monto mínimo para entrar en la programación de entrega o de retiro por depósito. El monto exacto lo calcula el backend sobre el total del pedido confirmado, no sobre lo que el cliente dice que va a comprar, y no se informa ni se negocia por WhatsApp. Si un pedido no llega al mínimo, el sistema no lo rechaza en silencio: avisa al cliente y le ofrece sumar productos o derivar la consulta a un vendedor. Los clientes mayoristas registrados pueden tener condiciones distintas.",
                            "metadatos":  {
                                              "tipo_regla":  "comercial",
                                              "aplica_a":  "pedido",
@@ -156,7 +156,7 @@
                        },
                        {
                            "id":  "doc-008",
-                           "descripcion_semantica":  "La cobertura de entrega se define por zona y por ruta. Algunas zonas tienen servicio programado, mientras que otras requieren coordinación previa o retiro por depósito. La información de cobertura se usa para filtrar pedidos y determinar si una solicitud puede satisfacearse de forma directa o requiere revisión comercial.",
+                           "descripcion_semantica":  "La cobertura de entrega de EcoLogix se define por zona y por ruta de reparto. Las zonas con ruta programada reciben entregas en días fijos de la semana; las zonas sin ruta requieren coordinación previa con logística o retiro por depósito. Antes de confirmar un pedido con envío, el sistema verifica que la dirección del cliente esté dentro de una zona cubierta. Si la zona no tiene cobertura o la dirección es ambigua, el pedido no se rechaza automáticamente: se deriva a revisión comercial para ofrecer una alternativa. Los clientes preguntan por esto como \"¿llegan a mi barrio?\", \"¿hacen envíos?\" o \"¿qué día pasa el reparto?\".",
                            "metadatos":  {
                                              "tipo_regla":  "logistica",
                                              "aplica_a":  "entrega",
@@ -174,7 +174,7 @@
                        },
                        {
                            "id":  "doc-009",
-                           "descripcion_semantica":  "El stock se controla por depósito y por SKU. El depósito central es el origen principal para ventas locales y entregas programadas. Cuando una consulta refiere disponibilidad, el sistema debe verificar cantidad disponible y cantidad reservada para no aceptar pedidos que ya estén comprometidos. La reserva se realiza solo a partir de una operación determinista del backend.",
+                           "descripcion_semantica":  "El stock de EcoLogix se controla por depósito y por SKU. El depósito central es el origen principal para ventas locales y entregas programadas. Cuando una consulta pregunta por disponibilidad, el sistema distingue entre la cantidad disponible y la cantidad ya reservada por otros pedidos confirmados, para no prometer mercadería que está comprometida. El dato de stock siempre sale de la base de datos del backend, nunca del modelo de lenguaje ni de un documento de texto, porque cambia varias veces por día. La reserva se hace solo mediante una operación determinista del backend. Los clientes preguntan como \"¿tenés?\", \"¿hay en stock?\" o \"¿te quedan cajas?\".",
                            "metadatos":  {
                                              "tipo_regla":  "stock",
                                              "deposito":  "central",
@@ -192,7 +192,7 @@
                        },
                        {
                            "id":  "doc-010",
-                           "descripcion_semantica":  "Una vez confirmado el pedido, el backend debe reservar la cantidad solicitada para el SKU antes de generar el pedido final. Esto evita que la misma mercadería se venda dos veces en el mismo período. En caso de que no haya disponibilidad suficiente, el sistema debe responder con una alternativa o derivar la solicitud a un operador.",
+                           "descripcion_semantica":  "Una vez que el cliente confirma el pedido, el backend reserva la cantidad pedida de cada SKU antes de pasarlo del estado BORRADOR a CONFIRMADO. Así se evita que la misma mercadería se venda dos veces en el mismo período, un problema frecuente cuando ventas y almacén usaban planillas separadas. Si no hay disponibilidad suficiente para algún ítem, el pedido no se confirma parcialmente sin avisar: el sistema responde con una alternativa del catálogo (otro tamaño o un producto equivalente) o deriva la solicitud a un operador. La reserva se libera si el pedido pasa a CANCELADO. Después de confirmado, el pedido avanza a PREPARANDO, DESPACHADO y ENTREGADO.",
                            "metadatos":  {
                                              "tipo_regla":  "stock",
                                              "aplica_a":  "pedido",
@@ -210,7 +210,7 @@
                        },
                        {
                            "id":  "doc-011",
-                           "descripcion_semantica":  "Los clientes pueden optar por retirar en depósito o solicitar entrega a domicilio según la zona y la ruta disponible. Para retiro, el sistema suele priorizar la disponibilidad en el depósito y la reserva del pedido. Para entrega domiciliaria, se deben considerar horario, cobertura y coordinación previa con logística.",
+                           "descripcion_semantica":  "Los clientes de EcoLogix pueden elegir entre retirar el pedido por el depósito o recibirlo con entrega a domicilio, según la zona y la ruta disponible. Para el retiro, el pedido tiene que estar confirmado y con la mercadería reservada; el cliente se presenta con el número de pedido en el horario de atención del depósito. Para la entrega a domicilio se consideran la cobertura de la zona, la franja horaria y la coordinación previa con logística, y el envío pasa por los estados PENDIENTE, EN_CAMINO y ENTREGADO. Los clientes lo preguntan como \"¿lo paso a buscar?\", \"¿me lo traen?\" o \"¿puedo retirar hoy?\". El retiro suele ser la opción más rápida.",
                            "metadatos":  {
                                              "tipo_regla":  "logistica",
                                              "aplica_a":  "servicio",
@@ -228,7 +228,7 @@
                        },
                        {
                            "id":  "doc-012",
-                           "descripcion_semantica":  "Los reclamos por entrega pueden referirse a productos rotos, faltantes o diferencias entre lo solicitado y lo recibido. La operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo. Las decisiones financieras o de crédito requieren revisión humana; el sistema no puede emitir nota de crédito de forma automática.",
+                           "descripcion_semantica":  "Los reclamos por entrega pueden ser por productos rotos o dañados, faltantes, o diferencias entre lo pedido y lo recibido. Ante un reclamo, la operación abre un ticket asociado al número de pedido, que nace en estado ABIERTO, y deja evidencia del motivo; se recomienda que el cliente adjunte una foto de la mercadería dañada. Mientras se analiza, el ticket pasa a EN_REVISION y termina como RESUELTO o RECHAZADO. Las decisiones financieras, como emitir una nota de crédito, reponer mercadería sin cargo o hacer un descuento, requieren siempre revisión humana: el sistema nunca las promete ni las ejecuta de forma automática. Los clientes escriben \"me llegó roto\" o \"me faltó una caja\".",
                            "metadatos":  {
                                              "tipo_regla":  "reclamo",
                                              "aplica_a":  "pedido",
@@ -247,7 +247,7 @@
                        },
                        {
                            "id":  "doc-013",
-                           "descripcion_semantica":  "Las bolsas de papel kraft se venden para establecimientos con imagen premium o para la entrega de productos a clientes finales. Incluyen variedad de tamaños y se usan con frecuencia para compras de mayor volumen en comercios minoristas, panaderías y locales de productos frescos. La presentación es por caja y la demanda suele ser más consistente en períodos de exigencia ambiental.",
+                           "descripcion_semantica":  "Las bolsas de papel kraft de EcoLogix están pensadas para comercios con imagen premium y para entregar productos al cliente final: panaderías, boutiques, tiendas de regalos, almacenes naturales y locales de productos frescos. Son de papel marrón resistente, con manijas, y vienen en varios tamaños según el tipo de mercadería. Se venden por caja de 400 unidades. A diferencia de la bolsa compostable de PLA, la bolsa kraft es reciclable y se elige más por la presentación del producto que por el precio. La demanda crece en fechas comerciales y en temporadas con mayor exigencia ambiental. Los clientes las piden como \"bolsas madera\", \"bolsas marrones\" o \"bolsas de papel con manija\".",
                            "metadatos":  {
                                              "sku":  "ECO-BOL-KRAFT",
                                              "unidad_venta":  "caja",
@@ -269,7 +269,7 @@
                        },
                        {
                            "id":  "doc-014",
-                           "descripcion_semantica":  "Los cubiertos y utensilios de bioplástico son una alternativa para catering y eventos que requieren servicio rápido y descartable. La categoría se usa para lugares con alto flujo de clientes y con presión por servicio en línea o para llevar. La venta se estructura por caja y bulto según el volumen del cliente.",
+                           "descripcion_semantica":  "Los cubiertos y utensilios de bioplástico de EcoLogix incluyen tenedores, cuchillos, cucharas y cucharitas para catering, eventos, viandas y delivery que necesitan servicio rápido y descartable. Están hechos de bioplástico compostable de origen vegetal y resisten comidas calientes durante el consumo, aunque no están pensados para revolver líquidos hirviendo. Son la alternativa a los cubiertos de plástico de un solo uso, que varias ordenanzas municipales restringen. Se venden por caja de 500 unidades, con opción de pedir varias cajas por bulto según el volumen del cliente. Los clientes los piden como \"cubiertos descartables ecológicos\" o \"cubiertitos compostables\".",
                            "metadatos":  {
                                              "sku":  "ECO-CUB-BIO",
                                              "unidad_venta":  "caja",
@@ -291,7 +291,7 @@
                        },
                        {
                            "id":  "doc-015",
-                           "descripcion_semantica":  "EcoLogix atiende a comercios, cadenas, mayoristas y clientes de eventos. Los pedidos pueden llegar por WhatsApp, mail o la web interna, pero el backend siempre debe resolver contra la base de verdad del negocio. La solicitud por texto libre puede ser informal, incluir abreviaturas, errores de tipeo o menciones de cantidades como caja, bulto o paquete.",
+                           "descripcion_semantica":  "EcoLogix atiende a comercios minoristas, cadenas, mayoristas, restaurantes y organizadores de eventos. Los pedidos y consultas llegan por WhatsApp, mail o la web interna, casi siempre en texto libre: con abreviaturas, errores de tipeo, audios transcriptos y cantidades expresadas como caja, bulto, paquete o \"lo mismo que la otra vez\". Por eso el sistema primero interpreta el mensaje y lo convierte en una intención y unos parámetros validados, y recién después el backend resuelve contra la base de datos del negocio, que es la única fuente de verdad. Ningún canal tiene prioridad sobre otro: un pedido por WhatsApp sigue las mismas reglas que uno cargado por la web.",
                            "metadatos":  {
                                              "tipo_cliente":  "multiples",
                                              "canales":  [
@@ -314,7 +314,7 @@
                        },
                        {
                            "id":  "doc-016",
-                           "descripcion_semantica":  "Los pedidos multitema son comunes: un cliente puede pedir varios productos distintos en una misma consulta, como 20 cajas de vasos y un bulto de sorbetes para el jueves. Antes de reservar stock, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega. La confirmación final no debe producirse sin revisar la coherencia del pedido y la política del negocio.",
+                           "descripcion_semantica":  "Los pedidos multiítem son comunes: un cliente puede pedir varios productos distintos en un mismo mensaje, por ejemplo \"20 cajas de vasos y un bulto de sorbetes para el jueves\". El sistema separa cada ítem, identifica el SKU correspondiente y valida la unidad de venta de cada uno. Antes de reservar stock revisa la disponibilidad de todos los ítems y la fecha de entrega pedida contra la ruta de la zona. La confirmación final no se produce hasta que todo el pedido es coherente; si un ítem no está disponible, se informa ese ítem puntual y se ofrece una alternativa en lugar de confirmar a medias. El cliente recibe un resumen con todos los ítems para aprobar.",
                            "metadatos":  {
                                              "tipo_regla":  "pedido",
                                              "aplica_a":  "multitema",
@@ -332,7 +332,7 @@
                        },
                        {
                            "id":  "doc-017",
-                           "descripcion_semantica":  "El lenguaje del negocio incluye referencias como bolsa compostable, vasos de bagazo, cartón para delivery, bulto, caja, material ecológico, para llevar, servicio por café y local. La jerga comercial puede variar entre clientes y canales, por lo que el sistema debe mapear términos cotidianos hacia el catálogo real antes de resolver la operación.",
+                           "descripcion_semantica":  "El lenguaje del negocio mezcla nombres de catálogo con jerga de mostrador. Los clientes dicen \"bolsitas\" por bolsas compostables, \"vasitos\" o \"vasos de cartón\" por vasos de bagazo, \"pajitas\" o \"popotes\" por sorbetes, \"cajitas para delivery\" por envases de cartón y \"descartables\" por cualquier producto de un solo uso. También usan unidades como bulto, caja, paquete o \"un par\" sin precisar cantidades. La jerga cambia entre clientes, zonas y canales, por lo que el sistema debe mapear esos términos cotidianos hacia el producto real del catálogo antes de resolver la operación, y pedir aclaración cuando un término puede referirse a más de un producto.",
                            "metadatos":  {
                                              "tipo_regla":  "semantica",
                                              "aplica_a":  "catalogo",
@@ -350,7 +350,7 @@
                        },
                        {
                            "id":  "doc-018",
-                           "descripcion_semantica":  "Cuando el sistema no puede resolver la consulta con datos seguros, debe derivarla a un operador humano. Esto aplica especialmente cuando faltan datos de stock, la zona de entrega no está en la cobertura, la cantidad solicitada no puede validarse o el pedido implica decisiones comerciales diferentes de la política base. La derivación es una salida segura y no una falla del sistema.",
+                           "descripcion_semantica":  "Cuando el sistema no puede resolver una consulta con datos seguros, la deriva a un operador humano. Esto aplica cuando faltan datos de stock, la zona de entrega no está en la cobertura, la cantidad o el producto pedido no pueden validarse, el cliente pide un precio especial, un descuento o una condición fuera de la política base, o el mensaje es un reclamo que implica dinero. La derivación es una salida segura y no una falla del sistema: es preferible que un vendedor responda unos minutos más tarde a que el asistente invente un dato. Al derivar, el sistema avisa al cliente que su consulta pasa a una persona y registra el motivo de la derivación.",
                            "metadatos":  {
                                              "tipo_regla":  "escalacion",
                                              "aplica_a":  "atencion",
@@ -368,7 +368,7 @@
                        },
                        {
                            "id":  "doc-019",
-                           "descripcion_semantica":  "Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.",
+                           "descripcion_semantica":  "Vasos biodegradables de bagazo de 12 onzas, linea de doble pared, para cafeterias que sirven bebidas muy calientes para llevar. La doble pared aisla el calor y permite tomar el vaso sin manga de carton. Son compostables, aptos para cafe, te y chocolate caliente, y se comercializan por caja de 1000 unidades para locales gastronomicos y cadenas de cafe. Los clientes los piden como vasos termicos ecologicos o vasitos de doble pared. Se recomiendan para bebidas que se consumen en la calle o en el auto.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-ALT",
                                              "unidad_venta":  "caja",
@@ -389,7 +389,7 @@
                        },
                        {
                            "id":  "doc-020",
-                           "descripcion_semantica":  "Vasos compostables de bagazo para cafe, bebidas frias y servicio para llevar. La presentacion mayorista se entrega por caja a cafeterias y locales gastronomicos.",
+                           "descripcion_semantica":  "Vasos compostables de bagazo de doble pared, 12 onzas, para cafe y bebidas muy calientes para llevar. La doble pared aisla el calor y evita usar manga de carton. Aptos para cafe, te y chocolate caliente. La presentacion mayorista se entrega por caja de 1000 unidades a cafeterias, locales gastronomicos y cadenas de cafe. Se piden como vasitos termicos ecologicos o vasos de doble pared. Recomendados para bebidas que se toman en la calle o en el auto.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-COPY",
                                              "unidad_venta":  "caja",
@@ -410,7 +410,7 @@
                        },
                        {
                            "id":  "doc-021",
-                           "descripcion_semantica":  "Los vasos de bagazo de doce onzas sirven para cafe caliente y bebidas para llevar. Son descartables, compostables y se venden en cajas para cafeterias y comercios gastronomicos.",
+                           "descripcion_semantica":  "Los vasos de bagazo de doble pared de doce onzas sirven para cafe muy caliente y bebidas para llevar. Gracias a la doble pared aislan el calor y no hace falta manga de carton. Son descartables, compostables, aptos para cafe, te y chocolate, y se venden en cajas de 1000 unidades para cafeterias, cadenas de cafe y comercios gastronomicos. Los clientes dicen vasos termicos ecologicos o vasitos de doble pared. Ideales para bebidas que se consumen en la calle o en el auto.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-JERGA",
                                              "unidad_venta":  "caja",
@@ -431,7 +431,7 @@
                        },
                        {
                            "id":  "doc-018",
-                           "descripcion_semantica":  "Las modificaciones del catálogo deben registrar quién cambió el documento, cuándo se aplicó la actualización y qué estado operativo quedó vigente.",
+                           "descripcion_semantica":  "Las modificaciones del catálogo deben quedar auditadas: cada cambio registra quién modificó el documento, cuándo se aplicó la actualización, qué valor tenía antes y qué estado operativo quedó vigente (activo o discontinuado). Esto aplica a altas de productos nuevos, bajas por discontinuación, reemplazos de un SKU por otro y correcciones de descripción. La auditoría permite reconstruir por qué el asistente respondió de una forma en una fecha determinada y detectar cambios hechos por error. Ningún cambio de catálogo se hace desde el chat con clientes: lo carga una persona autorizada y se reindexa la base de conocimiento para que las búsquedas reflejen el estado actual.",
                            "metadatos":  {
                                              "tipo_regla":  "auditoria",
                                              "aplica_a":  "mantenimiento",

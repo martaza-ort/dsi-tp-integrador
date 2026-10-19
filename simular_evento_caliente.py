@@ -38,7 +38,7 @@ DOCUMENTO_DISCONTINUADO = {
 }
 
 DOCUMENTO_REEMPLAZO = {
-    "id": "doc-019",
+    "id": "doc-022",
     "descripcion_semantica": (
         "Sorbetes compostables de bagazo disponibles en stock para "
         "kioscos y locales de bebidas. EcoLogix ofrece sorbetes de "
@@ -116,12 +116,17 @@ def formatear_ranking(resultados: list[dict]) -> list[dict]:
     ]
 
 
-def consultar(base: BaseVectorial, donde: dict | None = None) -> list[dict]:
+def consultar(
+    base: BaseVectorial,
+    filtro_x: dict | None = None,
+    solo_activos: bool = False,
+) -> list[dict]:
     return formatear_ranking(
-        base.buscar(
-            consulta=CONSULTA,
-            cantidad=5,
-            donde=donde,
+        base.buscar_ecologix(
+            query_semantica=CONSULTA,
+            filtro_x=filtro_x,
+            solo_activos=solo_activos,
+            n_resultados=5,
         )
     )
 
@@ -161,7 +166,7 @@ Cambio de politica comercial y de oferta de EcoLogix:
    queda fuera de catalogo y su metadata se marca
     `activo: false`.
 3. Entra en catalogo el reemplazo activo, los **sorbetes compostables
-   de bagazo** (`doc-019`, SKU `ECO-SOR-BAGAZO`), con
+   de bagazo** (`doc-022`, SKU `ECO-SOR-BAGAZO`), con
     `activo: true`.
 
 Los cambios se aplican en caliente con `upsert` de ChromaDB, solo
@@ -198,12 +203,12 @@ recuperacion vectorial:
 - **Semantica**: tras el evento, `doc-004` (discontinuado) cae del
   primer puesto del ranking aunque no exista filtro, porque su
   contenido ahora describe un producto fuera de catalogo. El
-  reemplazo activo `doc-019` entra en el top de resultados.
+  reemplazo activo `doc-022` entra en el top de resultados.
 - **Reglas de negocio via filtros nativos**: con el filtro
     `where={{\"activo\": true}}` aplicado en la base (sin
   post-filtering), el producto discontinuado queda garantizado fuera
   de toda recomendacion, y para la consulta de sorbetes el resultado
-  correcto (`doc-019`) lidera la recuperacion.
+  correcto (`doc-022`) lidera la recuperacion.
 - El cambio de estado (stock/politica) se propaga a la busqueda
   reindexando solo los documentos afectados con `upsert`, sin
   reindexar el corpus completo.
@@ -222,14 +227,14 @@ experimento: `python simular_evento_caliente.py --restaurar`.
 
 
 def restaurar_estado_original() -> None:
-    """Vuelve la base al corpus canonico (quita doc-019)."""
+    """Vuelve la base al corpus canonico (quita doc-022)."""
 
     base = BaseVectorial()
 
-    existe = len(base.coleccion.get(ids=["doc-019"])["ids"]) > 0
+    existe = len(base.coleccion.get(ids=["doc-022"])["ids"]) > 0
 
     if existe:
-        base.coleccion.delete(ids=["doc-019"])
+        base.coleccion.delete(ids=["doc-022"])
 
     documentos = cargar_documentos()
     base.indexar_documentos(documentos)
@@ -269,12 +274,8 @@ def main() -> None:
 
     ranking_filtrado = consultar(
         base,
-            donde={
-                "$and": [
-                    {"categoria": {"$eq": "sorbetes"}},
-                    {"activo": {"$eq": True}},
-                ]
-            },
+        filtro_x={"categoria": {"$eq": "sorbetes"}},
+        solo_activos=True,
     )
     print("\nRanking despues del evento (filtro categoria=sorbetes y activo=true):")
     for puesto, item in enumerate(ranking_filtrado, start=1):
@@ -286,12 +287,8 @@ def main() -> None:
     base_reabierta = BaseVectorial()
     ranking_persistido = consultar(
         base_reabierta,
-            donde={
-                "$and": [
-                    {"categoria": {"$eq": "sorbetes"}},
-                    {"activo": {"$eq": True}},
-                ]
-            },
+        filtro_x={"categoria": {"$eq": "sorbetes"}},
+        solo_activos=True,
     )
 
     escribir_evidencia(

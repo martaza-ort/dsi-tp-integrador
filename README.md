@@ -65,8 +65,13 @@ del proyecto.
 ├── vector_db.py
 ├── simular_evento_caliente.py
 ├── killer_queries.py
+├── reporte_a4.py
+├── prueba_volatilidad.py
+├── medir_tokens_a1.py
 ├── docs-resultados/
+│   ├── resultados_a1_tokens.md
 │   ├── resultados_a4.md
+│   ├── resultados_a5_volatilidad.md
 │   ├── resultados_etl.md
 │   ├── resultados_evento_caliente.md
 │   ├── resultados_killer_queries.md
@@ -114,6 +119,10 @@ del proyecto.
 | `docs-resultados/resultados_evento_caliente.md` | Evidencia del evento de negocio en caliente. | Entrega 2 |
 | `killer_queries.py` | Ejecución de las tres consultas trampa. | Entrega 2 |
 | `docs-resultados/resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
+| `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
+| `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
+| `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
+| `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
 | `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
 | `logs/` | Registro local de interacciones; no se versiona. | General |
 | `indice_faiss/` | Índice FAISS derivado; se reconstruye y no se versiona. | Entrega 2 |

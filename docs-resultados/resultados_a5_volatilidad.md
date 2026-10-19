@@ -14,7 +14,7 @@ Reproducible con `python prueba_volatilidad.py`.
 |---|---|
 | Vectores construidos en memoria | 20 |
 | ¿Existe el archivo en disco tras "reiniciar"? | False |
-| Error al intentar `faiss.read_index()` | `Error in __cdecl faiss::FileIOReader::FileIOReader(const char *) at D:\a\faiss\faiss\faiss\impl\io.cpp:70: Error: 'f' failed: could not open C:\Users\Agus\AppData\Local\Temp\prueba_volatilidad_4wgw4dx0\sin_persistencia.index for reading: No such file or directory` |
+| Error al intentar `faiss.read_index()` | `Error in __cdecl faiss::FileIOReader::FileIOReader(const char *) at D:\a\faiss\faiss\faiss\impl\io.cpp:70: Error: 'f' failed: could not open C:\Users\gisel\AppData\Local\Temp\prueba_volatilidad_gst7hi0a\sin_persistencia.index for reading: No such file or directory` |
 | ¿Hay que regenerar embeddings (pagar de nuevo)? | **Sí** |
 
 **¿Pasó la prueba (se perdió el índice)?** Sí
