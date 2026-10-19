@@ -63,6 +63,10 @@ K_AVANZADO = 8
 TOP_RERANKING = 3
 PUNTAJE_MINIMO = 5
 
+# Regla de B.4 de la Entrega 2: el filtro de negocio viaja dentro del `where`.
+# Un producto discontinuado (activo=False) nunca llega al contexto del LLM.
+FILTRO_ACTIVOS = {"activo": {"$eq": True}}
+
 FRASE_ESCAPE = "No poseo información sobre eso en la base de conocimiento de EcoLogix."
 
 PROMPT_RAG = ChatPromptTemplate.from_messages(
@@ -159,7 +163,7 @@ def construir_rag_basico(k: int = K_BASICO):
     """
 
     retriever = abrir_coleccion(NOMBRE_COLECCION).as_retriever(
-        search_kwargs={"k": k}
+        search_kwargs={"k": k, "filter": FILTRO_ACTIVOS}
     )
     return (
         RunnableParallel(contexto=retriever, pregunta=RunnablePassthrough())
@@ -315,7 +319,7 @@ def construir_rag_avanzado(k: int = K_AVANZADO):
     """Retriever de chunks k=8 -> juez LLM -> top 3 -> prompt -> LLM -> parser."""
 
     retriever = abrir_coleccion(NOMBRE_COLECCION_CHUNKS).as_retriever(
-        search_kwargs={"k": k}
+        search_kwargs={"k": k, "filter": FILTRO_ACTIVOS}
     )
     return (
         RunnableParallel(recuperados=retriever, pregunta=RunnablePassthrough())
