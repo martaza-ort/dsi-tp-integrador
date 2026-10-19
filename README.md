@@ -53,6 +53,7 @@ del proyecto.
 ├── README.md
 ├── CLAUDE.md
 ├── requirements.txt
+├── requirements-entrega3.txt
 ├── app.py
 ├── lote.py
 ├── schemas.py
@@ -61,6 +62,7 @@ del proyecto.
 ├── base_conocimiento.json
 ├── base_conocimiento_limpia.json
 ├── etl_purga.py
+├── similitud_manual.py
 ├── similitud_coseno.py
 ├── construir_indice_faiss.py
 ├── pipeline_vectorial.py
@@ -100,7 +102,8 @@ del proyecto.
 | Archivo o carpeta | Contenido | Entrega |
 |---|---|---|
 | `README.md` | Descripción, instalación, ejecución y estructura actual del proyecto. | General |
-| `requirements.txt` | Dependencias de Entrega 1 y Entrega 2. | General |
+| `requirements.txt` | Dependencias de Entrega 1 y Entrega 2, con versión fija. | General |
+| `requirements-entrega3.txt` | Suma LangChain y RAGAS sobre `requirements.txt`; solo hace falta para la Entrega 3. | Entrega 3 |
 | `.env.example` | Plantilla de variables de entorno sin secretos. | General |
 | `.gitignore` | Exclusión de credenciales, logs y artefactos binarios. | General |
 | `CLAUDE.md` | Contexto, invariantes y convenciones del proyecto. | General |
@@ -118,6 +121,7 @@ del proyecto.
 | `base_conocimiento_limpia.json` | Corpus normalizado y purgado para indexación. | Entrega 2 |
 | `etl_purga.py` | Normalización, resolución de IDs y purga semántica. | Entrega 2 |
 | `docs-resultados/resultados_etl.md` | Reporte de correcciones y casi-duplicados eliminados. | Entrega 2 |
+| `similitud_manual.py` | Similitud coseno a mano sobre dos ejes (3 pasos) validada con NumPy (A.2). | Entrega 2 |
 | `similitud_coseno.py` | Similitud coseno y generación de embeddings locales. | Entrega 2 |
 | `construir_indice_faiss.py` | Construcción y persistencia del índice FAISS. | Entrega 2 |
 | `pipeline_vectorial.py` | Consulta semántica reutilizable sobre FAISS. | Entrega 2 |
@@ -235,12 +239,15 @@ Ejecutar en el entorno virtual:
 # A.3/B.5: limpiar y purgar el corpus
 python etl_purga.py
 
-# A.2: validar similitud y embeddings
+# A.2: coseno a mano validado con NumPy, y embeddings reales
+python similitud_manual.py
 python similitud_coseno.py
 
-# A.4/A.5: construir y persistir FAISS
+# A.4/A.5: construir y persistir FAISS; pipeline_vectorial.py lo construye si no existe,
+# si existe lo recarga, y corre las 3 consultas de prueba (--interactivo para una propia)
 python construir_indice_faiss.py
 python pipeline_vectorial.py
+python prueba_volatilidad.py
 
 # B.1/B.4: reconstruir ChromaDB y probar filtros nativos
 python vector_db.py
@@ -263,10 +270,10 @@ para B.4, las variables `LANGCHAIN_*` de LangSmith.
 
 **Instalación en Python 3.14.** `scikit-network`, dependencia de `ragas` que solo se usa para
 generar datasets sintéticos, todavía no tiene wheel y la instalación falla. Con Python 3.12 o
-3.13 alcanza con `pip install -r requirements.txt`; con 3.14:
+3.13 alcanza con `pip install -r requirements-entrega3.txt`; con 3.14:
 
 ```powershell
-python -m pip install -r requirements.txt   # si falla solo por ragas, seguir:
+python -m pip install -r requirements-entrega3.txt   # si falla solo por ragas, seguir:
 python -m pip install --no-deps ragas==0.4.3
 python -m pip install nest-asyncio appdirs diskcache typer rich instructor pillow networkx
 ```
