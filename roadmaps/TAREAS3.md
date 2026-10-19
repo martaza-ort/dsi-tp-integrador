@@ -14,13 +14,17 @@ Entrega 1). Eso lo garantiza el prompt con guardrails y se mide con Faithfulness
 
 ## 1. Antes de empezar
 
-1. Esta rama (`feat/entrega3-rag`) sale de `fix/entrega2-correcciones`. **Primero se
-   mergea el PR de la Entrega 2 a `main`**, después el de esta entrega.
+1. Estado de las ramas: `main` local ya tiene mergeadas la Entrega 2
+   (`fix/entrega2-correcciones`) y esta (`feat/entrega3-rag`). Las correcciones de la
+   rúbrica de la Entrega 2 están en `fix/entrega2-rubrica` y los ajustes de esta entrega en
+   `fix/entrega3-ajustes`. Falta publicar y abrir los PR en ese orden: **primero la
+   Entrega 2, después esta**.
 2. Instalar dependencias con `requirements-entrega3.txt` (suma LangChain y RAGAS a
    `requirements.txt`): ver "Cómo correr — Entrega 3" en el `README.md` (en Python 3.14
    `ragas` se instala aparte).
 3. Copiar `.env.example` a `.env` y completar `OPENAI_API_KEY` y `LANGCHAIN_API_KEY`.
    **Las keys van solo en `.env`, nunca en `.env.example`** (se commitea y el repo es público).
+   `LANGCHAIN_TRACING_V2` viene en `false`: ponerlo en `true` recién para la captura de B.4.
 4. Regenerar la base local: `python etl_purga.py`, `python vector_db.py` y
    `python entrega_3/rag_pipeline.py indexar`.
 
@@ -30,12 +34,12 @@ Entrega 1). Eso lo garantiza el prompt con guardrails y se mide con Faithfulness
 
 | Parte | Qué pide la consigna | Estado |
 |---|---|---|
-| A.1 | Retriever sobre la misma colección y ruta de la Entrega 2 | ✅ Hecho y verificado (mismos scores que `vector_db.py`) |
+| A.1 | Retriever sobre la misma colección y ruta de la Entrega 2 | ✅ Hecho y verificado (mismos scores que `vector_db.py`); filtra `activo=true` dentro del `where` |
 | A.2 | Chain LCEL retriever → prompt con guardrails → LLM → parser, con fuentes | ✅ Código hecho (`construir_rag_basico`) |
 | A.3 | Matriz de resiliencia: factual, fuera de dominio, complacencia, sinónimos | 🟡 Preguntas definidas; falta correr `matriz` con la API |
 | A.4 | Trazabilidad en 2 consultas con fragmento y metadatos | 🟡 Definida; sale en la misma corrida de `matriz` |
 | B.1 | Una falla real del RAG básico con su causa técnica | 🟡 Detectada en el retriever; falta la respuesta del LLM (`fallas`) |
-| B.2 | Reindexar con solapamiento y comparar cantidad de chunks | ✅ 500/100: de 20 vectores a 40 chunks |
+| B.2 | Reindexar con solapamiento y comparar cantidad de chunks | ✅ 500/100: de 20 vectores a 40 chunks (6 de 40 superan los 128 tokens del embedder, máx. 145) |
 | B.3 | k=8 + reranking con LLM como juez | ✅ Código hecho (juez 0-10, top 3, posicionamiento contra Lost in the Middle) |
 | B.4 | Traza de LangSmith con tiempos, tokens y recuperados vs. seleccionados | ❌ Falta: correr con tracing y sacar la captura |
 | C.1 | Golden dataset de 10 preguntas (3/3/2/2) | ✅ `entrega_3/golden_dataset.json` |
@@ -68,6 +72,27 @@ se resolvería con sinónimos en el corpus o con *query expansion*.
 conectarse a la base de la Entrega 2 sin crear una nueva, y esa base está indexada con el
 modelo local. Cambiar de modelo obliga a reindexar todo.
 
+**Verificado sin API (2026-10-19).** Con el corpus y el modelo locales se comprobó:
+- `rag_pipeline.py` y `evaluacion_ragas.py` importan; los nombres de columna de RAGAS 0.4.3
+  (`faithfulness`, `answer_relevancy`, `llm_context_precision_with_reference`,
+  `context_recall`) coinciden con `METRICAS`.
+- `indexar` genera 40 chunks. El embedder corta a 128 tokens y solo 6 chunks lo superan
+  (`doc-002#1`: 145, `doc-005#1` y `doc-003#1`: 141, `doc-014#1`: 135, `doc-017#1`: 133,
+  `doc-004#1`: 129). El corte es de a lo sumo 17 tokens, así que el chunking resuelve la
+  falla de B.1 casi por completo; decirlo así en el informe (B.2).
+- Los retrievers reproducen lo de esta sección: sin `doc-006` en el básico, `doc-006#2` 2°
+  con chunks; `doc-005` 3° en el básico y 1° (`doc-005#2`) con chunks; `doc-019` primero en
+  el básico y `doc-003#2` primero con chunks; el caso de "bidones" no trae `doc-006` en
+  ninguno.
+- El filtro `activo=true` no cambia nada en el estado normal, y tras el evento de
+  `doc-004` lo deja afuera del contexto.
+
+**Límites que conviene nombrar en el informe.** (1) El RAG no aplica el umbral de
+aceptación de la Entrega 2 (0,40, calibrado sobre documentos enteros, no sobre chunks):
+las preguntas fuera de dominio llegan con k documentos al LLM y las ataja el prompt con la
+frase de escape. (2) `simular_evento_caliente.py` solo toca la colección `ecologix`: después
+de un evento hay que correr `indexar` para que `ecologix_chunks` refleje el estado.
+
 ---
 
 ## 4. Tareas pendientes
@@ -96,6 +121,10 @@ la traza con link público y pegarlo en el informe).
 ```bash
 python entrega_3/evaluacion_ragas.py   # -> resultados_ragas.md, ragas_basico.csv, ragas_avanzado.csv
 ```
+La consigna pide mejora (delta) en **al menos una** métrica del avanzado. Si ninguna mejora,
+no tocar los resultados: probar `PUNTAJE_MINIMO` o `TOP_RERANKING` en `rag_pipeline.py`,
+volver a correr y documentar ambas corridas.
+
 Ojo al interpretar: en las 2 preguntas de escape la respuesta correcta es la frase de
 escape, y RAGAS puede dar Answer Relevancy baja o Faithfulness NaN aunque el sistema haya
 hecho lo correcto. Documentarlo en C.4 en lugar de esconderlo.

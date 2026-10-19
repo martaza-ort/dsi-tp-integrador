@@ -1,8 +1,10 @@
 # Contexto del proyecto para Claude Code
 
-Este repo es la **Entrega 1 del TP Integrador** de "Desarrollo de Sistemas de IA" (IADS 3, ORT).
-Trabajo grupal. El enunciado completo está en el Project de claude.ai
-(`TP_Integrador_Entrega1_Clases_1a3.pdf`); lo esencial está resumido acá.
+Este repo es el **TP Integrador** de "Desarrollo de Sistemas de IA" (IADS 3, ORT), trabajo grupal,
+que evoluciona por entregas: la **1** (asistente con LLM, Pydantic y SQL), la **2** (base de
+conocimiento vectorial con FAISS y ChromaDB) y la **3** (pipeline RAG con LangChain y RAGAS).
+Los enunciados están en el Project de claude.ai; lo esencial está resumido acá y en
+`README.md` y `roadmaps/TAREAS*.md`.
 
 ## Qué es esto
 
@@ -20,6 +22,12 @@ el backend determinista es el "chef" (valida con Pydantic y resuelve contra SQL)
 - `lote.py` — C.3. 6 inputs fijos → `docs-resultados/resultados_lote.md`. `--tecnica zero|few` para el experimento de C.4.
 - `schema.sql` — B.5b. SQLite, probado. Incluye la tabla `interacciones`.
 - `test_schemas.py` — tests del contrato sin API.
+- Entrega 2: `base_conocimiento.json` (fuente de verdad) → `etl_purga.py` → `base_conocimiento_limpia.json`;
+  `vector_db.py` (ChromaDB, `buscar_ecologix`, `UMBRAL_ACEPTACION`), `pipeline_vectorial.py` y
+  `construir_indice_faiss.py` (FAISS), `killer_queries.py`, `calibrar_umbral.py`, `informes/informe_entrega2.md`.
+- Entrega 3: `entrega_3/rag_pipeline.py` (RAG básico y avanzado), `entrega_3/evaluacion_ragas.py`,
+  `entrega_3/golden_dataset.json`. Pasos y estado en `roadmaps/TAREAS3.md`.
+- Dependencias: `requirements.txt` (Entregas 1 y 2) y `requirements-entrega3.txt` (suma LangChain y RAGAS).
 
 ## Invariantes que NO se pueden romper (criterio 9 de la rúbrica: coherencia transversal)
 
@@ -28,6 +36,8 @@ el backend determinista es el "chef" (valida con Pydantic y resuelve contra SQL)
 2. `UnidadVenta` de `schemas.py` == valores de `productos.unidad_venta` en `schema.sql`.
 3. El JSON de salida de ejemplo en informes/informe.md B.5 debe validar contra `MensajeClasificado`.
 4. El LLM nunca ve precios, stock ni decide escrituras. Toda regla de negocio va en código o SQL.
+5. Todo filtro de negocio (`activo`, `categoria`, `tipo`) va dentro del `where` de ChromaDB, nunca como
+   `if` de Python después de la query. El umbral de aceptación vive solo en `vector_db.py`.
 
 ## Reglas de seguridad (penalizaciones del TP)
 
@@ -44,10 +54,10 @@ el backend determinista es el "chef" (valida con Pydantic y resuelve contra SQL)
   Structured Outputs puede rechazarlas. Las reglas van en `@field_validator`.
 - Antes de commitear: `python -m pytest -q test_schemas.py`.
 
-## Pendientes (estado al 2026-09-07)
+## Pendientes (estado al 2026-10-19)
 
-La Entrega 1 está cerrada: integrantes completos, A.2 con la respuesta real de dos modelos y
-lo inventado marcado, lote de C.3 y comparación de C.4 corridos contra la API real, y las
-7 "Decisiones abiertas" resueltas o postergadas con fundamento. No quedan marcadores ⚠️.
+Las Entregas 1 y 2 están cerradas. De la Entrega 3 el código está hecho y verificado sin API;
+faltan las corridas con API, la traza de LangSmith y el informe (ver `roadmaps/TAREAS3.md`).
 
 - [ ] Confirmar que el docente esté agregado como colaborador del repo.
+- [ ] Publicar las ramas y abrir los PR en orden: Entrega 2, después Entrega 3.
