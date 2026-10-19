@@ -37,7 +37,9 @@ Intenciones (árbol cerrado): `CONSULTA_STOCK` · `CREAR_PEDIDO` · `SEGUIMIENTO
 Este repositorio contiene el Proyecto Integrador de EcoLogix Systems para IADS 3, ORT.
 El proyecto evoluciona por entregas: la Entrega 1 implementa un asistente híbrido de stock
 y pedidos con LLM, Pydantic y SQL; la Entrega 2 agrega una base de conocimiento vectorial
-con embeddings, FAISS, ChromaDB, filtros híbridos y purga semántica.
+con embeddings, FAISS, ChromaDB, filtros híbridos y purga semántica; la Entrega 3 construye
+sobre esa base un pipeline RAG con LangChain LCEL, chunking con solapamiento, reranking con
+el LLM como juez y evaluación con RAGAS.
 
 Esta sección y la tabla siguiente se actualizarán en cada nueva entrega o avance relevante
 del proyecto.
@@ -80,9 +82,14 @@ del proyecto.
 ├── informes/
 │   ├── informe.md
 │   └── informe_entrega2.md
+├── entrega_3/
+│   ├── rag_pipeline.py
+│   ├── evaluacion_ragas.py
+│   └── golden_dataset.json
 ├── roadmaps/
 │   ├── TAREAS.md
-│   └── TAREAS2.md
+│   ├── TAREAS2.md
+│   └── TAREAS3.md
 ├── logs/                 # generado localmente, ignorado por Git
 ├── indice_faiss/         # generado localmente, ignorado por Git
 └── chroma/               # generado localmente, ignorado por Git
@@ -124,6 +131,10 @@ del proyecto.
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
 | `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
+| `roadmaps/TAREAS3.md` | Hoja de ruta, estado y pendientes de la Entrega 3. | Entrega 3 |
+| `entrega_3/rag_pipeline.py` | RAG básico (Parte A) y avanzado con chunking y reranking (Parte B). | Entrega 3 |
+| `entrega_3/evaluacion_ragas.py` | Evaluación RAGAS del RAG básico vs. avanzado (Parte C). | Entrega 3 |
+| `entrega_3/golden_dataset.json` | 10 preguntas con respuesta esperada; se reutiliza en las Entregas 4 y 5. | Entrega 3 |
 | `logs/` | Registro local de interacciones; no se versiona. | General |
 | `indice_faiss/` | Índice FAISS derivado; se reconstruye y no se versiona. | Entrega 2 |
 | `chroma/` | Base persistente ChromaDB derivada; se reconstruye y no se versiona. | Entrega 2 |
@@ -169,6 +180,9 @@ nunca debe commitearse.
 | `OPENAI_MODEL` | No | Modelo usado por defecto: `gpt-4o-mini`. |
 | `OPENAI_TIMEOUT` | No | Timeout por llamada; por defecto 30 segundos. |
 | `UMBRAL_CONFIANZA` | No | Confianza mínima para no derivar a una persona; por defecto 0.60. |
+| `LANGCHAIN_TRACING_V2` | Sí para Entrega 3 (B.4) | `true` activa las trazas en LangSmith. |
+| `LANGCHAIN_API_KEY` | Sí para Entrega 3 (B.4) | API key personal de LangSmith (smith.langchain.com → Settings → API Keys). |
+| `LANGCHAIN_PROJECT` | No | Proyecto de LangSmith donde se agrupan las trazas: `ecologix-entrega3`. |
 
 La Entrega 2 usa embeddings locales con `sentence-transformers` y no necesita una API key
 para generar el índice vectorial.
@@ -241,3 +255,44 @@ python killer_queries.py
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.
+
+### Cómo correr — Entrega 3
+
+Necesita `OPENAI_API_KEY` en `.env` (el LLM genera respuestas y RAGAS lo usa como juez) y,
+para B.4, las variables `LANGCHAIN_*` de LangSmith.
+
+**Instalación en Python 3.14.** `scikit-network`, dependencia de `ragas` que solo se usa para
+generar datasets sintéticos, todavía no tiene wheel y la instalación falla. Con Python 3.12 o
+3.13 alcanza con `pip install -r requirements.txt`; con 3.14:
+
+```powershell
+python -m pip install -r requirements.txt   # si falla solo por ragas, seguir:
+python -m pip install --no-deps ragas==0.4.3
+python -m pip install nest-asyncio appdirs diskcache typer rich instructor pillow networkx
+```
+
+LangChain queda fijado en la línea 0.3: `ragas` 0.4.3 todavía no es compatible con la 1.x.
+
+```bash
+# 0. Base de la Entrega 2 (si chroma/ no existe o quedó de un corpus anterior)
+python etl_purga.py
+python vector_db.py
+
+# B.2: reindexar con chunks de 500 y 100 de solapamiento (colección ecologix_chunks)
+python entrega_3/rag_pipeline.py indexar
+
+# Una pregunta suelta, básico o avanzado
+python entrega_3/rag_pipeline.py preguntar "¿Las tapas vienen en la caja de vasos?" --modo avanzado
+
+# A.3 y A.4 -> entrega_3/resultados_matriz.md
+python entrega_3/rag_pipeline.py matriz
+
+# B.1 a B.3, básico vs. avanzado -> entrega_3/resultados_fallas.md
+python entrega_3/rag_pipeline.py fallas
+
+# C.2 y C.3 -> entrega_3/resultados_ragas.md y ragas_*.csv
+python entrega_3/evaluacion_ragas.py
+```
+
+El pipeline básico usa la colección `ecologix` de la Entrega 2 tal cual (A.1); el avanzado
+usa `ecologix_chunks`, en el mismo `chroma/`. Ambas son locales y no se versionan.
