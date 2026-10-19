@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -14,6 +15,22 @@ ROOT = Path(__file__).resolve().parent
 DIRECTORIO_INDICE = ROOT / "indice_faiss"
 INDEX_PATH = DIRECTORIO_INDICE / "ecologix.index"
 DOCUMENTOS_PATH = DIRECTORIO_INDICE / "documentos.json"
+
+# Las 3 consultas de prueba de A.4 (las usa también reporte_a4.py).
+CONSULTAS_PRUEBA = [
+    (
+        "CONSULTA_STOCK",
+        "Tenés vasos biodegradables para una cafetería",
+    ),
+    (
+        "CREAR_PEDIDO",
+        "Quiero encargar dos cajas de bolsas compostables para mi súper",
+    ),
+    (
+        "RECLAMO_ENTREGA",
+        "Se rompieron varios envases de cartón en la entrega, quiero reclamar",
+    ),
+]
 
 
 class PipelineVectorial:
@@ -212,12 +229,43 @@ class PipelineVectorial:
         return "\n\n---\n\n".join(fragmentos)
 
 
-def main() -> None:
-    """Permite probar el pipeline desde la terminal."""
+def asegurar_indice() -> None:
+    """Recarga el índice si ya existe en disco; si no, lo construye."""
 
-    pipeline = PipelineVectorial()
+    if INDEX_PATH.exists() and DOCUMENTOS_PATH.exists():
+        print(f"Índice existente en {INDEX_PATH}: se recarga sin regenerar embeddings.")
+        return
 
-    print("Pipeline vectorial de EcoLogix")
+    print("No existe el índice FAISS: se construye y se persiste.")
+    from construir_indice_faiss import main as construir
+
+    construir()
+
+
+def correr_consultas_de_prueba(pipeline: PipelineVectorial) -> None:
+    """Las 3 consultas de A.4, con el score y la distancia de cada resultado."""
+
+    for intencion, consulta in CONSULTAS_PRUEBA:
+        print(f"\n[{intencion}] {consulta}")
+
+        resultados = pipeline.buscar_por_intencion(
+            consulta=consulta,
+            intencion=intencion,
+            cantidad=3,
+        )
+
+        if not resultados:
+            print("  Sin resultados por encima del umbral.")
+
+        for posicion, resultado in enumerate(resultados, start=1):
+            distancia = round(1 - resultado["similitud"], 4)
+            print(
+                f"  {posicion}. {resultado['id']} {resultado['titulo']} "
+                f"- score: {resultado['similitud']} - distancia: {distancia}"
+            )
+
+
+def modo_interactivo(pipeline: PipelineVectorial) -> None:
     print("Intenciones disponibles:")
     print("- CONSULTA_STOCK")
     print("- CREAR_PEDIDO")
@@ -240,19 +288,35 @@ def main() -> None:
     if not resultados:
         print("No se encontraron resultados relevantes.")
 
-    for posicion, resultado in enumerate(
-        resultados,
-        start=1,
-    ):
+    for posicion, resultado in enumerate(resultados, start=1):
         print(
             f"{posicion}. {resultado['titulo']} "
             f"- similitud: {resultado['similitud']}"
         )
 
-    contexto = pipeline.preparar_contexto(resultados)
-
     print("\nContexto para el pipeline principal:\n")
-    print(contexto)
+    print(pipeline.preparar_contexto(resultados))
+
+
+def main() -> None:
+    """Sin argumentos: construye o recarga el índice y corre las 3 consultas de A.4."""
+
+    analizador = argparse.ArgumentParser(description=main.__doc__)
+    analizador.add_argument(
+        "--interactivo",
+        action="store_true",
+        help="Pide una consulta y una intención por teclado.",
+    )
+    argumentos = analizador.parse_args()
+
+    print("Pipeline vectorial de EcoLogix")
+    asegurar_indice()
+    pipeline = PipelineVectorial()
+
+    if argumentos.interactivo:
+        modo_interactivo(pipeline)
+    else:
+        correr_consultas_de_prueba(pipeline)
 
 
 if __name__ == "__main__":

@@ -2,26 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pipeline_vectorial import PipelineVectorial
+from pipeline_vectorial import CONSULTAS_PRUEBA, PipelineVectorial
 
 
 ROOT = Path(__file__).resolve().parent
 RUTA_RESULTADOS = ROOT / "docs-resultados" / "resultados_a4.md"
-
-CONSULTAS_PRUEBA = [
-    (
-        "CONSULTA_STOCK",
-        "Tenés vasos biodegradables para una cafetería",
-    ),
-    (
-        "CREAR_PEDIDO",
-        "Quiero encargar dos cajas de bolsas compostables para mi súper",
-    ),
-    (
-        "RECLAMO_ENTREGA",
-        "Se rompieron varios envases de cartón en la entrega, quiero reclamar",
-    ),
-]
 
 CANTIDAD = 3
 
