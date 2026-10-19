@@ -24,13 +24,16 @@ from simular_evento_caliente import (
     construir_corpus_con_evento,
     restaurar_estado_original,
 )
-from vector_db import BaseVectorial, cargar_documentos, similitud_ancla
+from vector_db import (
+    UMBRAL_ACEPTACION,
+    BaseVectorial,
+    cargar_documentos,
+    similitud_ancla,
+)
 
 
 ROOT = Path(__file__).resolve().parent
 RUTA_EVIDENCIA = ROOT / "docs-resultados" / "resultados_killer_queries.md"
-
-UMBRAL_ACEPTACION = 0.35
 
 CONSULTA_1 = (
     "Necesito packaging para mandar comida caliente a domicilio, "
@@ -276,7 +279,7 @@ sigue siendo frágil frente a consultas nuevas."""
 |---:|---|---|---|---|---|
 | 1 | {CONSULTA_1} | Poder semántico | `doc-005` primero y por encima de `{UMBRAL_ACEPTACION}` | {resumen_resultado(r1)} | {paso_1} |
 | 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-022` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
-| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral {UMBRAL_ACEPTACION} el sistema devuelve {resumen_resultado(r3_aceptados)} (ancla {ancla_3}) | {paso_3} |
+| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral {UMBRAL_ACEPTACION} el sistema devuelve: {resumen_resultado(r3_aceptados)} (ancla {ancla_3}) | {paso_3} |
 """
 
     contenido = f"""# Killer Queries — EcoLogix (Entrega 2, B.6)
@@ -362,17 +365,20 @@ telefonía.
 devolvía "no tengo esa información" por un portero que exigía
 vocabulario del dominio. Se midió su comportamiento y no resolvía el
 problema: tapaba la KQ3 y además rechazaba consultas legítimas del
-propio negocio. Con 8 consultas válidas de EcoLogix, el portero
-rechazó 7, entre ellas:
+propio negocio. En la medición previa a quitarlo (8 consultas válidas
+y 6 fuera de catálogo; el portero ya no está en el código, así que esa
+medición no se puede volver a correr) rechazó 7 de las 8. La tabla
+reproduce las {len(validas)} consultas válidas que se re-miden en cada
+corrida:
 
 | Consulta válida | Mejor resultado (corpus actual) | Portero |
 |---|---|---|
 {filas_validas}
 
-En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
-catálogo. Con el corpus actual, sin portero: {fuera_texto}. El
-balance —7 consultas legítimas tapadas contra 2 fuera de catálogo
-frenadas— es la razón del cambio.
+En el otro extremo, en esa medición el portero solo frenaba 2 de las 6
+consultas fuera de catálogo. Con el corpus actual, sin portero:
+{fuera_texto}. El balance —7 consultas legítimas tapadas contra 2 fuera
+de catálogo frenadas— es la razón del cambio.
 
 **Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
 ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
@@ -390,9 +396,17 @@ genuinamente relevantes recuperan su mejor documento con similitud
 ≥ {minimo_relevante} (killer queries 1 y 2, y los resultados de
 `resultados_evento_caliente.md`), mientras que la consulta fuera de
 dominio de la killer query 3 queda en {top1_r3['similitud'] if top1_r3 else '-'}. Se definió
-**{UMBRAL_ACEPTACION}** como punto intermedio. La killer query 3
-muestra que ningún umbral fijo es infalible por sí solo con un
-corpus chico: cuando ninguna coincidencia supera el umbral, el
+**{UMBRAL_ACEPTACION}** a partir de `calibrar_umbral.py`
+(`docs-resultados/resultados_umbral.md`), que mide 18 consultas
+válidas y 8 fuera de catálogo: las válidas dan ≥ 0.4095 salvo una
+informal (0.3317), y las fuera de catálogo que no se parecen a un
+producto dan ≤ 0.3839. Ese hueco (0.3839 a 0.4095) tiene su punto
+medio en 0.40. El margen del lado de las consultas válidas es de
+apenas ~0.01, así que es un valor ajustado a este corpus y a este
+modelo, no una frontera general. Además hay consultas "vecinas" del
+dominio (servilletas, el precio de un producto que sí existe) que
+superan cualquier corte razonable: ningún umbral fijo es infalible
+con un corpus chico. Cuando ninguna coincidencia supera el umbral, el
 sistema debe responder "no tengo esa información" en vez de forzar
 el resultado más cercano (eso sería alucinación).
 

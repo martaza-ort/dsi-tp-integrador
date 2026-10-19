@@ -19,7 +19,8 @@ NOMBRE_COLECCION = "ecologix"
 DATASET_PATH = ROOT / "base_conocimiento_limpia.json"
 
 CAMPOS_PRINCIPALES = ("id",)
-UMBRAL_ACEPTACION = 0.35
+# Calibrado en calibrar_umbral.py (ver docs-resultados/resultados_umbral.md).
+UMBRAL_ACEPTACION = 0.40
 
 TIPOS_SIMPLES = (str, int, float, bool)
 

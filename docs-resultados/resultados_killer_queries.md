@@ -3,15 +3,15 @@
 Tres consultas trampa ejecutadas contra la colección ChromaDB
 (`ecologix`, espacio `cosine`, embeddings locales
 `paraphrase-multilingual-MiniLM-L12-v2`). Umbral de aceptación
-definido: **0.35** (ver justificación al final).
+definido: **0.4** (ver justificación al final).
 
 ## Tabla consolidada B.6
 
 | # | Consulta | Qué pone a prueba | Resultado esperado | Resultado real | ¿Pasó? |
 |---:|---|---|---|---|---|
-| 1 | Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje | Poder semántico | `doc-005` primero y por encima de `0.35` | `doc-005` (0.6202) | Sí |
+| 1 | Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje | Poder semántico | `doc-005` primero y por encima de `0.4` | `doc-005` (0.6202) | Sí |
 | 2 | Necesito sorbetes para mi kiosco, que esten disponibles en stock | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-022` primero | Sin filtro: `doc-019` (0.4599); con filtro: `doc-022` (0.4277) | Sí |
-| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral 0.35 el sistema devuelve `doc-017` (0.3735) (ancla 0.2852) | No (hallazgo documentado) |
+| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral 0.4 el sistema devuelve: Sin resultados (ancla 0.2852) | Sí |
 
 
 ## 1 — Poder semántico: jerga sin palabras exactas del documento
@@ -34,7 +34,7 @@ en el primer puesto, por encima del umbral.
 4. `doc-019` Vasos compostables para cafe — similitud: 0.5349
 5. `doc-014` Cubiertos y utensilios de bioplástico — similitud: 0.4404
 
-**¿Pasó?** Sí — `doc-005` (Envases de cartón para alimentos) supera el umbral (0.6202 ≥ 0.35) → se acepta como resultado.
+**¿Pasó?** Sí — `doc-005` (Envases de cartón para alimentos) supera el umbral (0.6202 ≥ 0.4) → se acepta como resultado.
 
 ## 2 — El metadato salva el día
 
@@ -92,22 +92,27 @@ telefonía.
 4. `doc-010` Reserva de stock al confirmar pedido — similitud: 0.2455
 5. `doc-007` Mínimo de compra por cliente — similitud: 0.2455
 
-**¿Pasó?** No (hallazgo documentado)
+**¿Pasó?** Sí
 
-**Hallazgo:** el resultado con mayor similitud (`doc-017`,
-0.3735) **supera** el umbral definido
-(0.35), a pesar de ser completamente irrelevante al
-pedido. La causa es semántica: el corpus es chico y varios textos
-comparten vocabulario comercial genérico ("comercio", "accesorios",
-"clientes"), así que la consulta aterriza cerca de un producto de
-otra familia. Forzar ese resultado como respuesta sería alucinación.
+**Hallazgo:** sin ningún portero por palabras clave, el mejor
+resultado (`doc-017`, 0.3735) queda por debajo del umbral
+(0.4): la semántica sola rechaza la consulta. Con las
+descripciones originales de ~300 caracteres esta misma consulta daba
+un falso positivo de 0.4874 sobre `doc-013`; al enriquecer el corpus
+(A.3), los documentos dejaron de parecerse solo por vocabulario
+comercial genérico. El margen es chico
+(0.027), así que el umbral
+sigue siendo frágil frente a consultas nuevas.
 
 **Por qué se quitó el filtro de palabras.** Antes esta consulta
 devolvía "no tengo esa información" por un portero que exigía
 vocabulario del dominio. Se midió su comportamiento y no resolvía el
 problema: tapaba la KQ3 y además rechazaba consultas legítimas del
-propio negocio. Con 8 consultas válidas de EcoLogix, el portero
-rechazó 7, entre ellas:
+propio negocio. En la medición previa a quitarlo (8 consultas válidas
+y 6 fuera de catálogo; el portero ya no está en el código, así que esa
+medición no se puede volver a correr) rechazó 7 de las 8. La tabla
+reproduce las 5 consultas válidas que se re-miden en cada
+corrida:
 
 | Consulta válida | Mejor resultado (corpus actual) | Portero |
 |---|---|---|
@@ -117,15 +122,15 @@ rechazó 7, entre ellas:
 | "tengo un pedido en curso, como va?" | `doc-016` (0.4238) | la rechazaba |
 | "me llegaron unos paquetes rotos, quiero reclamar" | `doc-012` (0.4095) | la rechazaba |
 
-En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
-catálogo. Con el corpus actual, sin portero: "venden notebooks y laptops" (0.3839, supera el umbral); "busco contratos de alquiler" (0.3475, no supera el umbral). El
-balance —7 consultas legítimas tapadas contra 2 fuera de catálogo
-frenadas— es la razón del cambio.
+En el otro extremo, en esa medición el portero solo frenaba 2 de las 6
+consultas fuera de catálogo. Con el corpus actual, sin portero:
+"venden notebooks y laptops" (0.3839, no supera el umbral); "busco contratos de alquiler" (0.3475, no supera el umbral). El balance —7 consultas legítimas tapadas contra 2 fuera
+de catálogo frenadas— es la razón del cambio.
 
 **Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
 ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
 Python. La aceptación la decide únicamente el umbral semántico
-(0.35). Cada resultado reporta además
+(0.4). Cada resultado reporta además
 `similitud_ancla`: la cercanía de la consulta al centroide del corpus.
 Para esta consulta da 0.2852; 3 de las 5 consultas legítimas medidas quedan más abajo (la mínima, "necesito unos pots", da 0.2207). El ancla sirve como diagnóstico, pero no separa consultas del dominio de las de afuera, y por eso no decide la aceptación. Queda anotado como límite
 conocido del corpus y del modelo para la Entrega 3, en la misma línea
@@ -138,9 +143,17 @@ genuinamente relevantes recuperan su mejor documento con similitud
 ≥ 0.4277 (killer queries 1 y 2, y los resultados de
 `resultados_evento_caliente.md`), mientras que la consulta fuera de
 dominio de la killer query 3 queda en 0.3735. Se definió
-**0.35** como punto intermedio. La killer query 3
-muestra que ningún umbral fijo es infalible por sí solo con un
-corpus chico: cuando ninguna coincidencia supera el umbral, el
+**0.4** a partir de `calibrar_umbral.py`
+(`docs-resultados/resultados_umbral.md`), que mide 18 consultas
+válidas y 8 fuera de catálogo: las válidas dan ≥ 0.4095 salvo una
+informal (0.3317), y las fuera de catálogo que no se parecen a un
+producto dan ≤ 0.3839. Ese hueco (0.3839 a 0.4095) tiene su punto
+medio en 0.40. El margen del lado de las consultas válidas es de
+apenas ~0.01, así que es un valor ajustado a este corpus y a este
+modelo, no una frontera general. Además hay consultas "vecinas" del
+dominio (servilletas, el precio de un producto que sí existe) que
+superan cualquier corte razonable: ningún umbral fijo es infalible
+con un corpus chico. Cuando ninguna coincidencia supera el umbral, el
 sistema debe responder "no tengo esa información" en vez de forzar
 el resultado más cercano (eso sería alucinación).
 
