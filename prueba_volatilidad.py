@@ -58,7 +58,9 @@ def escenario_sin_persistencia(directorio_temporal: Path) -> dict:
     try:
         faiss.read_index(str(ruta_index_temporal))
     except RuntimeError as excepcion:
-        error_al_recargar = str(excepcion)
+        error_al_recargar = str(excepcion).replace(
+            str(directorio_temporal), "<directorio_temporal>"
+        )
 
     return {
         "vectores_en_memoria": vectores_en_memoria,
