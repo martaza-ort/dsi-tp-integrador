@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 import chromadb
@@ -21,48 +20,10 @@ DATASET_PATH = ROOT / "base_conocimiento_limpia.json"
 
 CAMPOS_PRINCIPALES = ("id",)
 UMBRAL_ACEPTACION = 0.35
-CATEGORIAS_VALIDAS = {
-    "bolsas",
-    "vajilla",
-    "sorbetes",
-    "envases",
-    "limpieza",
-}
-PALABRAS_DOMINIO = {
-    "bolsa",
-    "bolsas",
-    "vaso",
-    "vasos",
-    "sorbete",
-    "sorbetes",
-    "envase",
-    "envases",
-    "carton",
-    "papel",
-    "bagazo",
-    "compostable",
-    "biodegradable",
-    "cafeteria",
-    "cafe",
-    "delivery",
-    "catering",
-    "comida",
-    "bebida",
-    "kiosco",
-    "retail",
-    "supermercado",
-    "limpieza",
-    "desinfeccion",
-    "plato",
-    "bowls",
-    "packaging",
-    "empaque",
-    "accesorio",
-    "comercio",
-    "comercial",
-}
 
 TIPOS_SIMPLES = (str, int, float, bool)
+
+_ANCLA_DOMINIO: np.ndarray | None = None
 
 
 def cargar_documentos() -> list[dict]:
@@ -74,17 +35,83 @@ def cargar_documentos() -> list[dict]:
     return datos["documentos"]
 
 
-def consulta_es_relevante(consulta: str) -> bool:
-    """Valida que la consulta tenga vocabulario del dominio EcoLogix."""
+def _normalizar(vector: np.ndarray) -> np.ndarray:
+    """Escala un embedding a longitud 1 para el producto interno."""
 
-    if not consulta or not consulta.strip():
-        return False
+    return vector / np.linalg.norm(vector)
 
-    tokens = set(
-        re.findall(r"[a-záéíóúüñ]+", consulta.lower())
-    )
 
-    return bool(tokens & PALABRAS_DOMINIO)
+def ancla_dominio() -> np.ndarray:
+    """
+    Embedding promedio del corpus: la representación del dominio.
+
+    Permite preguntar si una consulta "habla" del dominio EcoLogix
+    usando el propio corpus como referencia, en lugar de una lista
+    de palabras clave.
+    """
+
+    global _ANCLA_DOMINIO
+
+    if _ANCLA_DOMINIO is None:
+        documentos = cargar_documentos()
+        textos = [
+            preparar_texto(documento)
+            for documento in documentos
+        ]
+        matriz = generar_embeddings(textos)
+        _ANCLA_DOMINIO = _normalizar(matriz.mean(axis=0))
+
+    return _ANCLA_DOMINIO
+
+
+def similitud_ancla(consulta: str) -> float:
+    """Similitud coseno entre la consulta y el ancla del dominio."""
+
+    embedding = _normalizar(generar_embeddings([consulta])[0])
+    return float(embedding @ ancla_dominio())
+
+
+def _expandir(condicion: dict) -> list[dict]:
+    """Aplana un `$and` para componer filtros sin anidarlos."""
+
+    if set(condicion) == {"$and"}:
+        partes: list[dict] = []
+        for interna in condicion["$and"]:
+            partes.extend(_expandir(interna))
+        return partes
+
+    return [condicion]
+
+
+def construir_where(
+    filtro_x: dict | None = None,
+    solo_activos: bool = False,
+    donde: dict | None = None,
+) -> dict | None:
+    """
+    Arma el filtro duro de la query.
+
+    Regla de B.4: todo filtro de negocio viaja adentro del `where`
+    de ChromaDB. Acá solo se combinan condiciones; nunca se descarta
+    un documento con un `if` de Python después de la query.
+    """
+
+    condiciones: list[dict] = []
+
+    for filtro in (donde, filtro_x):
+        if filtro:
+            condiciones.extend(_expandir(filtro))
+
+    if solo_activos:
+        condiciones.append({"activo": {"$eq": True}})
+
+    if not condiciones:
+        return None
+
+    if len(condiciones) == 1:
+        return condiciones[0]
+
+    return {"$and": condiciones}
 
 
 class BaseVectorial:
@@ -163,24 +190,27 @@ class BaseVectorial:
         cantidad: int = 3,
         donde: dict | None = None,
         umbral: float = UMBRAL_ACEPTACION,
-        validar_dominio: bool = True,
     ) -> list[dict]:
         """
         Busca los documentos más parecidos a la consulta.
 
-        Se aplica la regla de C.2: la consulta debe tener vocabulario del
-        dominio EcoLogix y el mejor resultado debe superar el umbral de
-        aceptación. Si no se cumplen estas condiciones, se devuelve una
-        lista vacía y el sistema responde "no tengo esa información".
+        El filtrado de negocio va dentro del `where` de ChromaDB
+        (ver `construir_where`). Acá no hay post-filtering en Python:
+        lo único que se descarta es lo que quedó por debajo del
+        umbral de aceptación de C.2. Si no queda nada, la salida es
+        vacía para que el sistema responda "no tengo esa información".
+
+        Cada resultado incluye `similitud_ancla`, la cercanía de la
+        consulta al centroide del corpus. Es un diagnóstico: permite
+        distinguir "no encontré nada" de "encontré algo del dominio
+        correcto", y no decide el resultado.
         """
 
         if not consulta or not consulta.strip():
             return []
 
-        if validar_dominio and not consulta_es_relevante(consulta):
-            return []
-
         cantidad = min(cantidad, self.coleccion.count())
+        ancla = round(similitud_ancla(consulta), 4)
 
         embeddings = generar_embeddings([consulta])
         embedding_consulta = embeddings[0].astype(np.float32)
@@ -210,10 +240,6 @@ class BaseVectorial:
             if similitud < umbral:
                 continue
 
-            categoria = str(metadata.get("categoria", "")).lower()
-            if categoria and categoria not in CATEGORIAS_VALIDAS:
-                continue
-
             resultados.append(
                 {
                     "id": identificador,
@@ -227,10 +253,36 @@ class BaseVectorial:
                         if clave not in CAMPOS_PRINCIPALES
                     },
                     "similitud": similitud,
+                    "similitud_ancla": ancla,
                 }
             )
 
         return resultados
+
+    def buscar_ecologix(
+        self,
+        query_semantica: str,
+        filtro_x: dict | None = None,
+        solo_activos: bool = False,
+        n_resultados: int = 3,
+        umbral: float = UMBRAL_ACEPTACION,
+    ) -> list[dict]:
+        """
+        CLI de búsqueda híbrida de B.4.
+
+        Combina búsqueda semántica con filtro duro por operadores
+        nativos de ChromaDB, en la firma que pide la consigna.
+        """
+
+        return self.buscar(
+            consulta=query_semantica,
+            cantidad=n_resultados,
+            donde=construir_where(
+                filtro_x=filtro_x,
+                solo_activos=solo_activos,
+            ),
+            umbral=umbral,
+        )
 
 
 def verificar_persistencia() -> None:
@@ -325,6 +377,41 @@ def main() -> None:
             f"   {posicion}. {resultado['titulo']} "
             f"- similitud: {resultado['similitud']}"
         )
+
+    print("\n5) CLI de búsqueda híbrida (firma de la consigna):")
+    for posicion, resultado in enumerate(
+        base.buscar_ecologix(
+            query_semantica="Necesito sorbetes para mi kiosco",
+            filtro_x={"categoria": {"$eq": "sorbetes"}},
+            solo_activos=True,
+            n_resultados=3,
+        ),
+        start=1,
+    ):
+        print(
+            f"   {posicion}. {resultado['titulo']} "
+            f"- similitud: {resultado['similitud']}"
+        )
+
+    consulta_fuera = "Venden celulares o accesorios de telefonia?"
+
+    print("\n6) Consulta fuera del catálogo (Killer Query 3):")
+    print("   Consulta:", consulta_fuera)
+    print("   similitud_ancla:", round(similitud_ancla(consulta_fuera), 4))
+
+    for posicion, resultado in enumerate(
+        base.buscar(consulta=consulta_fuera, cantidad=3),
+        start=1,
+    ):
+        print(
+            f"   {posicion}. {resultado['titulo']} "
+            f"- similitud: {resultado['similitud']}"
+        )
+
+    print(
+        "\n   Ningún if de Python decide este caso: el veredicto sale\n"
+        "   del umbral semántico. Ver B.4 y C.2 del informe."
+    )
 
     verificar_persistencia()
 
