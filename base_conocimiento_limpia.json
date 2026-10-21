@@ -368,7 +368,7 @@
     },
     {
       "id": "doc-019",
-      "descripcion_semantica": "Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.",
+      "descripcion_semantica": "Vasos biodegradables de bagazo de 12 onzas destinados a cafeterías, bares, kioscos y locales gastronómicos que ofrecen bebidas para llevar. También son solicitados como vasos compostables, vasos ecológicos o vasitos para café. Se comercializan por caja y pueden utilizarse para servir bebidas calientes o frías en servicios de takeaway y consumo en el local.",
       "metadatos": {
         "sku": "ECO-VAS-12OZ-ALT",
         "unidad_venta": "caja",
@@ -389,7 +389,7 @@
     },
     {
       "id": "doc-018-dup-2",
-      "descripcion_semantica": "Las modificaciones del catálogo deben registrar quién cambió el documento, cuándo se aplicó la actualización y qué estado operativo quedó vigente.",
+      "descripcion_semantica": "Las modificaciones realizadas sobre el catálogo de EcoLogix deben conservar información de auditoría que permita identificar quién efectuó el cambio, cuándo se aplicó y cuál fue el estado operativo resultante. Este control se utiliza en altas, bajas, discontinuaciones y reemplazos de productos, para evitar que distintas versiones del catálogo presenten información contradictoria sobre disponibilidad, vigencia o condiciones comerciales.",
       "metadatos": {
         "tipo_regla": "auditoria",
         "aplica_a": "mantenimiento",
