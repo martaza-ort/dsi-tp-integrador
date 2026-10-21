@@ -368,7 +368,7 @@
                        },
                        {
                            "id":  "doc-019",
-                           "descripcion_semantica":  "Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.",
+                           "descripcion_semantica":  "Vasos biodegradables de bagazo de 12 onzas destinados a cafeterías, bares, kioscos y locales gastronómicos que ofrecen bebidas para llevar. También son solicitados como vasos compostables, vasos ecológicos o vasitos para café. Se comercializan por caja y pueden utilizarse para servir bebidas calientes o frías en servicios de takeaway y consumo en el local.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-ALT",
                                              "unidad_venta":  "caja",
@@ -389,7 +389,7 @@
                        },
                        {
                            "id":  "doc-020",
-                           "descripcion_semantica":  "Vasos compostables de bagazo para cafe, bebidas frias y servicio para llevar. La presentacion mayorista se entrega por caja a cafeterias y locales gastronomicos.",
+                           "descripcion_semantica":  "Vasos compostables de bagazo de doce onzas utilizados por cafeterías, bares, kioscos y comercios gastronómicos para servir café, infusiones y bebidas frías. En el uso comercial también se los denomina vasos biodegradables, ecológicos o vasos para llevar. La presentación mayorista se vende por caja y está orientada al servicio de takeaway y consumo en el local.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-COPY",
                                              "unidad_venta":  "caja",
@@ -410,7 +410,7 @@
                        },
                        {
                            "id":  "doc-021",
-                           "descripcion_semantica":  "Los vasos de bagazo de doce onzas sirven para cafe caliente y bebidas para llevar. Son descartables, compostables y se venden en cajas para cafeterias y comercios gastronomicos.",
+                           "descripcion_semantica":  "Los vasos de bagazo de 12 oz son envases descartables y compostables para café caliente, infusiones y bebidas frías. Cafeterías, kioscos y locales gastronómicos suelen pedirlos como vasitos ecológicos, vasos biodegradables o recipientes para llevar. Se comercializan en cajas y se utilizan principalmente para pedidos de takeaway y atención dentro del local.",
                            "metadatos":  {
                                              "sku":  "ECO-VAS-12OZ-JERGA",
                                              "unidad_venta":  "caja",
@@ -431,7 +431,7 @@
                        },
                        {
                            "id":  "doc-018",
-                           "descripcion_semantica":  "Las modificaciones del catálogo deben registrar quién cambió el documento, cuándo se aplicó la actualización y qué estado operativo quedó vigente.",
+                           "descripcion_semantica":  "Las modificaciones realizadas sobre el catálogo de EcoLogix deben conservar información de auditoría que permita identificar quién efectuó el cambio, cuándo se aplicó y cuál fue el estado operativo resultante. Este control se utiliza en altas, bajas, discontinuaciones y reemplazos de productos, para evitar que distintas versiones del catálogo presenten información contradictoria sobre disponibilidad, vigencia o condiciones comerciales.",
                            "metadatos":  {
                                              "tipo_regla":  "auditoria",
                                              "aplica_a":  "mantenimiento",
