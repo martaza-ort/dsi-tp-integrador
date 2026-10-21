@@ -8,6 +8,20 @@
 - Regla: se conserva el primer documento válido y se elimina el posterior
   cuando la distancia coseno es menor o igual al umbral.
 
+## Justificación y alcance del umbral
+
+La distancia coseno se calcula como `1 - similitud`; por eso, el umbral `0.15`
+equivale a exigir similitud coseno >= `0.85`. En este corpus, los dos casos
+controlados corresponden a variantes del mismo producto (vasos de bagazo de
+12 oz) y se midieron en `0.1440` y `0.1177`. El mayor valor observado es
+`0.1440`; el corte queda `0.0060` por encima y captura ambos. Este margen
+describe el ajuste a los ejemplos sembrados, no una frontera universal de
+duplicidad. Como todavía no hay pares negativos etiquetados, no se puede
+estimar la tasa de falsos positivos ni afirmar que el valor sea óptimo. Se
+considera un umbral inicial para este corpus, modelo y formato de texto; antes
+de ampliarlo conviene evaluarlo con pares positivos y negativos revisados,
+medir falsos positivos y falsos negativos, y recalibrarlo.
+
 ## Correcciones estructurales
 
 - doc-019: activo string -> booleano
