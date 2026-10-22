@@ -49,7 +49,7 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Preparar las variables de tracing y la validación de API key/proyecto sin versionar secretos.
 - [x] Registrar una ejecución completa del pipeline.
 - [x] Documentar tiempos, tokens consumidos y qué chunks se recuperaron frente a cuáles quedaron seleccionados tras el reranking.
-- [ ] Guardar una captura o un enlace público de la traza como evidencia. No incluir API keys en archivos versionados.
+- [x] Guardar capturas de la traza como evidencia en `entrega_3/image.png` y `entrega_3/image-1.png`, e incluirlas en `informe.md`. No se publicó un enlace público; el enlace privado requiere acceso autenticado. No incluir API keys en archivos versionados.
 
 ## Parte C — Evaluación con RAGAS
 
@@ -79,7 +79,7 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 
 - [ ] `rag_pipeline.py` o notebook equivalente: implementación de las Partes A y B conectada a la base vectorial original.
 - [ ] `evaluacion_ragas.py` o notebook equivalente: golden dataset de 10 preguntas y ejecución de RAGAS.
-- [ ] `langsmith_trace.png` o enlace público: evidencia de una traza de LangSmith de la Parte B.4.
+- [x] `image.png` y `image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informe.md`.
 - [ ] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
 
 ## Criterio de cierre
