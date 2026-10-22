@@ -10,7 +10,7 @@
 
 ## Justificación y alcance del umbral
 
-La distancia coseno se calcula como `1 - similitud`; por eso, el umbral `0.15` equivale a exigir similitud coseno >= `0.85`. En este corpus, los dos casos controlados corresponden a variantes del mismo producto (vasos de bagazo de 12 oz): `doc-020` vs. `doc-019` (`0.0767`), `doc-021` vs. `doc-019` (`0.1298`). El mayor valor observado es `0.1298`; el corte queda `0.0202` por encima y captura ambos. Este margen describe el ajuste a los ejemplos sembrados, no una frontera universal de duplicidad. Como todavía no hay pares negativos etiquetados, no se puede estimar la tasa de falsos positivos ni afirmar que el valor sea óptimo. Se considera un umbral inicial para este corpus, modelo y formato de texto; antes de ampliarlo conviene evaluarlo con pares positivos y negativos revisados, medir falsos positivos y falsos negativos, y recalibrarlo.
+La distancia coseno se calcula como `1 - similitud`; por eso, el umbral `0.15` equivale a exigir similitud coseno >= `0.85`. Los casos positivos controlados corresponden a variantes del mismo producto: `doc-020` vs. `doc-019` (`0.0767`), `doc-021` vs. `doc-019` (`0.1298`). El duplicado con mayor distancia quedó en `0.1298`. El par diferente más cercano quedó en `0.2630`. La separación observada entre el duplicado más distante y el documento diferente más cercano es de `0.1332`. Por lo tanto, el umbral `0.15` conserva los documentos distintos medidos y elimina los casi duplicados sembrados. El valor sigue siendo específico de este corpus, del modelo de embeddings y del formato utilizado; deberá recalibrarse si cambia alguno de esos elementos.
 
 ## Correcciones estructurales
 
@@ -26,6 +26,18 @@ La distancia coseno se calcula como `1 - similitud`; por eso, el umbral `0.15` e
 |---|---|---:|---|
 | doc-020 | doc-019 | 0.0767 | casi-duplicado semántico |
 | doc-021 | doc-019 | 0.1298 | casi-duplicado semántico |
+## Pares diferentes más cercanos
+
+Los siguientes documentos sobrevivieron a la purga. Se muestran los
+pares con menor distancia para utilizarlos como ejemplos negativos y
+comprobar que el umbral no elimina documentos diferentes pero
+semánticamente relacionados.
+
+| Documento A | Título A | Documento B | Título B | Distancia coseno |
+|---|---|---|---|---:|
+| doc-009 | Stock por depósito central | doc-010 | Reserva de stock al confirmar pedido | 0.2630 |
+| doc-005 | Envases de cartón para alimentos | doc-013 | Bolsas de papel kraft para comercio | 0.2712 |
+| doc-003 | Platos y bowls de bagazo | doc-005 | Envases de cartón para alimentos | 0.2717 |
 
 ## Por qué `SELECT DISTINCT` no alcanza
 
