@@ -20,11 +20,37 @@ DATASET_PATH = ROOT / "base_conocimiento_limpia.json"
 
 CAMPOS_PRINCIPALES = ("id",)
 UMBRAL_ACEPTACION = 0.35
+UMBRAL_MARGEN_DOMINIO = 0.05
+
+EJEMPLOS_DOMINIO = [
+    "Quiero comprar bolsas compostables para mi comercio",
+    "Necesito vasos biodegradables para servir café",
+    "Busco envases ecológicos para enviar comida",
+    "Necesito sorbetes disponibles en stock",
+    "Quiero consultar el estado de mi pedido",
+    "Me llegó mercadería rota y quiero reclamar",
+    "Quiero saber si hacen envíos a mi zona",
+    "Cuál es el mínimo de compra",
+    "Necesito productos sustentables para mi restaurante",
+    "Busco artículos descartables biodegradables",
+]
+
+EJEMPLOS_FUERA_DOMINIO = [
+    "Quiero comprar una computadora portátil",
+    "Necesito accesorios electrónicos para mi teléfono",
+    "Busco alquilar un departamento",
+    "Necesito repuestos y neumáticos para mi auto",
+    "Quiero reservar un pasaje de avión",
+    "Necesito pedir un préstamo bancario",
+    "Quiero sacar un turno médico",
+    "Busco ropa y zapatillas deportivas",
+]
 
 TIPOS_SIMPLES = (str, int, float, bool)
 
 _ANCLA_DOMINIO: np.ndarray | None = None
-
+_EMBEDDINGS_EJEMPLOS_DOMINIO: np.ndarray | None = None
+_EMBEDDINGS_EJEMPLOS_FUERA: np.ndarray | None = None
 
 def cargar_documentos() -> list[dict]:
     """Carga los documentos de la base de conocimiento limpia."""
@@ -40,6 +66,11 @@ def _normalizar(vector: np.ndarray) -> np.ndarray:
 
     return vector / np.linalg.norm(vector)
 
+def _normalizar_matriz(matriz: np.ndarray) -> np.ndarray:
+    """Normaliza cada fila de una matriz de embeddings."""
+
+    normas = np.linalg.norm(matriz, axis=1, keepdims=True)
+    return matriz / normas
 
 def ancla_dominio() -> np.ndarray:
     """
@@ -70,6 +101,48 @@ def similitud_ancla(consulta: str) -> float:
     embedding = _normalizar(generar_embeddings([consulta])[0])
     return float(embedding @ ancla_dominio())
 
+def evaluar_dominio(consulta: str) -> dict:
+    """
+    Compara la consulta con ejemplos semánticos del dominio EcoLogix
+    y con ejemplos representativos de dominios ajenos.
+
+    No utiliza palabras clave. La consulta se acepta cuando su mejor
+    similitud con los ejemplos de EcoLogix supera a su mejor similitud
+    con ejemplos ajenos por un margen mínimo.
+    """
+
+    global _EMBEDDINGS_EJEMPLOS_DOMINIO
+    global _EMBEDDINGS_EJEMPLOS_FUERA
+
+    if _EMBEDDINGS_EJEMPLOS_DOMINIO is None:
+        _EMBEDDINGS_EJEMPLOS_DOMINIO = _normalizar_matriz(
+            generar_embeddings(EJEMPLOS_DOMINIO)
+        )
+
+    if _EMBEDDINGS_EJEMPLOS_FUERA is None:
+        _EMBEDDINGS_EJEMPLOS_FUERA = _normalizar_matriz(
+            generar_embeddings(EJEMPLOS_FUERA_DOMINIO)
+        )
+
+    embedding_consulta = _normalizar(
+        generar_embeddings([consulta])[0]
+    )
+
+    similitud_dominio = float(
+        np.max(_EMBEDDINGS_EJEMPLOS_DOMINIO @ embedding_consulta)
+    )
+    similitud_fuera = float(
+        np.max(_EMBEDDINGS_EJEMPLOS_FUERA @ embedding_consulta)
+    )
+    margen = similitud_dominio - similitud_fuera
+
+    return {
+        "similitud_dominio": round(similitud_dominio, 4),
+        "similitud_fuera": round(similitud_fuera, 4),
+        "margen_dominio": round(margen, 4),
+        "umbral_margen": UMBRAL_MARGEN_DOMINIO,
+        "aceptada": margen >= UMBRAL_MARGEN_DOMINIO,
+    }
 
 def _expandir(condicion: dict) -> list[dict]:
     """Aplana un `$and` para componer filtros sin anidarlos."""
@@ -190,6 +263,7 @@ class BaseVectorial:
         cantidad: int = 3,
         donde: dict | None = None,
         umbral: float = UMBRAL_ACEPTACION,
+        validar_dominio: bool = True,
     ) -> list[dict]:
         """
         Busca los documentos más parecidos a la consulta.
@@ -209,6 +283,16 @@ class BaseVectorial:
         if not consulta or not consulta.strip():
             return []
 
+        diagnostico_dominio = evaluar_dominio(consulta)
+
+        if validar_dominio and not diagnostico_dominio["aceptada"]:
+            return []
+
+        cantidad = min(cantidad, self.coleccion.count())
+        if cantidad == 0:
+            return []
+
+        ancla = round(similitud_ancla(consulta), 4)
         cantidad = min(cantidad, self.coleccion.count())
         ancla = round(similitud_ancla(consulta), 4)
 
@@ -254,6 +338,9 @@ class BaseVectorial:
                     },
                     "similitud": similitud,
                     "similitud_ancla": ancla,
+                    "similitud_dominio": diagnostico_dominio["similitud_dominio"],
+                    "similitud_fuera": diagnostico_dominio["similitud_fuera"],
+                    "margen_dominio": diagnostico_dominio["margen_dominio"],
                 }
             )
 
@@ -266,23 +353,25 @@ class BaseVectorial:
         solo_activos: bool = False,
         n_resultados: int = 3,
         umbral: float = UMBRAL_ACEPTACION,
-    ) -> list[dict]:
-        """
-        CLI de búsqueda híbrida de B.4.
+        validar_dominio: bool = True,
+    )     -> list[dict]:
+            """
+            CLI de búsqueda híbrida de B.4.
 
-        Combina búsqueda semántica con filtro duro por operadores
-        nativos de ChromaDB, en la firma que pide la consigna.
-        """
+            Combina búsqueda semántica con filtro duro por operadores
+            nativos de ChromaDB, en la firma que pide la consigna.
+            """
 
-        return self.buscar(
-            consulta=query_semantica,
-            cantidad=n_resultados,
-            donde=construir_where(
-                filtro_x=filtro_x,
-                solo_activos=solo_activos,
-            ),
-            umbral=umbral,
-        )
+            return self.buscar(
+                consulta=query_semantica,
+                cantidad=n_resultados,
+                donde=construir_where(
+                    filtro_x=filtro_x,
+                    solo_activos=solo_activos,
+                ),
+                umbral=umbral,
+                validar_dominio=validar_dominio,
+            )
 
 
 def verificar_persistencia() -> None:
@@ -409,8 +498,8 @@ def main() -> None:
         )
 
     print(
-        "\n   Ningún if de Python decide este caso: el veredicto sale\n"
-        "   del umbral semántico. Ver B.4 y C.2 del informe."
+    "\n   El caso se decide mediante comparación semántica con ejemplos\n"
+    "   del dominio y de dominios ajenos, sin utilizar palabras clave."
     )
 
     verificar_persistencia()

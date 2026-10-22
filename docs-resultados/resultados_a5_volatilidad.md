@@ -1,66 +1,147 @@
 # Prueba destructiva de volatilidad — EcoLogix (Entrega 2, A.5)
 
-Evidencia real de que la persistencia del índice FAISS no es una
-afirmación: se construyó el mismo corpus dos veces, una sin
-`write_index()` y otra con, simulando en ambos casos el reinicio del
-proceso (se borran los objetos de Python en memoria y se intenta
-recargar desde el path en disco).
+Esta prueba demuestra con evidencia ejecutable la diferencia entre mantener
+un índice FAISS únicamente en memoria y persistirlo en disco.
 
-Reproducible con `python prueba_volatilidad.py`.
+La prueba de persistencia se realizó mediante procesos independientes.
+Primero se construyó y guardó el índice ejecutando el modo `escribir`.
+Una vez finalizado completamente ese proceso, se inició una nueva ejecución
+con el modo `leer`, que recuperó el índice desde disco sin volver a generar
+los embeddings del corpus.
 
-## Escenario 1 — Sin `write_index()`
+## Comandos de reproducción
+
+```bash
+rm -f indice_faiss/prueba_a5.index
+
+python3 prueba_volatilidad.py --modo leer
+python3 prueba_volatilidad.py --modo escribir
+python3 prueba_volatilidad.py --modo leer
+```
+
+Cada ejecución de `python3` corresponde a un proceso independiente.
+
+## Escenario 1 — Intento de lectura sin persistencia previa
+
+Antes de comenzar la prueba se eliminó únicamente el archivo temporal
+`indice_faiss/prueba_a5.index`.
+
+Luego se ejecutó:
+
+```bash
+python3 prueba_volatilidad.py --modo leer
+```
+
+El resultado fue un error esperado:
+
+```text
+FileNotFoundError: No existe el índice persistido:
+indice_faiss/prueba_a5.index
+```
 
 | Medición | Resultado |
 |---|---|
-| Vectores construidos en memoria | 20 |
-| ¿Existe el archivo en disco tras "reiniciar"? | False |
-| Error al intentar `faiss.read_index()` | `Error in __cdecl faiss::FileIOReader::FileIOReader(const char *) at D:\a\faiss\faiss\faiss\impl\io.cpp:70: Error: 'f' failed: could not open C:\Users\Agus\AppData\Local\Temp\prueba_volatilidad_4wgw4dx0\sin_persistencia.index for reading: No such file or directory` |
-| ¿Hay que regenerar embeddings (pagar de nuevo)? | **Sí** |
+| ¿Existía un índice persistido? | No |
+| ¿Fue posible recuperarlo desde otro proceso? | No |
+| ¿Sería necesario regenerar los embeddings? | Sí |
+| Resultado esperado | Prueba superada |
 
-**¿Pasó la prueba (se perdió el índice)?** Sí
+Sin una llamada previa a `faiss.write_index()`, el índice solamente existe
+en la memoria RAM del proceso que lo construyó. Cuando ese proceso termina,
+el objeto desaparece y un proceso posterior no tiene ningún archivo que
+pueda cargar mediante `faiss.read_index()`.
 
-Sin `write_index()`, el índice vive únicamente en la RAM del proceso
-de Python. Al terminar el proceso ("reiniciar el entorno"), el objeto
-`faiss.Index` desaparece con él. No queda ningún archivo para
-recargar: `faiss.read_index()` sobre ese path falla, y la única forma
-de volver a tener el índice es correr `generar_embeddings()` de nuevo
-sobre todo el corpus — es decir, pagar tokens/cómputo otra vez.
+Por lo tanto, para recuperar la funcionalidad sería necesario volver a
+procesar todos los documentos, generar nuevamente sus embeddings y
+reconstruir el índice.
 
-## Escenario 2 — Con `write_index()`
+## Escenario 2 — Escritura del índice
 
-| Medición | Antes de "reiniciar" | Después de recargar desde disco |
-|---|---|---|
+Se ejecutó:
+
+```bash
+python3 prueba_volatilidad.py --modo escribir
+```
+
+La ejecución construyó los embeddings del corpus, creó el índice FAISS y
+lo persistió mediante `faiss.write_index()`.
+
+| Medición | Resultado |
+|---|---:|
+| Documentos procesados | 20 |
+| Vectores guardados | 20 |
+| Dimensión de los vectores | 384 |
+| Archivo generado | `indice_faiss/prueba_a5.index` |
+
+Al finalizar el comando, el proceso de Python que construyó el índice se
+cerró completamente. El índice dejó de existir en la memoria de ese
+proceso, pero quedó almacenado en disco.
+
+## Escenario 3 — Lectura desde un proceso nuevo
+
+Después de finalizar el proceso de escritura se ejecutó:
+
+```bash
+python3 prueba_volatilidad.py --modo leer
+```
+
+Esta ejecución inició un proceso nuevo y cargó directamente el archivo
+persistido mediante `faiss.read_index()`.
+
+| Medición | Antes de finalizar el proceso de escritura | Nuevo proceso de lectura |
+|---|---:|---:|
 | Vectores | 20 | 20 |
 | Dimensión | 384 | 384 |
+| ¿Se generaron nuevamente los embeddings? | No aplica | No |
 
-**¿Coincide el índice recargado con el original?** True
+El modo `leer` no llama a `cargar_documentos()`, `preparar_texto()` ni
+`generar_embeddings()`. Solamente utiliza `faiss.read_index()` para
+recuperar el índice almacenado.
 
-**¿Pasó la prueba (el índice sobrevivió al "reinicio")?** Sí
+**¿Coincide el índice recuperado con el persistido?** Sí.
 
-Con `write_index()`, el índice queda serializado en disco. Tras
-borrar los objetos en memoria (simulando que el proceso terminó y
-arrancó de nuevo), `faiss.read_index()` reconstruye el mismo índice
-— mismo `ntotal`, misma dimensión — sin volver a llamar
-`generar_embeddings()` en ningún momento de este segundo escenario.
-La diferencia entre los dos escenarios es, literalmente, esa única
-línea de código.
+**¿El índice sobrevivió al cierre del proceso que lo construyó?** Sí.
+
+## Conclusión de la prueba
+
+Los resultados demuestran que el índice que existe únicamente en memoria
+se pierde al finalizar el proceso. En cambio, después de ejecutar
+`faiss.write_index()`, un proceso independiente puede recuperar la misma
+cantidad de vectores y la misma dimensión mediante `faiss.read_index()`,
+sin recalcular los embeddings del corpus.
+
+La persistencia evita repetir el costo computacional de vectorizar todos
+los documentos cada vez que se reinicia la aplicación.
 
 ## Reflexión
 
-**¿Qué pasa en producción si el servidor se reinicia?** Sin
-persistencia en disco, cada reinicio (deploy, crash, escalado)
-obliga a reconstruir el índice completo desde cero, con el costo de
-cómputo/tokens que eso implica y un período sin búsqueda disponible
-mientras se regenera. Con `write_index()`/`read_index()` sobre un
-volumen persistente, el servidor vuelve a estar operativo apenas
-termina de leer el archivo.
+### ¿Qué ocurre si el servidor se reinicia?
 
-**¿Y si hay dos servidores?** FAISS no tiene control de concurrencia
-ni mecanismo de sincronización propio: si cada instancia construye
-su índice por separado, pueden terminar desincronizadas (una ve un
-producto que la otra no, por ejemplo tras un evento como el de B.3).
-Para dos servidores hace falta un paso adicional que FAISS no
-resuelve solo: compartir el mismo archivo de índice (disco
-compartido, objeto en un bucket, o reconstrucción centralizada que
-los demás solo leen) — exactamente el problema que `PersistentClient`
-de ChromaDB sí resuelve de fábrica (ver B.2).
+Sin persistencia, cada reinicio causado por un despliegue, una falla o una
+tarea de mantenimiento obliga a reconstruir el índice completo. Durante
+esa reconstrucción, la búsqueda vectorial podría no estar disponible y se
+repetiría innecesariamente el costo de generar los embeddings.
+
+Con el índice guardado en un volumen persistente, el servidor puede
+recuperarlo mediante `faiss.read_index()` al iniciar. Esto disminuye el
+tiempo necesario para volver a prestar servicio y evita recalcular los
+vectores del corpus cuando los documentos no cambiaron.
+
+### ¿Qué ocurre si existen dos servidores?
+
+FAISS no proporciona control de concurrencia ni sincronización automática
+entre distintas instancias. Si cada servidor conserva su propia copia
+local del índice, las copias pueden quedar desactualizadas. Por ejemplo,
+un servidor podría incorporar un producto nuevo mientras el otro continúa
+trabajando con una versión anterior.
+
+Compartir directamente un archivo tampoco garantiza escrituras
+concurrentes seguras. Para un entorno con varios servidores sería
+necesario centralizar la construcción y distribución del índice, aplicar
+versionado y reemplazos atómicos, o utilizar una base vectorial desplegada
+como servicio para que todas las instancias consulten una única fuente.
+
+Un `PersistentClient` local de ChromaDB conserva información entre
+reinicios de una instancia, pero tampoco convierte automáticamente el
+almacenamiento local en una solución distribuida para múltiples
+servidores.

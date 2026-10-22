@@ -16,6 +16,7 @@ solo los importa, para no pisar el trabajo de nadie en esos archivos.
 
 from __future__ import annotations
 
+import argparse
 import shutil
 import tempfile
 from pathlib import Path
@@ -32,7 +33,7 @@ from similitud_coseno import (
 
 ROOT = Path(__file__).resolve().parent
 RUTA_EVIDENCIA = ROOT / "docs-resultados" / "resultados_a5_volatilidad.md"
-
+RUTA_PRUEBA = ROOT / "indice_faiss" / "prueba_a5.index"
 
 def escenario_sin_persistencia(directorio_temporal: Path) -> dict:
     """Construye el índice en memoria y NUNCA lo persiste."""
@@ -103,6 +104,42 @@ def escenario_con_persistencia(directorio_temporal: Path) -> dict:
             and indice_recargado.d == dimension_antes_de_reiniciar
         ),
     }
+
+def escribir_indice_persistido() -> None:
+    """Construye y guarda el índice. Este proceso termina después de escribirlo."""
+
+    documentos = cargar_documentos()
+    textos = [preparar_texto(doc) for doc in documentos]
+
+    embeddings = generar_embeddings(textos)
+    indice = construir_indice(embeddings)
+
+    RUTA_PRUEBA.parent.mkdir(parents=True, exist_ok=True)
+    faiss.write_index(indice, str(RUTA_PRUEBA))
+
+    print("Índice persistido correctamente.")
+    print("Ruta:", RUTA_PRUEBA)
+    print("Vectores:", indice.ntotal)
+    print("Dimensión:", indice.d)
+
+
+def leer_indice_persistido() -> None:
+    """Carga el índice en un proceso nuevo sin regenerar embeddings."""
+
+    if not RUTA_PRUEBA.exists():
+        raise FileNotFoundError(
+            f"No existe el índice persistido: {RUTA_PRUEBA}"
+        )
+
+    # En este modo no se llama a cargar_documentos(),
+    # preparar_texto() ni generar_embeddings().
+    indice = faiss.read_index(str(RUTA_PRUEBA))
+
+    print("Índice recuperado desde disco.")
+    print("Ruta:", RUTA_PRUEBA)
+    print("Vectores recuperados:", indice.ntotal)
+    print("Dimensión recuperada:", indice.d)
+    print("No se regeneraron embeddings.")
 
 
 def escribir_evidencia(resultado_sin: dict, resultado_con: dict) -> None:
@@ -223,4 +260,20 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Prueba de persistencia del índice FAISS"
+    )
+    parser.add_argument(
+        "--modo",
+        choices=["completa", "escribir", "leer"],
+        default="completa",
+        help="Modo de ejecución de la prueba",
+    )
+    args = parser.parse_args()
+
+    if args.modo == "escribir":
+        escribir_indice_persistido()
+    elif args.modo == "leer":
+        leer_indice_persistido()
+    else:
+        main()
