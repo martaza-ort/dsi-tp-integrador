@@ -30,13 +30,13 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ## Parte B — RAG avanzado: chunking y reranking
 
 ### B.1 — Falla del RAG básico
-- [ ] Encontrar y documentar al menos una consulta en la que falle el RAG básico.
-- [ ] Explicar la causa técnica observada; considerar, entre otras, un chunk cortado, ruido en el contexto o el efecto *Lost in the Middle*.
+- [x] Encontrar y documentar al menos una consulta en la que falle el RAG básico.
+- [x] Explicar la causa técnica observada; considerar, entre otras, un chunk cortado, ruido en el contexto o el efecto *Lost in the Middle*.
 
 ### B.2 — Chunking con solapamiento
-- [ ] Reindexar el corpus usando chunks con solapamiento; la consigna da como ejemplo 500 caracteres de tamaño y 100 de solapamiento.
-- [ ] Informar la cantidad de chunks antes y después de reindexar.
-- [ ] Analizar si el nuevo chunking corrige la falla registrada en B.1.
+- [x] Reindexar el corpus usando chunks con solapamiento; la consigna da como ejemplo 500 caracteres de tamaño y 100 de solapamiento.
+- [x] Informar la cantidad de chunks antes y después de reindexar.
+- [x] Analizar si el nuevo chunking corrige la falla registrada en B.1. Comparación pareada con Gemini 3.5 Flash Lite: ambas respuestas fueron la frase de escape; el índice con chunks aún omite las fuentes de sorbetes y entrega a domicilio.
 
 ### B.3 — Reranking
 - [ ] Aumentar la cantidad inicial de documentos recuperados (por ejemplo, `k=8`).

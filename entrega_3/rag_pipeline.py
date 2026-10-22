@@ -65,8 +65,9 @@ class EmbeddingsEcoLogix(Embeddings):
 
 def crear_retriever(
     cantidad: int = 3,
+    nombre_coleccion: str = NOMBRE_COLECCION,
 ) -> BaseRetriever:
-    """Abre la colección persistida de Entrega 2 sin reindexarla."""
+    """Abre una colección persistida de ChromaDB sin reindexarla."""
 
     if cantidad < 1:
         raise ValueError("La cantidad de documentos debe ser al menos 1.")
@@ -78,17 +79,17 @@ def crear_retriever(
         )
 
     cliente = chromadb.PersistentClient(path=str(DIRECTORIO_CHROMA))
-    coleccion = cliente.get_collection(name=NOMBRE_COLECCION)
+    coleccion = cliente.get_collection(name=nombre_coleccion)
 
     if coleccion.count() == 0:
         raise ValueError(
-            f"La colección ChromaDB '{NOMBRE_COLECCION}' está vacía. "
-            "Ejecutá vector_db.py para indexar el corpus."
+            f"La colección ChromaDB '{nombre_coleccion}' está vacía. "
+            "Ejecutá el indexador correspondiente antes de crear el retriever."
         )
 
     base_vectorial = Chroma(
         client=cliente,
-        collection_name=NOMBRE_COLECCION,
+        collection_name=nombre_coleccion,
         embedding_function=EmbeddingsEcoLogix(),
         create_collection_if_not_exists=False,
     )
@@ -151,6 +152,7 @@ def _construir_cadena(
 def crear_cadena_rag(
     cantidad: int = 3,
     modelo: str | None = None,
+    nombre_coleccion: str = NOMBRE_COLECCION,
 ) -> Runnable[str, dict[str, Any]]:
     """Crea el chain RAG con el proveedor configurado en `.env`."""
 
@@ -201,7 +203,10 @@ def crear_cadena_rag(
         )
 
     return _construir_cadena(
-        retriever=crear_retriever(cantidad=cantidad),
+        retriever=crear_retriever(
+            cantidad=cantidad,
+            nombre_coleccion=nombre_coleccion,
+        ),
         modelo_chat=modelo_chat,
     )
 

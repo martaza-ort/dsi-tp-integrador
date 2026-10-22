@@ -270,3 +270,65 @@ Título: Platos y bowls de bagazo. Categoría: vajilla. Descripción: La vajilla
 Título: Sorbetes de papel. Categoría: sorbetes. Descripción: Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.. Etiquetas: sorbete papel cafeteria comida_rapida biodegradable.
 ```
 
+## B.1 — Falla del RAG básico
+
+**Ejecución observada:** 2026-10-22, pipeline RAG básico con Gemini
+(`gemini-3.8-flash`), colección ChromaDB `ecologix` y búsqueda por similitud
+con `k=3`.
+
+**Consulta:**
+
+> Quiero pedir 20 cajas de vasos de bagazo y un bulto de sorbetes para el jueves. ¿Qué habría que validar antes de confirmar el pedido y qué determina si pueden entregarlo en mi domicilio?
+
+**Respuesta observada:**
+
+> No poseo información suficiente en el contexto para responder.
+
+**Fuentes recuperadas, en orden:**
+
+1. `Pedidos multitema y confirmación previa` (ventas): indica validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega antes de confirmar el pedido. El texto incluso describe un pedido de 20 cajas de vasos y un bulto de sorbetes.
+2. `Vasos de bagazo 12 oz` (vajilla): describe el uso de los vasos y que su unidad de venta habitual es la caja.
+3. `Reclamos por productos rotos o faltantes` (servicio): trata reclamos por entregas, pero no responde la consulta.
+
+**Falla observada y causa técnica:** la consulta tiene dos partes. El contexto recuperado permite responder qué validaciones previas se mencionan, pero no contiene los datos sobre la cobertura y coordinación de una entrega domiciliaria. Además, aunque el corpus contiene las fuentes `Sorbetes de papel`, `Zonas de entrega y cobertura` y `Retiro por depósito versus entrega domiciliaria`, ninguna apareció entre los tres documentos recuperados. La búsqueda por similitud con `k=3` incluyó una fuente de reclamos y dejó fuera esas fuentes relevantes. Ante ese contexto incompleto, el prompt del chain indica usar la frase de escape cuando falta información suficiente; el modelo aplicó esa instrucción a la consulta completa, sin responder siquiera la parte respaldada.
+
+Esto constituye una falla de recuperación y de completitud de la respuesta para esta consulta multitema, no una alucinación: el modelo no inventó condiciones de entrega ni confirmó el pedido. La observación no permite atribuir el resultado a un chunk cortado o a *Lost in the Middle*; el pipeline básico entrega documentos completos y la limitación visible en esta corrida es la selección de los tres documentos recuperados y el fallback global.
+
+**Evaluación:** B.1 cumplido. Esta corrida deja una falla observada para analizar en B.2: el contexto insuficiente recuperado con `k=3` coincidió con que una pregunta parcialmente respondible terminara íntegramente en la respuesta de escape.
+
+## B.2 — Chunking con solapamiento
+
+Se generó un índice alternativo a partir del mismo corpus `base_conocimiento_limpia.json` y del mismo texto preparado para la colección original. La colección básica `ecologix` se mantuvo intacta; los fragmentos se guardaron en `ecologix_chunks_500_100` dentro de la misma persistencia ChromaDB.
+
+**Configuración:** fragmentos de hasta 500 caracteres, solapamiento de 100 caracteres, búsqueda por similitud con `k=3` y los mismos embeddings locales. Cada fragmento conserva los metadatos del documento fuente y agrega su ID, título, índice y cantidad de fragmentos.
+
+| Índice | Registros |
+|---|---:|
+| Original `ecologix` | 20 documentos completos |
+| Alternativo `ecologix_chunks_500_100` | 24 chunks |
+
+**Consulta de comparación:** se reutilizó exactamente la consulta de B.1.
+
+Para controlar el efecto del modelo, el **2026-10-22T14:12-03:00** se ejecutó
+la misma consulta contra las colecciones original y fragmentada usando
+`gemini-3.5-flash-lite` en ambas, con `k=3` y el mismo prompt. El proveedor
+advirtió que este modelo usa valores de muestreo fijos e ignora `temperature`;
+la misma limitación aplica a las dos corridas, por lo que no introduce una
+diferencia entre ambos índices.
+
+| Condición | Respuesta observada |
+|---|---|
+| B.1 — colección `ecologix` | `No poseo información suficiente en el contexto para responder.` |
+| B.2 — colección `ecologix_chunks_500_100` | `No poseo información suficiente en el contexto para responder.` |
+
+**Recuperación observada en el índice fragmentado:**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0: incluye la validación de cada SKU, disponibilidad y fecha de entrega.
+2. `Vasos de bagazo 12 oz`, chunk 0: describe el producto y su presentación habitual.
+3. `Pedidos multitema y confirmación previa`, chunk 1: fragmento solapado del mismo documento fuente.
+
+**Resultado de la comparación:** con el mismo modelo, consulta y `k`, las dos condiciones produjeron la misma respuesta de escape. El chunking cambió el tercer resultado irrelevante del índice original por un segundo fragmento del documento de pedidos, pero este fragmento duplicado ocupa otro lugar del top 3. La búsqueda todavía no recuperó `Sorbetes de papel`, `Zonas de entrega y cobertura` ni `Retiro por depósito versus entrega domiciliaria`. Por lo tanto, para esta consulta el chunking por sí solo no corrigió la omisión de las fuentes ni mejoró la respuesta; el solapamiento además puede hacer que varios resultados correspondan al mismo documento.
+
+**Nota de ejecución:** Gemini 3.5 Flash Lite ignoró el parámetro `temperature` configurado por el cliente porque el modelo usa valores de muestreo fijos. La limitación se observó en ambas condiciones.
+
+**Reproducción:** desde la raíz del proyecto, ejecutar `python -m entrega_3.indexar_chunks` para reconstruir la colección avanzada y `python -m entrega_3.evaluar_b2` para ejecutar la misma consulta sobre ambas colecciones con el mismo modelo.
