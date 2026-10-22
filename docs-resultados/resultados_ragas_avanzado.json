@@ -1,0 +1,121 @@
+{
+  "estado": "completado",
+  "fecha": "2026-10-22T19:38:12-03:00",
+  "pipeline": "rag_avanzado",
+  "proveedor_generacion": "gemini",
+  "modelo_generacion": "gemini-3.5-flash-lite",
+  "proveedor_evaluacion": "gemini",
+  "modelo_evaluacion": "gemini-3.5-flash-lite",
+  "coleccion": "ecologix_chunks_500_100",
+  "k": 8,
+  "cantidad_casos": 10,
+  "metricas_promedio": {
+    "faithfulness": 0.95,
+    "answer_relevancy": 0.6231308822319612,
+    "context_precision": 0.749999999935,
+    "context_recall": 0.9333333333333332
+  },
+  "resultados_por_caso": [
+    {
+      "id": "C1-S1",
+      "tipo": "simple",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9644969545356168,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-S2",
+      "tipo": "simple",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8959193073445179,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-S3",
+      "tipo": "simple",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8773332663323662,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-C1",
+      "tipo": "compleja",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.746477813161141,
+        "context_precision": 0.9999999999,
+        "context_recall": 0.6666666666666666
+      }
+    },
+    {
+      "id": "C1-C2",
+      "tipo": "compleja",
+      "metricas": {
+        "faithfulness": 0.5,
+        "answer_relevancy": 0.7000411061740067,
+        "context_precision": 0.49999999995,
+        "context_recall": 0.6666666666666666
+      }
+    },
+    {
+      "id": "C1-C3",
+      "tipo": "compleja",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7550386995046968,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-E1",
+      "tipo": "escape",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.0,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-E2",
+      "tipo": "escape",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.0,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-I1",
+      "tipo": "ambigua_informal",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7393883650092871,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-I2",
+      "tipo": "ambigua_informal",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.5526133102579793,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      }
+    }
+  ],
+  "cantidad_seleccionados": 4
+}

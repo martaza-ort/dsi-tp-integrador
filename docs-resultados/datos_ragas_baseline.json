@@ -1,0 +1,150 @@
+{
+  "estado": "respuestas_generadas",
+  "fecha": "2026-10-22T19:00:58-03:00",
+  "proveedor": "gemini",
+  "modelo": "gemini-3.5-flash-lite",
+  "coleccion": "ecologix",
+  "k": 3,
+  "casos": [
+    {
+      "id": "C1-S1",
+      "tipo": "simple",
+      "pregunta": "¿Para qué bebidas y lugares se recomiendan los vasos de bagazo de 12 oz?",
+      "ground_truth": "Los vasos de bagazo de 12 oz se utilizan para bebidas calientes y frías, especialmente en cafeterías, kioscos y locales de takeaway.",
+      "user_input": "¿Para qué bebidas y lugares se recomiendan los vasos de bagazo de 12 oz?",
+      "reference": "Los vasos de bagazo de 12 oz se utilizan para bebidas calientes y frías, especialmente en cafeterías, kioscos y locales de takeaway.",
+      "response": "Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway [Vasos de bagazo 12 oz].",
+      "retrieved_contexts": [
+        "Título: Vasos de bagazo 12 oz. Categoría: vajilla. Descripción: Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.. Etiquetas: vaso bagazo cafeteria para_llevar vajilla.",
+        "Título: Vasos compostables para cafe. Categoría: vajilla. Descripción: Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.. Etiquetas: vasito biodegradable cafe takeaway.",
+        "Título: Platos y bowls de bagazo. Categoría: vajilla. Descripción: La vajilla de bagazo incluye platos y bowls para servicio rápido, catering y eventos. Es una alternativa ecológica para uso en alimentos calientes y húmedos, con buena resistencia y costo competitivo frente a plástico desechable. Se suele vender por caja a restaurantes, eventos y proveedores del sector gastronómico.. Etiquetas: plato bowl bagazo evento catering."
+      ]
+    },
+    {
+      "id": "C1-S2",
+      "tipo": "simple",
+      "pregunta": "¿Cómo se suelen vender los sorbetes de papel y para qué bebidas se usan?",
+      "ground_truth": "Los sorbetes de papel se utilizan para bebidas frías y calientes. Su presentación suele ser por bulto o caja, según la demanda del cliente.",
+      "user_input": "¿Cómo se suelen vender los sorbetes de papel y para qué bebidas se usan?",
+      "reference": "Los sorbetes de papel se utilizan para bebidas frías y calientes. Su presentación suele ser por bulto o caja, según la demanda del cliente.",
+      "response": "Los sorbetes de papel se suelen presentar por bulto o caja según la demanda del cliente y se utilizan para bebidas frías y calientes [Sorbetes de papel].",
+      "retrieved_contexts": [
+        "Título: Sorbetes de papel. Categoría: sorbetes. Descripción: Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.. Etiquetas: sorbete papel cafeteria comida_rapida biodegradable.",
+        "Título: Bolsas de papel kraft para comercio. Categoría: bolsas. Descripción: Las bolsas de papel kraft se venden para establecimientos con imagen premium o para la entrega de productos a clientes finales. Incluyen variedad de tamaños y se usan con frecuencia para compras de mayor volumen en comercios minoristas, panaderías y locales de productos frescos. La presentación es por caja y la demanda suele ser más consistente en períodos de exigencia ambiental.. Etiquetas: bolsa kraft papel minorista premium.",
+        "Título: Envases de cartón para alimentos. Categoría: envases. Descripción: Los envases de cartón cumplen un rol clave para delivery y catering. Se usan para alimentos calientes, postres y empaques de menús. Son un producto útil para locales con servicio para llevar, cuota de restaurante y eventos de catering. La venta se realiza generalmente por caja con una cantidad estándar por bulto.. Etiquetas: carton envase delivery catering comida_para_llevar."
+      ]
+    },
+    {
+      "id": "C1-S3",
+      "tipo": "simple",
+      "pregunta": "¿Cómo se determina el mínimo para aceptar un pedido pequeño?",
+      "ground_truth": "Los pedidos pequeños deben sumar un monto mínimo. La regla concreta se evalúa con el backend sobre el total del pedido, no sobre la intención del cliente.",
+      "user_input": "¿Cómo se determina el mínimo para aceptar un pedido pequeño?",
+      "reference": "Los pedidos pequeños deben sumar un monto mínimo. La regla concreta se evalúa con el backend sobre el total del pedido, no sobre la intención del cliente.",
+      "response": "El mínimo de compra para pedidos pequeños se evalúa con el backend sobre el total del pedido y no sobre la intención del cliente [Mínimo de compra por cliente].",
+      "retrieved_contexts": [
+        "Título: Mínimo de compra por cliente. Categoría: operativa. Descripción: EcoLogix establece un mínimo de compra por cliente para pedidos no registrados o para compras fuera de la política comercial. En general, los pedidos pequeños deben sumar un monto mínimo para ser aceptados en la programación de entrega o retiro. La regla concreta se evalúa con el backend sobre el total del pedido y no sobre la intención del cliente.. Etiquetas: minimo pedido politica comercial.",
+        "Título: Pedidos multitema y confirmación previa. Categoría: ventas. Descripción: Los pedidos multitema son comunes: un cliente puede pedir varios productos distintos en una misma consulta, como 20 cajas de vasos y un bulto de sorbetes para el jueves. Antes de reservar stock, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega. La confirmación final no debe producirse sin revisar la coherencia del pedido y la política del negocio.. Etiquetas: pedido_multiitem confirmacion fecha_entrega validacion.",
+        "Título: Reclamos por productos rotos o faltantes. Categoría: servicio. Descripción: Los reclamos por entrega pueden referirse a productos rotos, faltantes o diferencias entre lo solicitado y lo recibido. La operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo. Las decisiones financieras o de crédito requieren revisión humana; el sistema no puede emitir nota de crédito de forma automática.. Etiquetas: reclamo falta dañado logistica ticket."
+      ]
+    },
+    {
+      "id": "C1-C1",
+      "tipo": "compleja",
+      "pregunta": "Si un cliente pide vasos y sorbetes para el jueves, ¿qué hay que validar antes de confirmar y cuándo se reserva el stock?",
+      "ground_truth": "Antes de reservar stock hay que validar cada SKU, revisar la disponibilidad y confirmar la fecha de entrega, además de comprobar la coherencia del pedido y la política del negocio. El stock se controla por depósito y SKU, considerando lo disponible y lo ya reservado. La reserva se realiza después de confirmar el pedido y antes de generar el pedido final.",
+      "user_input": "Si un cliente pide vasos y sorbetes para el jueves, ¿qué hay que validar antes de confirmar y cuándo se reserva el stock?",
+      "reference": "Antes de reservar stock hay que validar cada SKU, revisar la disponibilidad y confirmar la fecha de entrega, además de comprobar la coherencia del pedido y la política del negocio. El stock se controla por depósito y SKU, considerando lo disponible y lo ya reservado. La reserva se realiza después de confirmar el pedido y antes de generar el pedido final.",
+      "response": "Antes de confirmar un pedido multitema, el sistema debe validar cada SKU, revisar la disponibilidad y confirmar la fecha de entrega, además de revisar la coherencia del pedido y la política del negocio [Pedidos multitema y confirmación previa]. \n\nEl stock se reserva una vez confirmado el pedido, antes de generar el pedido final [Reserva de stock al confirmar pedido].",
+      "retrieved_contexts": [
+        "Título: Pedidos multitema y confirmación previa. Categoría: ventas. Descripción: Los pedidos multitema son comunes: un cliente puede pedir varios productos distintos en una misma consulta, como 20 cajas de vasos y un bulto de sorbetes para el jueves. Antes de reservar stock, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega. La confirmación final no debe producirse sin revisar la coherencia del pedido y la política del negocio.. Etiquetas: pedido_multiitem confirmacion fecha_entrega validacion.",
+        "Título: Reserva de stock al confirmar pedido. Categoría: stock. Descripción: Una vez confirmado el pedido, el backend debe reservar la cantidad solicitada para el SKU antes de generar el pedido final. Esto evita que la misma mercadería se venda dos veces en el mismo período. En caso de que no haya disponibilidad suficiente, el sistema debe responder con una alternativa o derivar la solicitud a un operador.. Etiquetas: confirmacion pedido reserva stock.",
+        "Título: Stock por depósito central. Categoría: stock. Descripción: El stock se controla por depósito y por SKU. El depósito central es el origen principal para ventas locales y entregas programadas. Cuando una consulta refiere disponibilidad, el sistema debe verificar cantidad disponible y cantidad reservada para no aceptar pedidos que ya estén comprometidos. La reserva se realiza solo a partir de una operación determinista del backend.. Etiquetas: stock deposito cantidad reserva."
+      ]
+    },
+    {
+      "id": "C1-C2",
+      "tipo": "compleja",
+      "pregunta": "¿Qué determina si un pedido puede entregarse a domicilio y qué alternativa hay si la zona no tiene cobertura directa?",
+      "ground_truth": "La entrega depende de la zona y de la ruta disponible; también se consideran la cobertura, el horario y la coordinación previa con logística. Algunas zonas tienen servicio programado y otras requieren coordinación o retiro por depósito. Si la zona no está cubierta o no se puede resolver con seguridad, corresponde revisar o derivar el caso a un operador.",
+      "user_input": "¿Qué determina si un pedido puede entregarse a domicilio y qué alternativa hay si la zona no tiene cobertura directa?",
+      "reference": "La entrega depende de la zona y de la ruta disponible; también se consideran la cobertura, el horario y la coordinación previa con logística. Algunas zonas tienen servicio programado y otras requieren coordinación o retiro por depósito. Si la zona no está cubierta o no se puede resolver con seguridad, corresponde revisar o derivar el caso a un operador.",
+      "response": "Para la entrega a domicilio, se deben considerar el horario, la cobertura y la coordinación previa con logística [Retiro por depósito versus entrega domiciliaria]. \n\nSi la zona no tiene cobertura directa, las alternativas son la coordinación previa o el retiro por depósito [Zonas de entrega y cobertura], ya que los clientes pueden optar por retirar en depósito según la zona y la ruta disponible [Retiro por depósito versus entrega domiciliaria]. Además, cuando la zona de entrega no está en la cobertura, el sistema debe derivar la consulta a un operador humano [Derivación a humano cuando no hay certeza].",
+      "retrieved_contexts": [
+        "Título: Zonas de entrega y cobertura. Categoría: operativa. Descripción: La cobertura de entrega se define por zona y por ruta. Algunas zonas tienen servicio programado, mientras que otras requieren coordinación previa o retiro por depósito. La información de cobertura se usa para filtrar pedidos y determinar si una solicitud puede satisfacearse de forma directa o requiere revisión comercial.. Etiquetas: entrega zona cobertura ruta.",
+        "Título: Retiro por depósito versus entrega domiciliaria. Categoría: servicio. Descripción: Los clientes pueden optar por retirar en depósito o solicitar entrega a domicilio según la zona y la ruta disponible. Para retiro, el sistema suele priorizar la disponibilidad en el depósito y la reserva del pedido. Para entrega domiciliaria, se deben considerar horario, cobertura y coordinación previa con logística.. Etiquetas: retiro deposito entrega domicilio.",
+        "Título: Derivación a humano cuando no hay certeza. Categoría: soporte. Descripción: Cuando el sistema no puede resolver la consulta con datos seguros, debe derivarla a un operador humano. Esto aplica especialmente cuando faltan datos de stock, la zona de entrega no está en la cobertura, la cantidad solicitada no puede validarse o el pedido implica decisiones comerciales diferentes de la política base. La derivación es una salida segura y no una falla del sistema.. Etiquetas: humano derivacion incertidumbre seguridad."
+      ]
+    },
+    {
+      "id": "C1-C3",
+      "tipo": "compleja",
+      "pregunta": "Si faltan o llegan rotos productos y además no se puede verificar el stock o la zona del pedido, ¿cómo registrar el reclamo y cuándo debe intervenir una persona?",
+      "ground_truth": "Se debe abrir un ticket asociado al pedido y dejar evidencia del motivo, que puede ser rotura, faltante o diferencia entre lo solicitado y lo recibido. Si la consulta no puede resolverse con datos seguros, faltan datos de stock o la zona no está cubierta, debe derivarse a un operador. Las decisiones financieras o de crédito requieren revisión humana y no se debe emitir automáticamente una nota de crédito.",
+      "user_input": "Si faltan o llegan rotos productos y además no se puede verificar el stock o la zona del pedido, ¿cómo registrar el reclamo y cuándo debe intervenir una persona?",
+      "reference": "Se debe abrir un ticket asociado al pedido y dejar evidencia del motivo, que puede ser rotura, faltante o diferencia entre lo solicitado y lo recibido. Si la consulta no puede resolverse con datos seguros, faltan datos de stock o la zona no está cubierta, debe derivarse a un operador. Las decisiones financieras o de crédito requieren revisión humana y no se debe emitir automáticamente una nota de crédito.",
+      "response": "Para los reclamos por productos rotos, faltantes o diferencias entre lo solicitado y lo recibido, la operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo [Reclamos por productos rotos o faltantes]. Además, las decisiones financieras o de crédito requieren revisión humana, ya que el sistema no puede emitir notas de crédito de forma automática [Reclamos por productos rotos o faltantes].\n\nPor otro lado, cuando el sistema no puede resolver la consulta con datos seguros (como cuando faltan datos de stock o la zona de entrega no está en la cobertura), debe derivarla a un operador humano [Derivación a humano cuando no hay certeza]. Asimismo, si no hay disponibilidad suficiente de stock al confirmar el pedido, el sistema debe responder con una alternativa o derivar la solicitud a un operador [Reserva de stock al confirmar pedido].",
+      "retrieved_contexts": [
+        "Título: Reclamos por productos rotos o faltantes. Categoría: servicio. Descripción: Los reclamos por entrega pueden referirse a productos rotos, faltantes o diferencias entre lo solicitado y lo recibido. La operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo. Las decisiones financieras o de crédito requieren revisión humana; el sistema no puede emitir nota de crédito de forma automática.. Etiquetas: reclamo falta dañado logistica ticket.",
+        "Título: Derivación a humano cuando no hay certeza. Categoría: soporte. Descripción: Cuando el sistema no puede resolver la consulta con datos seguros, debe derivarla a un operador humano. Esto aplica especialmente cuando faltan datos de stock, la zona de entrega no está en la cobertura, la cantidad solicitada no puede validarse o el pedido implica decisiones comerciales diferentes de la política base. La derivación es una salida segura y no una falla del sistema.. Etiquetas: humano derivacion incertidumbre seguridad.",
+        "Título: Reserva de stock al confirmar pedido. Categoría: stock. Descripción: Una vez confirmado el pedido, el backend debe reservar la cantidad solicitada para el SKU antes de generar el pedido final. Esto evita que la misma mercadería se venda dos veces en el mismo período. En caso de que no haya disponibilidad suficiente, el sistema debe responder con una alternativa o derivar la solicitud a un operador.. Etiquetas: confirmacion pedido reserva stock."
+      ]
+    },
+    {
+      "id": "C1-E1",
+      "tipo": "escape",
+      "pregunta": "¿Cuántas unidades disponibles hay ahora mismo del SKU ECO-VAS-12OZ en el depósito central?",
+      "ground_truth": "No poseo información suficiente en el contexto para responder.",
+      "user_input": "¿Cuántas unidades disponibles hay ahora mismo del SKU ECO-VAS-12OZ en el depósito central?",
+      "reference": "No poseo información suficiente en el contexto para responder.",
+      "response": "No poseo información suficiente en el contexto para responder.",
+      "retrieved_contexts": [
+        "Título: Stock por depósito central. Categoría: stock. Descripción: El stock se controla por depósito y por SKU. El depósito central es el origen principal para ventas locales y entregas programadas. Cuando una consulta refiere disponibilidad, el sistema debe verificar cantidad disponible y cantidad reservada para no aceptar pedidos que ya estén comprometidos. La reserva se realiza solo a partir de una operación determinista del backend.. Etiquetas: stock deposito cantidad reserva.",
+        "Título: Reserva de stock al confirmar pedido. Categoría: stock. Descripción: Una vez confirmado el pedido, el backend debe reservar la cantidad solicitada para el SKU antes de generar el pedido final. Esto evita que la misma mercadería se venda dos veces en el mismo período. En caso de que no haya disponibilidad suficiente, el sistema debe responder con una alternativa o derivar la solicitud a un operador.. Etiquetas: confirmacion pedido reserva stock.",
+        "Título: Vasos de bagazo 12 oz. Categoría: vajilla. Descripción: Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.. Etiquetas: vaso bagazo cafeteria para_llevar vajilla."
+      ]
+    },
+    {
+      "id": "C1-E2",
+      "tipo": "escape",
+      "pregunta": "¿Cuál es el precio vigente por caja de vasos de bagazo de 12 oz?",
+      "ground_truth": "No poseo información suficiente en el contexto para responder.",
+      "user_input": "¿Cuál es el precio vigente por caja de vasos de bagazo de 12 oz?",
+      "reference": "No poseo información suficiente en el contexto para responder.",
+      "response": "No poseo información suficiente en el contexto para responder.",
+      "retrieved_contexts": [
+        "Título: Vasos de bagazo 12 oz. Categoría: vajilla. Descripción: Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.. Etiquetas: vaso bagazo cafeteria para_llevar vajilla.",
+        "Título: Bolsas compostables 40x50 cm. Categoría: bolsas. Descripción: Las bolsas compostables de 40x50 cm son un producto de alta rotación para supermercados, verdulerías y comercios minoristas. Se venden por caja y se recomienda para compras de retail, delivery y puntos de venta con atención directa. El material es PLA o bioplástico compostable y es compatible con uso cotidiano de compra por volumen.. Etiquetas: bolsa compostable retail supermercado empaque.",
+        "Título: Bolsas de papel kraft para comercio. Categoría: bolsas. Descripción: Las bolsas de papel kraft se venden para establecimientos con imagen premium o para la entrega de productos a clientes finales. Incluyen variedad de tamaños y se usan con frecuencia para compras de mayor volumen en comercios minoristas, panaderías y locales de productos frescos. La presentación es por caja y la demanda suele ser más consistente en períodos de exigencia ambiental.. Etiquetas: bolsa kraft papel minorista premium."
+      ]
+    },
+    {
+      "id": "C1-I1",
+      "tipo": "ambigua_informal",
+      "pregunta": "Che, esos vasitos eco de bagazo para el café, ¿van también para tomar algo frío o son solo para bebidas calientes?",
+      "ground_truth": "Los vasos biodegradables de bagazo de 12 oz pueden usarse para bebidas calientes o frías, tanto para llevar como para consumo en el local.",
+      "user_input": "Che, esos vasitos eco de bagazo para el café, ¿van también para tomar algo frío o son solo para bebidas calientes?",
+      "reference": "Los vasos biodegradables de bagazo de 12 oz pueden usarse para bebidas calientes o frías, tanto para llevar como para consumo en el local.",
+      "response": "Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías [Vasos de bagazo 12 oz].",
+      "retrieved_contexts": [
+        "Título: Vasos de bagazo 12 oz. Categoría: vajilla. Descripción: Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.. Etiquetas: vaso bagazo cafeteria para_llevar vajilla.",
+        "Título: Vasos compostables para cafe. Categoría: vajilla. Descripción: Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.. Etiquetas: vasito biodegradable cafe takeaway.",
+        "Título: Sorbetes de papel. Categoría: sorbetes. Descripción: Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.. Etiquetas: sorbete papel cafeteria comida_rapida biodegradable."
+      ]
+    },
+    {
+      "id": "C1-I2",
+      "tipo": "ambigua_informal",
+      "pregunta": "Me llegó medio fulero el pedido: faltaron un par de cosas y otra vino rota. ¿Cómo hago el reclamo?",
+      "ground_truth": "El reclamo debe registrarse en un ticket asociado al pedido y dejar evidencia del motivo, indicando los productos rotos, faltantes o las diferencias entre lo solicitado y lo recibido.",
+      "user_input": "Me llegó medio fulero el pedido: faltaron un par de cosas y otra vino rota. ¿Cómo hago el reclamo?",
+      "reference": "El reclamo debe registrarse en un ticket asociado al pedido y dejar evidencia del motivo, indicando los productos rotos, faltantes o las diferencias entre lo solicitado y lo recibido.",
+      "response": "Para realizar el reclamo por productos rotos o faltantes, la operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo [Reclamos por productos rotos o faltantes]. Tené en cuenta que las decisiones financieras o de crédito requieren revisión humana y el sistema no puede emitir notas de crédito de forma automática [Reclamos por productos rotos o faltantes].",
+      "retrieved_contexts": [
+        "Título: Reclamos por productos rotos o faltantes. Categoría: servicio. Descripción: Los reclamos por entrega pueden referirse a productos rotos, faltantes o diferencias entre lo solicitado y lo recibido. La operación debe abrir un ticket asociado al pedido y dejar evidencia del motivo. Las decisiones financieras o de crédito requieren revisión humana; el sistema no puede emitir nota de crédito de forma automática.. Etiquetas: reclamo falta dañado logistica ticket.",
+        "Título: Pedidos multitema y confirmación previa. Categoría: ventas. Descripción: Los pedidos multitema son comunes: un cliente puede pedir varios productos distintos en una misma consulta, como 20 cajas de vasos y un bulto de sorbetes para el jueves. Antes de reservar stock, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega. La confirmación final no debe producirse sin revisar la coherencia del pedido y la política del negocio.. Etiquetas: pedido_multiitem confirmacion fecha_entrega validacion.",
+        "Título: Mínimo de compra por cliente. Categoría: operativa. Descripción: EcoLogix establece un mínimo de compra por cliente para pedidos no registrados o para compras fuera de la política comercial. En general, los pedidos pequeños deben sumar un monto mínimo para ser aceptados en la programación de entrega o retiro. La regla concreta se evalúa con el backend sobre el total del pedido y no sobre la intención del cliente.. Etiquetas: minimo pedido politica comercial."
+      ]
+    }
+  ]
+}

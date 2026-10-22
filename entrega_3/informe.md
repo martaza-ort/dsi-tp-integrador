@@ -436,3 +436,87 @@ costo de una llamada al juez de relevancia.
 ![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](image.png)
 
 ![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](image-1.png)
+
+## C.2 — Baseline RAGAS
+
+El evaluador `evaluar_ragas.py` ejecuta los 10 casos del golden dataset de C.1
+contra el pipeline RAG básico, usando la colección original `ecologix` y
+`k=3`. Registra para cada caso la pregunta, la respuesta generada, los contextos
+recuperados y su respuesta de referencia. La configuración permite reutilizar
+esas respuestas para volver a calcular las métricas sin repetir las llamadas
+de generación del RAG.
+
+Las métricas informadas son:
+
+- **Faithfulness:** proporción de afirmaciones de la respuesta respaldadas por
+  los contextos recuperados; evalúa su fidelidad al contexto.
+- **Answer Relevancy:** pertinencia de la respuesta respecto de la pregunta;
+  las respuestas vagas o desalineadas obtienen una puntuación menor.
+- **Context Precision:** proporción y orden de los contextos recuperados que
+  resultan relevantes para la pregunta y su respuesta de referencia.
+- **Context Recall:** proporción de la información necesaria de la respuesta
+  de referencia que queda respaldada por los contextos recuperados.
+
+La corrida se realizó el **22/10/2026** sobre los 10 casos del golden dataset.
+Tanto la generación de respuestas como la evaluación de métricas usaron
+Gemini `gemini-3.5-flash-lite`; los embeddings para `Answer Relevancy` se
+calcularon localmente. Los promedios obtenidos fueron:
+
+| Métrica | Promedio |
+|---|---:|
+| Faithfulness | 0,9833 |
+| Answer Relevancy | 0,5952 |
+| Context Precision | 0,8000 |
+| Context Recall | 1,0000 |
+
+**Estado:** baseline ejecutado y documentado. Las respuestas y contextos por
+caso están en `docs-resultados/datos_ragas_baseline.json`; los resultados por
+caso y los promedios están en `docs-resultados/resultados_ragas_baseline.json`.
+
+## C.3 — Comparativa de pipelines
+
+Se evaluaron los mismos 10 casos de C.1 con ambos pipelines y el mismo modelo
+Gemini `gemini-3.5-flash-lite` para generar respuestas y calcular las métricas.
+El básico recupera hasta 3 documentos de `ecologix`; el avanzado usa chunks de
+500 caracteres con solapamiento de 100, recupera hasta 8 candidatos de
+`ecologix_chunks_500_100` y el reranker selecciona hasta 4. `Answer Relevancy`
+usa los embeddings locales en ambas corridas.
+
+| Métrica | RAG básico | RAG avanzado | Delta (avanzado − básico) |
+|---|---:|---:|---:|
+| Faithfulness | 0,9833 | 0,9500 | −0,0333 |
+| Answer Relevancy | 0,5952 | 0,6231 | **+0,0279** |
+| Context Precision | 0,8000 | 0,7500 | −0,0500 |
+| Context Recall | 1,0000 | 0,9333 | −0,0667 |
+
+El delta positivo de `Answer Relevancy` muestra una mejora del pipeline
+avanzado en esta corrida. Las métricas restantes bajaron, por lo que el
+resultado no representa una mejora uniforme. Los promedios corresponden a una
+corrida por pipeline, realizada el 22/10/2026; no miden la variabilidad entre
+ejecuciones. Las respuestas, contextos y resultados por caso se conservaron
+por separado en `docs-resultados/datos_ragas_avanzado.json` y
+`docs-resultados/resultados_ragas_avanzado.json`.
+
+## C.4 — Diagnóstico y mitigación
+
+La métrica más baja del pipeline avanzado es **Answer Relevancy (0,6231)**.
+Los dos casos de escape (`C1-E1` y `C1-E2`) obtuvieron 0,0000: el RAG respondió
+correctamente en ambos que no tenía información suficiente, igual que la
+respuesta esperada. La métrica penaliza esas abstenciones breves porque evalúa
+la pertinencia semántica de la respuesta respecto de la pregunta; por eso, en
+estos casos, el valor bajo no indica por sí solo una respuesta incorrecta. Al
+considerar solo los ocho casos que requieren una respuesta sustantiva, el
+promedio de Answer Relevancy fue 0,7789 en el avanzado y 0,7441 en el básico.
+
+También hay margen de mejora en la cobertura de respuestas: en `C1-I2`, la
+respuesta avanzada indica abrir un ticket y dejar evidencia, pero no explicita
+que se deben identificar los productos rotos, faltantes o las diferencias.
+Obtuvo 0,5526 en Answer Relevancy.
+
+**Acción técnica propuesta:** desglosar Answer Relevancy por tipo de caso y
+evaluar los casos de escape con una métrica específica de abstención correcta,
+sin confundir una respuesta de rechazo esperada con falta de pertinencia.
+Además, agregar una comprobación de cobertura de cada aspecto de la consulta
+al prompt del generador y una prueba de regresión para `C1-I2`; así se puede
+mejorar la respuesta en casos contestables y distinguir ese avance del
+comportamiento correcto de abstención.

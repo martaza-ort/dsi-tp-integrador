@@ -10,6 +10,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.rate_limiters import BaseRateLimiter
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import (
     Runnable,
@@ -268,7 +269,10 @@ def _construir_cadena_rag_con_reranking(
     )
 
 
-def _crear_modelo_chat(modelo: str | None = None) -> BaseChatModel:
+def _crear_modelo_chat(
+    modelo: str | None = None,
+    limitador_tasa: BaseRateLimiter | None = None,
+) -> BaseChatModel:
     """Crea el modelo del proveedor configurado en `.env`."""
 
     load_dotenv(RAIZ_PROYECTO / ".env")
@@ -296,6 +300,7 @@ def _crear_modelo_chat(modelo: str | None = None) -> BaseChatModel:
             request_timeout=timeout,
             temperature=1.0,
             retries=3,
+            rate_limiter=limitador_tasa,
         )
     if proveedor == "openai":
         api_key = os.getenv("OPENAI_API_KEY")
@@ -310,6 +315,7 @@ def _crear_modelo_chat(modelo: str | None = None) -> BaseChatModel:
             model=nombre_modelo,
             api_key=api_key,
             timeout=timeout,
+            rate_limiter=limitador_tasa,
         )
 
     raise ValueError(
@@ -339,6 +345,7 @@ def crear_cadena_rag_con_reranking(
     cantidad_seleccionados: int = 4,
     modelo: str | None = None,
     nombre_coleccion: str = NOMBRE_COLECCION_CHUNKS,
+    limitador_tasa: BaseRateLimiter | None = None,
 ) -> Runnable[str, dict[str, Any]]:
     """Crea el RAG avanzado con reranking LLM antes de generar la respuesta."""
 
@@ -357,7 +364,7 @@ def crear_cadena_rag_con_reranking(
             cantidad=cantidad_candidatos,
             nombre_coleccion=nombre_coleccion,
         ),
-        modelo_chat=_crear_modelo_chat(modelo),
+        modelo_chat=_crear_modelo_chat(modelo, limitador_tasa),
         cantidad_seleccionados=cantidad_seleccionados,
     )
 

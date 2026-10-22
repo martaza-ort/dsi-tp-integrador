@@ -81,6 +81,8 @@ del proyecto.
 │   ├── rag_pipeline.py
 │   ├── evaluar_a3.py
 │   ├── evaluar_a4.py
+│   ├── golden_dataset.json
+│   ├── evaluar_ragas.py
 │   └── informe.md
 ├── informes/
 │   ├── informe.md
@@ -131,6 +133,8 @@ del proyecto.
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
+| `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
+| `entrega_3/evaluar_ragas.py` | Ejecuta RAGAS sobre los pipelines básico (`ecologix`) o avanzado (chunks y reranking). | Entrega 3 |
 | `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
@@ -259,18 +263,44 @@ python simular_evento_caliente.py --restaurar
 
 # B.6: ejecutar las tres Killer Queries y regenerar evidencia
 python killer_queries.py
+```
 
-# Entrega 3 A.2: ejecutar el chain RAG (requiere OPENAI_API_KEY en .env)
+### Cómo correr — Entrega 3
+
+Ejecutar desde la raíz del repositorio y con el entorno virtual activo. Las
+evaluaciones que llaman al modelo requieren configurar en `.env` el proveedor
+y su clave de API.
+
+```bash
+# A.2: ejecutar el chain RAG interactivo
 python -m entrega_3.rag_pipeline
 
-# Entrega 3 A.3: ejecutar la matriz de resiliencia (4 llamadas al LLM)
+# A.3: ejecutar la matriz de resiliencia
 python -m entrega_3.evaluar_a3
 
-# Entrega 3 A.4: registrar respuesta, fragmentos fuente y metadatos
+# A.4: registrar respuestas, fuentes y metadatos
 python -m entrega_3.evaluar_a4
 
-# Entrega 3 B.4: ejecutar reranking trazado en LangSmith
+# B.2: crear o actualizar la colección con chunks
+python -m entrega_3.indexar_chunks
+
+# B.2: comparar el RAG básico con el índice fragmentado
+python -m entrega_3.evaluar_b2
+
+# B.3/B.4: ejecutar reranking y registrar la traza en LangSmith
 python -m entrega_3.evaluar_b3
+
+# C.2: ejecutar el baseline RAGAS (genera respuestas y evalúa métricas)
+python -m entrega_3.evaluar_ragas
+
+# C.2: volver a evaluar las métricas usando las respuestas guardadas
+python -m entrega_3.evaluar_ragas --reutilizar-respuestas
+
+# C.3: evaluar el pipeline avanzado con chunks y reranking
+python -m entrega_3.evaluar_ragas --pipeline avanzado
+
+# C.3: volver a evaluar el avanzado sin regenerar respuestas
+python -m entrega_3.evaluar_ragas --pipeline avanzado --reutilizar-respuestas
 ```
 
 Para B.4, completar `LANGSMITH_API_KEY` y `LANGSMITH_PROJECT` en `.env` y
@@ -279,6 +309,17 @@ fragmentos candidatos/seleccionados y los prompts enviados al LLM en LangSmith;
 usar únicamente datos de prueba y no incluir información sensible. El evaluador
 falla explícitamente si falta la configuración requerida y nunca imprime la
 clave.
+
+Para C.2, el baseline consulta únicamente la colección original `ecologix`
+con `k=3`. Para C.3, `--pipeline avanzado` usa la colección fragmentada
+`ecologix_chunks_500_100`, recupera 8 candidatos y selecciona hasta 4 mediante
+reranking. Ambos pipelines evalúan el mismo golden dataset y las cuatro métricas
+RAGAS. Cada modo guarda sus respuestas/contextos y resultados en archivos
+separados de `docs-resultados/`; `--reutilizar-respuestas` vuelve a calcular
+las métricas sin repetir las llamadas de generación del pipeline. La corrida
+avanzada limita las llamadas al modelo para respetar la cuota observada de
+Gemini y conserva cada caso generado para poder reanudar si la cuota se agota;
+al reejecutar el comando avanzado normal continúa desde el último caso guardado.
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.
