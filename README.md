@@ -77,12 +77,15 @@ del proyecto.
 │   ├── resultados_killer_queries.md
 │   ├── resultados_lote.md
 │   └── resultados_lote_zero.md
+├── entrega_3/
+│   └── rag_pipeline.py
 ├── informes/
 │   ├── informe.md
 │   └── informe_entrega2.md
 ├── roadmaps/
 │   ├── TAREAS.md
-│   └── TAREAS2.md
+│   ├── TAREAS2.md
+│   └── TAREAS3.md
 ├── logs/                 # generado localmente, ignorado por Git
 ├── indice_faiss/         # generado localmente, ignorado por Git
 └── chroma/               # generado localmente, ignorado por Git
@@ -93,12 +96,13 @@ del proyecto.
 | Archivo o carpeta | Contenido | Entrega |
 |---|---|---|
 | `README.md` | Descripción, instalación, ejecución y estructura actual del proyecto. | General |
-| `requirements.txt` | Dependencias de Entrega 1 y Entrega 2. | General |
+| `requirements.txt` | Dependencias de las entregas del proyecto. | General |
 | `.env.example` | Plantilla de variables de entorno sin secretos. | General |
 | `.gitignore` | Exclusión de credenciales, logs y artefactos binarios. | General |
 | `CLAUDE.md` | Contexto, invariantes y convenciones del proyecto. | General |
 | `roadmaps/TAREAS.md` | Hoja de ruta y asignaciones de la Entrega 1. | Entrega 1 |
 | `roadmaps/TAREAS2.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
+| `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
@@ -121,6 +125,7 @@ del proyecto.
 | `docs-resultados/resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
 | `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
+| `entrega_3/rag_pipeline.py` | Retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
 | `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
@@ -237,6 +242,9 @@ python simular_evento_caliente.py --restaurar
 
 # B.6: ejecutar las tres Killer Queries y regenerar evidencia
 python killer_queries.py
+
+# Entrega 3 A.1: comprobar el retriever sobre la colección existente
+python -m entrega_3.rag_pipeline
 ```
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
