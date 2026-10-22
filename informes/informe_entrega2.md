@@ -12,7 +12,15 @@
 
 ## Parte A — Embeddings y Búsqueda Semántica
 
-**A.1 — Los tres problemas.** Meter los 22 registros sucios del catálogo en cada prompt cuesta más tokens que el corpus original de 18 documentos; recuperando solo los más relevantes por similitud se evita enviar documentos irrelevantes en cada consulta. *Lost in the Middle*: el modelo presta menos atención a lo que queda en el medio de un bloque largo. *Estado concurrente*: stock, discontinuados y reemplazos cambian en vivo; el evento de B.3 lo demuestra sin modificar ningún prompt. Un `LIKE '%...%'` tampoco alcanza porque matchea texto literal, no significado, y no rankea por relevancia.
+**A.1 — Los tres problemas.** *Costo medido*: la base tiene **22 registros de entrada** y, tras purgar dos casi-duplicados en B.5, **20 documentos limpios**. Con `tiktoken` (`o200k_base`, tokenizador de `gpt-4o-mini`), se midió el contexto de conocimiento por consulta. A modo de estimación, se usa el precio de entrada de USD 0,150 por millón de tokens y un volumen supuesto de 10.000 consultas diarias:
+
+| Contexto enviado por consulta | Tokens | USD/consulta | USD/día | USD/mes |
+|---|---:|---:|---:|---:|
+| Catálogo completo (22 registros) | 3.879 | 0,000582 | 5,82 | 174,56 |
+| Catálogo limpio completo (20 documentos) | 3.471 | 0,000521 | 5,21 | 156,19 |
+| Tres documentos recuperados (promedio de 5 consultas) | 293 | 0,000044 | 0,44 | 13,19 |
+
+En esta muestra, recuperar tres documentos reduce los tokens de contexto aproximadamente un **92 %** frente al catálogo completo. Es una estimación del contexto de conocimiento: no incluye el System Prompt ni el mensaje del cliente, y no representa un costo real facturado. El detalle y las consultas medidas están en `docs-resultados/resultados_a1_tokens.md`; la medición se puede regenerar con `medir_tokens_a1.py`. *Lost in the Middle*: el modelo puede prestar menos atención a un dato relevante ubicado en el medio de un bloque largo. *Estado concurrente*: stock, discontinuados y reemplazos cambian en vivo; el evento de B.3 lo demuestra sin modificar ningún prompt. Un `LIKE '%...%'` tampoco alcanza porque matchea texto literal, no significado, y no rankea por relevancia.
 
 **A.2 — Similitud coseno a mano.** Dos ejes: X=afinidad con bebidas, Y=afinidad con empaque seco. Consulta "vaso para café caliente" → Q=(0,8; 0,2); vasos de bagazo A=(0,9; 0,1). Paso a paso: producto punto `0,8×0,9 + 0,2×0,1 = 0,74`; normas `‖Q‖≈0,8246`, `‖A‖≈0,9055`; división `0,74/(0,8246×0,9055) ≈ 0,991`. Igual con bolsas B=(0,1;0,9) da 0,348 y cartón C=(0,5;0,5) da 0,857 — orden con sentido de negocio. Validado con NumPy (`np.dot(a,b)/(norm(a)*norm(b))`, mismos resultados). Acá 0,85 "es lo mismo" y 0,35 "no tiene que ver", pero esa escala no se traslada tal cual a embeddings reales (ver C.2).
 
@@ -64,7 +72,7 @@ La tabla muestra por qué el umbral no debe usarse para forzar siempre el result
 
 | Entrega 1 | Entrega 2 |
 |---|---|
-| PEAS, "Base de Conocimiento" (*hoy nada, a futuro índice vectorial recuperable por RAG*) | La colección ChromaDB con los 18 documentos |
+| PEAS, "Base de Conocimiento" (*hoy nada, a futuro índice vectorial recuperable por RAG*) | La colección ChromaDB con los 20 documentos limpios (22 registros de entrada menos 2 casi-duplicados purgados en B.5) |
 | Matriz de Intenciones, campos de filtrado (*el filtro final por stock/activo sigue siendo SQL*) | Los `metadatos` usados como `where` |
 | Lo que el LLM extraía del `texto_libre` | Alimenta la consulta semántica, se resuelve en el `where` |
 
