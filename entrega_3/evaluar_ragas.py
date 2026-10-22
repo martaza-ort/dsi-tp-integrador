@@ -9,16 +9,19 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Callable
 
 from dotenv import load_dotenv
+from langchain_core.rate_limiters import BaseRateLimiter, InMemoryRateLimiter
 
 from entrega_3.rag_pipeline import (
     RAIZ_PROYECTO,
     EmbeddingsEcoLogix,
     _crear_modelo_chat,
     crear_cadena_rag,
+    crear_cadena_rag_con_reranking,
 )
+from entrega_3.indexar_chunks import NOMBRE_COLECCION_CHUNKS
 from vector_db import NOMBRE_COLECCION
 
 
@@ -30,7 +33,15 @@ RUTA_DATOS_BASELINE = (
 RUTA_RESULTADOS_BASELINE = (
     RAIZ_PROYECTO / "docs-resultados" / "resultados_ragas_baseline.json"
 )
+RUTA_DATOS_AVANZADO = (
+    RAIZ_PROYECTO / "docs-resultados" / "datos_ragas_avanzado.json"
+)
+RUTA_RESULTADOS_AVANZADO = (
+    RAIZ_PROYECTO / "docs-resultados" / "resultados_ragas_avanzado.json"
+)
 CANTIDAD_DOCUMENTOS = 3
+CANTIDAD_CANDIDATOS_AVANZADO = 8
+CANTIDAD_SELECCIONADOS_AVANZADO = 4
 NOMBRES_METRICAS = (
     "faithfulness",
     "answer_relevancy",
@@ -184,10 +195,119 @@ def generar_datos_baseline(
     return registros
 
 
+def generar_datos_avanzado(
+    casos: list[dict[str, Any]],
+    registros_previos: list[dict[str, Any]] | None = None,
+    guardar_progreso: Callable[[list[dict[str, Any]]], None] | None = None,
+    limitador_tasa: BaseRateLimiter | None = None,
+) -> list[dict[str, Any]]:
+    _validar_casos(casos)
+    registros = list(registros_previos or [])
+    if registros:
+        casos_por_id = {caso["id"]: caso for caso in casos}
+        ids_guardados = [registro.get("id") for registro in registros]
+        if (
+            len(set(ids_guardados)) != len(ids_guardados)
+            or any(identificador not in casos_por_id for identificador in ids_guardados)
+            or ids_guardados
+            != [caso["id"] for caso in casos[: len(ids_guardados)]]
+        ):
+            raise ValueError(
+                "Los datos parciales del pipeline avanzado contienen ids "
+                "duplicados, ajenos o fuera de orden respecto del golden dataset."
+            )
+        validar_datos_baseline(
+            registros,
+            [casos_por_id[identificador] for identificador in ids_guardados],
+        )
+
+    cadena = crear_cadena_rag_con_reranking(
+        cantidad_candidatos=CANTIDAD_CANDIDATOS_AVANZADO,
+        cantidad_seleccionados=CANTIDAD_SELECCIONADOS_AVANZADO,
+        nombre_coleccion=NOMBRE_COLECCION_CHUNKS,
+        limitador_tasa=limitador_tasa,
+    )
+    ids_guardados = {registro["id"] for registro in registros}
+
+    for posicion, caso in enumerate(casos, start=1):
+        if caso["id"] in ids_guardados:
+            continue
+        print(
+            f"Generando respuesta avanzada {posicion}/{len(casos)}: "
+            f"{caso['id']}"
+        )
+        salida = cadena.invoke(caso["pregunta"])
+        registro = crear_registro_baseline(caso, salida)
+        for campo_salida, campo_registro in (
+            ("candidate_documents", "candidatos"),
+            ("selected_documents", "seleccionados"),
+        ):
+            documentos = salida.get(campo_salida)
+            if not isinstance(documentos, list):
+                raise TypeError(
+                    f"El pipeline avanzado no devolvió una lista válida "
+                    f"en {campo_salida} para {caso['id']}."
+                )
+            registro[campo_registro] = [
+                {
+                    "texto": documento.page_content,
+                    "titulo": documento.metadata.get(
+                        "titulo_documento_origen",
+                        documento.metadata.get("titulo", ""),
+                    ),
+                    "indice_chunk": documento.metadata.get("indice_chunk"),
+                }
+                for documento in documentos
+            ]
+        registros.append(registro)
+        ids_guardados.add(caso["id"])
+        if guardar_progreso is not None:
+            guardar_progreso(registros)
+
+    validar_datos_baseline(registros, casos)
+    return registros
+
+
+def cargar_datos_parciales_avanzado(
+    casos: list[dict[str, Any]],
+    ruta: Path = RUTA_DATOS_AVANZADO,
+) -> list[dict[str, Any]]:
+    if not ruta.is_file():
+        return []
+
+    with ruta.open(encoding="utf-8") as archivo:
+        contenido = json.load(archivo)
+    if (
+        contenido.get("estado") != "generacion_parcial"
+        or contenido.get("pipeline") != "avanzado"
+        or not isinstance(contenido.get("casos"), list)
+    ):
+        return []
+
+    casos_por_id = {caso["id"]: caso for caso in casos}
+    registros = contenido["casos"]
+    ids_guardados = [registro.get("id") for registro in registros]
+    if (
+        len(set(ids_guardados)) != len(ids_guardados)
+        or any(identificador not in casos_por_id for identificador in ids_guardados)
+        or ids_guardados != [caso["id"] for caso in casos[: len(ids_guardados)]]
+    ):
+        raise ValueError(
+            "Los datos parciales del pipeline avanzado contienen ids "
+            "duplicados, ajenos o fuera de orden respecto del golden dataset."
+        )
+    validar_datos_baseline(
+        registros,
+        [casos_por_id[identificador] for identificador in ids_guardados],
+    )
+    return registros
+
+
 def cargar_datos_baseline(
     casos: list[dict[str, Any]],
+    ruta: Path = RUTA_DATOS_BASELINE,
 ) -> dict[str, Any]:
-    with RUTA_DATOS_BASELINE.open(encoding="utf-8") as archivo:
+    with ruta.open(encoding="utf-8") as archivo:
         contenido = json.load(archivo)
     validar_datos_baseline(contenido["casos"], casos)
     return contenido
@@ -246,12 +366,13 @@ def _cargar_api_ragas() -> tuple[Any, Any, list[Any], Any]:
 
 def evaluar_con_ragas(
     registros: list[dict[str, Any]],
+    limitador_tasa: BaseRateLimiter | None = None,
 ) -> tuple[dict[str, float], list[dict[str, float]]]:
     clase_dataset, evaluar, metricas, clase_configuracion = _cargar_api_ragas()
     resultado = evaluar(
         dataset=clase_dataset.from_list(preparar_filas_ragas(registros)),
         metrics=metricas,
-        llm=_crear_modelo_chat(),
+        llm=_crear_modelo_chat(limitador_tasa=limitador_tasa),
         embeddings=EmbeddingsEcoLogix(),
         run_config=clase_configuracion(max_workers=1),
         raise_exceptions=True,
@@ -306,50 +427,129 @@ def _obtener_configuracion_modelo() -> tuple[str, str]:
     return proveedor, modelo
 
 
-def ejecutar(reutilizar_respuestas: bool = False) -> None:
+def ejecutar(
+    reutilizar_respuestas: bool = False,
+    pipeline: str = "basico",
+) -> None:
+    if pipeline not in {"basico", "avanzado"}:
+        raise ValueError("El pipeline debe ser 'basico' o 'avanzado'.")
+
     golden_dataset = cargar_golden_dataset()
     casos = golden_dataset["casos"]
     _validar_casos(casos)
 
+    es_avanzado = pipeline == "avanzado"
+    ruta_datos = RUTA_DATOS_AVANZADO if es_avanzado else RUTA_DATOS_BASELINE
+    ruta_resultados = (
+        RUTA_RESULTADOS_AVANZADO if es_avanzado else RUTA_RESULTADOS_BASELINE
+    )
+    nombre_coleccion = (
+        NOMBRE_COLECCION_CHUNKS if es_avanzado else NOMBRE_COLECCION
+    )
+    limitador_tasa = (
+        InMemoryRateLimiter(
+            requests_per_second=0.2,
+            check_every_n_seconds=0.1,
+            max_bucket_size=1,
+        )
+        if es_avanzado
+        else None
+    )
+
     if reutilizar_respuestas:
-        datos_baseline = cargar_datos_baseline(casos)
+        datos_baseline = cargar_datos_baseline(casos, ruta_datos)
         registros = datos_baseline["casos"]
         proveedor_generacion = datos_baseline["proveedor"]
         modelo_generacion = datos_baseline["modelo"]
     else:
-        registros = generar_datos_baseline(casos)
         proveedor_generacion, modelo_generacion = (
             _obtener_configuracion_modelo()
         )
+        if es_avanzado:
+            registros_previos = cargar_datos_parciales_avanzado(casos)
+
+            def guardar_progreso(
+                registros_actuales: list[dict[str, Any]],
+            ) -> None:
+                guardar_json(
+                    ruta_datos,
+                    {
+                        "estado": "generacion_parcial",
+                        "fecha": datetime.now()
+                        .astimezone()
+                        .isoformat(timespec="seconds"),
+                        "proveedor": proveedor_generacion,
+                        "modelo": modelo_generacion,
+                        "pipeline": pipeline,
+                        "coleccion": nombre_coleccion,
+                        "k": CANTIDAD_CANDIDATOS_AVANZADO,
+                        "cantidad_seleccionados": (
+                            CANTIDAD_SELECCIONADOS_AVANZADO
+                        ),
+                        "casos": registros_actuales,
+                    },
+                )
+
+            registros = generar_datos_avanzado(
+                casos,
+                registros_previos=registros_previos,
+                guardar_progreso=guardar_progreso,
+                limitador_tasa=limitador_tasa,
+            )
+        else:
+            registros = generar_datos_baseline(casos)
+
         guardar_json(
-            RUTA_DATOS_BASELINE,
+            ruta_datos,
             {
                 "estado": "respuestas_generadas",
                 "fecha": datetime.now().astimezone().isoformat(timespec="seconds"),
                 "proveedor": proveedor_generacion,
                 "modelo": modelo_generacion,
-                "coleccion": NOMBRE_COLECCION,
-                "k": CANTIDAD_DOCUMENTOS,
+                "pipeline": pipeline,
+                "coleccion": nombre_coleccion,
+                "k": (
+                    CANTIDAD_CANDIDATOS_AVANZADO
+                    if es_avanzado
+                    else CANTIDAD_DOCUMENTOS
+                ),
+                **(
+                    {
+                        "cantidad_seleccionados": (
+                            CANTIDAD_SELECCIONADOS_AVANZADO
+                        )
+                    }
+                    if es_avanzado
+                    else {}
+                ),
                 "casos": registros,
             },
         )
 
     print(
-        "Evaluando 10 respuestas del RAG básico con cuatro métricas RAGAS. "
+        f"Evaluando {len(registros)} respuestas del RAG {pipeline} con "
+        "cuatro métricas RAGAS. "
         "Los evaluadores usan el proveedor configurado y embeddings locales."
     )
-    promedios, puntuaciones = evaluar_con_ragas(registros)
+    promedios, puntuaciones = evaluar_con_ragas(
+        registros,
+        limitador_tasa=limitador_tasa,
+    )
     proveedor_evaluacion, modelo_evaluacion = _obtener_configuracion_modelo()
     contenido_resultados = {
         "estado": "completado",
         "fecha": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "pipeline": "rag_basico",
+        "pipeline": f"rag_{pipeline}",
         "proveedor_generacion": proveedor_generacion,
         "modelo_generacion": modelo_generacion,
         "proveedor_evaluacion": proveedor_evaluacion,
         "modelo_evaluacion": modelo_evaluacion,
-        "coleccion": NOMBRE_COLECCION,
-        "k": CANTIDAD_DOCUMENTOS,
+        "coleccion": nombre_coleccion,
+        "k": (
+            CANTIDAD_CANDIDATOS_AVANZADO
+            if es_avanzado
+            else CANTIDAD_DOCUMENTOS
+        ),
         "cantidad_casos": len(registros),
         "metricas_promedio": promedios,
         "resultados_por_caso": [
@@ -361,20 +561,30 @@ def ejecutar(reutilizar_respuestas: bool = False) -> None:
             for posicion, registro in enumerate(registros)
         ],
     }
-    guardar_json(RUTA_RESULTADOS_BASELINE, contenido_resultados)
+    if es_avanzado:
+        contenido_resultados["cantidad_seleccionados"] = (
+            CANTIDAD_SELECCIONADOS_AVANZADO
+        )
+    guardar_json(ruta_resultados, contenido_resultados)
 
-    print("\nMétricas promedio del baseline:")
+    print(f"\nMétricas promedio del RAG {pipeline}:")
     for nombre, valor in promedios.items():
         print(f"- {nombre}: {valor:.4f}")
-    print(f"\nResultados guardados en: {RUTA_RESULTADOS_BASELINE}")
-    print(f"Respuestas y contextos guardados en: {RUTA_DATOS_BASELINE}")
+    print(f"\nResultados guardados en: {ruta_resultados}")
+    print(f"Respuestas y contextos guardados en: {ruta_datos}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Evalúa el pipeline RAG básico con el golden dataset y RAGAS."
+            "Evalúa el pipeline RAG con el golden dataset y RAGAS."
         )
+    )
+    parser.add_argument(
+        "--pipeline",
+        choices=("basico", "avanzado"),
+        default="basico",
+        help="Pipeline a evaluar; el avanzado incorpora chunks y reranking.",
     )
     parser.add_argument(
         "--reutilizar-respuestas",
@@ -385,7 +595,10 @@ def main() -> None:
         ),
     )
     argumentos = parser.parse_args()
-    ejecutar(reutilizar_respuestas=argumentos.reutilizar_respuestas)
+    ejecutar(
+        reutilizar_respuestas=argumentos.reutilizar_respuestas,
+        pipeline=argumentos.pipeline,
+    )
 
 
 if __name__ == "__main__":

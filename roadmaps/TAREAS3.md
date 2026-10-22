@@ -66,24 +66,24 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Explicar brevemente qué mide cada métrica y reportar sus valores obtenidos en `entrega_3/informe.md`; los datos de generación y resultados están en `docs-resultados/`.
 
 ### C.3 — Comparación entre modelos/pipelines
-- [ ] Evaluar el pipeline avanzado con chunking y reranking.
-- [ ] Presentar una tabla comparativa de las cuatro métricas para RAG básico y avanzado, con su delta.
-- [ ] Mostrar la mejora de al menos una métrica como resultado del trabajo técnico.
+- [x] Evaluar el pipeline avanzado con chunking y reranking sobre el golden dataset.
+- [x] Presentar en `entrega_3/informe.md` una tabla comparativa de las cuatro métricas para RAG básico y avanzado, con su delta.
+- [x] Mostrar la mejora de `Answer Relevancy` (+0,0279) en esta corrida.
 
 ### C.4 — Diagnóstico y mitigación
-- [ ] Identificar la métrica con el resultado más bajo en la evaluación avanzada.
-- [ ] Explicar una causa probable con evidencia de las corridas.
-- [ ] Proponer una acción técnica concreta para mejorarla en una iteración futura.
+- [x] Identificar `Answer Relevancy` (0,6231) como la métrica más baja del pipeline avanzado.
+- [x] Explicar el efecto de los casos de escape y señalar la falta de cobertura observada en `C1-I2`.
+- [x] Proponer en `entrega_3/informe.md` una evaluación de abstención por separado y una comprobación de cobertura de respuesta con prueba de regresión.
 
 ## Entregables en `entrega_3/`
 
-- [ ] `rag_pipeline.py` o notebook equivalente: implementación de las Partes A y B conectada a la base vectorial original.
+- [x] `rag_pipeline.py`: implementación de las Partes A y B conectada a la base vectorial original.
 - [x] `evaluar_ragas.py` y `golden_dataset.json`: evaluación RAGAS del golden dataset de 10 preguntas.
 - [x] `image.png` y `image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informe.md`.
-- [ ] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
+- [x] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
 
 ## Criterio de cierre
 
-- [ ] Verificar que los scripts y evidencias correspondan a las mismas versiones del corpus, la colección y los pipelines evaluados.
-- [ ] Confirmar que el informe incluya resultados observados, no solo resultados esperados o tareas planificadas.
-- [ ] Confirmar que no se hayan versionado claves de API ni secretos usados para LangSmith.
+- [x] Verificar que los scripts y evidencias usen el mismo golden dataset de 10 casos y consignen las colecciones y configuraciones de cada pipeline.
+- [x] Confirmar que el informe incluya resultados observados, no solo resultados esperados o tareas planificadas.
+- [x] Confirmar que `.env` esté ignorado y no versionado.

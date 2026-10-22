@@ -7,10 +7,13 @@ from langchain_core.documents import Document
 
 from entrega_3 import evaluar_ragas as modulo_evaluador
 from entrega_3.evaluar_ragas import (
+    CANTIDAD_CANDIDATOS_AVANZADO,
+    CANTIDAD_SELECCIONADOS_AVANZADO,
     NOMBRES_METRICAS,
     _cargar_api_ragas,
     crear_registro_baseline,
     evaluar_con_ragas,
+    generar_datos_avanzado,
     preparar_filas_ragas,
     validar_datos_baseline,
 )
@@ -105,6 +108,76 @@ def test_validar_datos_baseline_rechaza_referencia_desactualizada() -> None:
         validar_datos_baseline([registro], [caso_prueba()])
 
 
+def test_generar_datos_avanzado_registra_candidatos_y_seleccionados(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    caso = caso_prueba()
+    candidatos = [
+        Document(
+            page_content="Contexto candidato.",
+            metadata={
+                "titulo_documento_origen": "Título candidato",
+                "indice_chunk": 2,
+            },
+        )
+    ]
+    seleccionados = [
+        Document(
+            page_content="Contexto seleccionado.",
+            metadata={
+                "titulo_documento_origen": "Título seleccionado",
+                "indice_chunk": 3,
+            },
+        )
+    ]
+    parametros: list[dict[str, Any]] = []
+
+    class CadenaFalsa:
+        def invoke(self, pregunta: str) -> dict[str, Any]:
+            assert pregunta == caso["pregunta"]
+            return {
+                "answer": "Son de 12 oz.",
+                "source_documents": seleccionados,
+                "candidate_documents": candidatos,
+                "selected_documents": seleccionados,
+            }
+
+    def crear_cadena_falsa(**argumentos: Any) -> CadenaFalsa:
+        parametros.append(argumentos)
+        return CadenaFalsa()
+
+    monkeypatch.setattr(
+        modulo_evaluador,
+        "crear_cadena_rag_con_reranking",
+        crear_cadena_falsa,
+    )
+
+    registros = generar_datos_avanzado([caso])
+
+    assert parametros[0]["cantidad_candidatos"] == CANTIDAD_CANDIDATOS_AVANZADO
+    assert (
+        parametros[0]["cantidad_seleccionados"]
+        == CANTIDAD_SELECCIONADOS_AVANZADO
+    )
+    assert registros[0]["retrieved_contexts"] == [
+        "Contexto seleccionado."
+    ]
+    assert registros[0]["candidatos"] == [
+        {
+            "texto": "Contexto candidato.",
+            "titulo": "Título candidato",
+            "indice_chunk": 2,
+        }
+    ]
+    assert registros[0]["seleccionados"] == [
+        {
+            "texto": "Contexto seleccionado.",
+            "titulo": "Título seleccionado",
+            "indice_chunk": 3,
+        }
+    ]
+
+
 def test_api_ragas_disponible_con_las_metricas_requeridas() -> None:
     clase_dataset, _, metricas, clase_configuracion = _cargar_api_ragas()
     dataset = clase_dataset.from_list(
@@ -185,7 +258,11 @@ def test_evaluar_con_ragas_ensambla_metricas_y_calcula_promedios(
             ConfiguracionFalsa,
         ),
     )
-    monkeypatch.setattr(modulo_evaluador, "_crear_modelo_chat", lambda: object())
+    monkeypatch.setattr(
+        modulo_evaluador,
+        "_crear_modelo_chat",
+        lambda **_: object(),
+    )
     monkeypatch.setattr(
         modulo_evaluador, "EmbeddingsEcoLogix", lambda: object()
     )

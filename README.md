@@ -134,7 +134,7 @@ del proyecto.
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
 | `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
-| `entrega_3/evaluar_ragas.py` | Ejecuta el baseline RAGAS sobre la colección básica `ecologix`. | Entrega 3 |
+| `entrega_3/evaluar_ragas.py` | Ejecuta RAGAS sobre los pipelines básico (`ecologix`) o avanzado (chunks y reranking). | Entrega 3 |
 | `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
@@ -295,6 +295,12 @@ python -m entrega_3.evaluar_ragas
 
 # C.2: volver a evaluar las métricas usando las respuestas guardadas
 python -m entrega_3.evaluar_ragas --reutilizar-respuestas
+
+# C.3: evaluar el pipeline avanzado con chunks y reranking
+python -m entrega_3.evaluar_ragas --pipeline avanzado
+
+# C.3: volver a evaluar el avanzado sin regenerar respuestas
+python -m entrega_3.evaluar_ragas --pipeline avanzado --reutilizar-respuestas
 ```
 
 Para B.4, completar `LANGSMITH_API_KEY` y `LANGSMITH_PROJECT` en `.env` y
@@ -305,10 +311,15 @@ falla explícitamente si falta la configuración requerida y nunca imprime la
 clave.
 
 Para C.2, el baseline consulta únicamente la colección original `ecologix`
-con `k=3`. La primera ejecución genera una respuesta por cada caso y luego
-ejecuta las cuatro métricas RAGAS; guarda los datos intermedios y los resultados
-en `docs-resultados/`. `--reutilizar-respuestas` evita repetir la generación
-del RAG y vuelve a ejecutar solo las métricas.
+con `k=3`. Para C.3, `--pipeline avanzado` usa la colección fragmentada
+`ecologix_chunks_500_100`, recupera 8 candidatos y selecciona hasta 4 mediante
+reranking. Ambos pipelines evalúan el mismo golden dataset y las cuatro métricas
+RAGAS. Cada modo guarda sus respuestas/contextos y resultados en archivos
+separados de `docs-resultados/`; `--reutilizar-respuestas` vuelve a calcular
+las métricas sin repetir las llamadas de generación del pipeline. La corrida
+avanzada limita las llamadas al modelo para respetar la cuota observada de
+Gemini y conserva cada caso generado para poder reanudar si la cuota se agota;
+al reejecutar el comando avanzado normal continúa desde el último caso guardado.
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.
