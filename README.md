@@ -180,6 +180,17 @@ nunca debe commitearse.
 | `OPENAI_MODEL` | No | Modelo usado por defecto: `gpt-4o-mini`. |
 | `OPENAI_TIMEOUT` | No | Timeout por llamada; por defecto 30 segundos. |
 | `UMBRAL_CONFIANZA` | No | Confianza mínima para no derivar a una persona; por defecto 0.60. |
+| `GEMINI_API_KEY` | Sí para Entrega 3 con Gemini | Clave de API de Google AI. |
+| `GEMINI_MODEL` | Sí para Entrega 3 con Gemini | ID del modelo de Gemini usado por el RAG. |
+| `LANGSMITH_TRACING` | No; sí para B.4 | Activar tracing con `true` solo para las ejecuciones que se quieran registrar. |
+| `LANGSMITH_API_KEY` | Sí para B.4 | Clave privada de LangSmith; cargar únicamente en `.env`. |
+| `LANGSMITH_PROJECT` | Sí para B.4 | Proyecto donde se registran las trazas. |
+
+Para el tracing estándar de LangChain no hace falta definir
+`LANGSMITH_ENDPOINT`: se usa el endpoint predeterminado de LangSmith. Solo se
+configura si se utiliza una instancia o endpoint personalizado.
+`LANGSMITH_AGENT_ENVIRONMENT` tampoco es necesario para esta ejecución; es
+metadato específico de otros flujos de agentes y no se debe copiar para B.4.
 
 La Entrega 2 usa embeddings locales con `sentence-transformers` y no necesita una API key
 para generar el índice vectorial.
@@ -257,7 +268,17 @@ python -m entrega_3.evaluar_a3
 
 # Entrega 3 A.4: registrar respuesta, fragmentos fuente y metadatos
 python -m entrega_3.evaluar_a4
+
+# Entrega 3 B.4: ejecutar reranking trazado en LangSmith
+python -m entrega_3.evaluar_b3
 ```
+
+Para B.4, completar `LANGSMITH_API_KEY` y `LANGSMITH_PROJECT` en `.env` y
+establecer `LANGSMITH_TRACING=true`. La evaluación registra la consulta, los
+fragmentos candidatos/seleccionados y los prompts enviados al LLM en LangSmith;
+usar únicamente datos de prueba y no incluir información sensible. El evaluador
+falla explícitamente si falta la configuración requerida y nunca imprime la
+clave.
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.

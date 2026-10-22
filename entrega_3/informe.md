@@ -270,3 +270,169 @@ Título: Platos y bowls de bagazo. Categoría: vajilla. Descripción: La vajilla
 Título: Sorbetes de papel. Categoría: sorbetes. Descripción: Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.. Etiquetas: sorbete papel cafeteria comida_rapida biodegradable.
 ```
 
+## B.1 — Falla del RAG básico
+
+**Ejecución observada:** 2026-10-22, pipeline RAG básico con Gemini
+(`gemini-3.8-flash`), colección ChromaDB `ecologix` y búsqueda por similitud
+con `k=3`.
+
+**Consulta:**
+
+> Quiero pedir 20 cajas de vasos de bagazo y un bulto de sorbetes para el jueves. ¿Qué habría que validar antes de confirmar el pedido y qué determina si pueden entregarlo en mi domicilio?
+
+**Respuesta observada:**
+
+> No poseo información suficiente en el contexto para responder.
+
+**Fuentes recuperadas, en orden:**
+
+1. `Pedidos multitema y confirmación previa` (ventas): indica validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega antes de confirmar el pedido. El texto incluso describe un pedido de 20 cajas de vasos y un bulto de sorbetes.
+2. `Vasos de bagazo 12 oz` (vajilla): describe el uso de los vasos y que su unidad de venta habitual es la caja.
+3. `Reclamos por productos rotos o faltantes` (servicio): trata reclamos por entregas, pero no responde la consulta.
+
+**Falla observada y causa técnica:** la consulta tiene dos partes. El contexto recuperado permite responder qué validaciones previas se mencionan, pero no contiene los datos sobre la cobertura y coordinación de una entrega domiciliaria. Además, aunque el corpus contiene las fuentes `Sorbetes de papel`, `Zonas de entrega y cobertura` y `Retiro por depósito versus entrega domiciliaria`, ninguna apareció entre los tres documentos recuperados. La búsqueda por similitud con `k=3` incluyó una fuente de reclamos y dejó fuera esas fuentes relevantes. Ante ese contexto incompleto, el prompt del chain indica usar la frase de escape cuando falta información suficiente; el modelo aplicó esa instrucción a la consulta completa, sin responder siquiera la parte respaldada.
+
+Esto constituye una falla de recuperación y de completitud de la respuesta para esta consulta multitema, no una alucinación: el modelo no inventó condiciones de entrega ni confirmó el pedido. La observación no permite atribuir el resultado a un chunk cortado o a *Lost in the Middle*; el pipeline básico entrega documentos completos y la limitación visible en esta corrida es la selección de los tres documentos recuperados y el fallback global.
+
+**Evaluación:** B.1 cumplido. Esta corrida deja una falla observada para analizar en B.2: el contexto insuficiente recuperado con `k=3` coincidió con que una pregunta parcialmente respondible terminara íntegramente en la respuesta de escape.
+
+## B.2 — Chunking con solapamiento
+
+Se generó un índice alternativo a partir del mismo corpus `base_conocimiento_limpia.json` y del mismo texto preparado para la colección original. La colección básica `ecologix` se mantuvo intacta; los fragmentos se guardaron en `ecologix_chunks_500_100` dentro de la misma persistencia ChromaDB.
+
+**Configuración:** fragmentos de hasta 500 caracteres, solapamiento de 100 caracteres, búsqueda por similitud con `k=3` y los mismos embeddings locales. Cada fragmento conserva los metadatos del documento fuente y agrega su ID, título, índice y cantidad de fragmentos.
+
+| Índice | Registros |
+|---|---:|
+| Original `ecologix` | 20 documentos completos |
+| Alternativo `ecologix_chunks_500_100` | 24 chunks |
+
+**Consulta de comparación:** se reutilizó exactamente la consulta de B.1.
+
+Para controlar el efecto del modelo, el **2026-10-22T14:12-03:00** se ejecutó
+la misma consulta contra las colecciones original y fragmentada usando
+`gemini-3.5-flash-lite` en ambas, con `k=3` y el mismo prompt. El proveedor
+advirtió que este modelo usa valores de muestreo fijos e ignora `temperature`;
+la misma limitación aplica a las dos corridas, por lo que no introduce una
+diferencia entre ambos índices.
+
+| Condición | Respuesta observada |
+|---|---|
+| B.1 — colección `ecologix` | `No poseo información suficiente en el contexto para responder.` |
+| B.2 — colección `ecologix_chunks_500_100` | `No poseo información suficiente en el contexto para responder.` |
+
+**Recuperación observada en el índice fragmentado:**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0: incluye la validación de cada SKU, disponibilidad y fecha de entrega.
+2. `Vasos de bagazo 12 oz`, chunk 0: describe el producto y su presentación habitual.
+3. `Pedidos multitema y confirmación previa`, chunk 1: fragmento solapado del mismo documento fuente.
+
+**Resultado de la comparación:** con el mismo modelo, consulta y `k`, las dos condiciones produjeron la misma respuesta de escape. El chunking cambió el tercer resultado irrelevante del índice original por un segundo fragmento del documento de pedidos, pero este fragmento duplicado ocupa otro lugar del top 3. La búsqueda todavía no recuperó `Sorbetes de papel`, `Zonas de entrega y cobertura` ni `Retiro por depósito versus entrega domiciliaria`. Por lo tanto, para esta consulta el chunking por sí solo no corrigió la omisión de las fuentes ni mejoró la respuesta; el solapamiento además puede hacer que varios resultados correspondan al mismo documento.
+
+**Nota de ejecución:** Gemini 3.5 Flash Lite ignoró el parámetro `temperature` configurado por el cliente porque el modelo usa valores de muestreo fijos. La limitación se observó en ambas condiciones.
+
+**Reproducción:** desde la raíz del proyecto, ejecutar `python -m entrega_3.indexar_chunks` para reconstruir la colección avanzada y `python -m entrega_3.evaluar_b2` para ejecutar la misma consulta sobre ambas colecciones con el mismo modelo.
+
+## B.3 — Reranking con juez LLM
+
+Se implementó un pipeline avanzado que recupera hasta 8 candidatos de
+`ecologix_chunks_500_100`, solicita al mismo modelo que evalúe relevancia y
+seleccione hasta 4 fragmentos ordenados, y pasa únicamente esos fragmentos al
+generador de respuesta. El juez devuelve índices en formato estructurado; la
+cadena valida que no estén duplicados, fuera de rango ni excedan el límite
+antes de construir el contexto final. Si el juez no selecciona fragmentos, el
+generador recibe un contexto vacío y aplica la respuesta de escape configurada.
+La salida conserva tanto los
+candidatos recuperados como los documentos seleccionados para facilitar la
+trazabilidad.
+
+La implementación está en `rag_pipeline.py`; la corrida de evaluación está
+preparada en `evaluar_b3.py` y reutiliza la consulta B.1 con
+`gemini-3.5-flash-lite`.
+
+**Ejecución observada:** 2026-10-22T15:57-03:00. Se realizaron dos llamadas
+al modelo: una para reranking y otra para generar la respuesta. El proveedor
+advirtió que este modelo usa valores de muestreo fijos e ignora `temperature`.
+
+**Candidatos recuperados (`k=8`), en orden:**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0.
+2. `Vasos de bagazo 12 oz`, chunk 0.
+3. `Pedidos multitema y confirmación previa`, chunk 1.
+4. `Reclamos por productos rotos o faltantes`, chunk 0.
+5. `Retiro por depósito versus entrega domiciliaria`, chunk 0.
+6. `Bolsas compostables 40x50 cm`, chunk 0.
+7. `Vasos compostables para cafe`, chunk 0.
+8. `Envases de cartón para alimentos`, chunk 0.
+
+**Seleccionados por el juez (en orden):**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0.
+2. `Retiro por depósito versus entrega domiciliaria`, chunk 0.
+
+El juez dejó fuera el fragmento redundante de pedidos, el documento de
+reclamos y los demás candidatos, y seleccionó la fuente logística necesaria
+que no había aparecido en el top 3 de B.2.
+
+**Respuesta generada:**
+
+> Antes de confirmar el pedido, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega, además de revisar la coherencia del pedido y la política del negocio antes de producir la confirmación final [Pedidos multitema y confirmación previa].
+>
+> La entrega domiciliaria está determinada por la zona, la ruta disponible, el horario, la cobertura y la coordinación previa con logística [Retiro por depósito versus entrega domiciliaria].
+
+**Evaluación:** en esta corrida, el reranking mejoró la recuperación relevante frente a B.2 al incluir la fuente sobre entrega domiciliaria y eliminar ruido/redundancia. La respuesta cubrió las validaciones previas y los factores logísticos citando ambas fuentes, sin afirmar disponibilidad concreta ni confirmar el pedido. No recuperó `Sorbetes de papel`, por lo que no aporta detalles adicionales del producto; eso no impidió responder las dos preguntas explícitas. El resultado evidencia una mejora en esta consulta, no una garantía general para todas las consultas.
+
+Las pruebas automatizadas sin API están en `test_rag_reranking.py` y verifican
+la selección, el filtrado antes de generar, el caso sin fragmentos pertinentes,
+la preservación del chain básico y el rechazo explícito de índices inválidos o
+de una respuesta estructurada malformada del juez.
+
+## B.4 — Captura de traza en LangSmith
+
+La configuración de tracing se agregó a `.env.example`; la clave real debe
+cargarse solo en `.env`, que está ignorado por Git. El evaluador
+`evaluar_b3.py` requiere `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY` y
+`LANGSMITH_PROJECT`, y asigna nombre, etiquetas y metadatos a la corrida. El
+evaluador prioriza la configuración del `.env` del proyecto sobre variables
+heredadas del proceso. Para el tracing estándar de LangChain no hace falta
+definir `LANGSMITH_ENDPOINT` (se usa el endpoint predeterminado de LangSmith)
+ni `LANGSMITH_AGENT_ENVIRONMENT` (metadato de otros flujos de agentes).
+
+**Ejecución observada:** 2026-10-22, proyecto LangSmith `iads3-dsi`
+(`LANGSMITH_PROJECT`), corrida
+`B4-reranking-gemini-35-flash-lite`, modelo `gemini-3.5-flash-lite`, colección
+`ecologix_chunks_500_100`, `k=8`, selección máxima de 4. La traza completó sin
+error:
+[abrir traza B.4 en LangSmith](https://smith.langchain.com/o/30292441-5ba9-471c-95f5-ef6f05584c43/projects/p/11e6da7b-5591-492e-902e-dc1dd5c900c7/r/01a16552-b325-7411-b38b-e0b3fd6e6a7c?poll=true)
+(requiere acceso autenticado al workspace). ID de traza:
+`01a16552-b325-7411-b38b-e0b3fd6e6a7c`.
+
+| Etapa | Duración | Tokens de entrada | Tokens de salida | Total |
+|---|---:|---:|---:|---:|
+| Juez de relevancia | 1.919 s | 2141 | 27 | 2168 |
+| Generador de respuesta | 1.007 s | 628 | 86 | 714 |
+| Ejecución completa (incluye recuperación y composición) | 3.046 s | 2769 | 113 | 2882 |
+
+Los ocho candidatos fueron: `Pedidos multitema` chunk 0, `Vasos de bagazo`
+chunk 0, `Pedidos multitema` chunk 1, `Reclamos por productos rotos o
+faltantes` chunk 0, `Retiro por depósito versus entrega domiciliaria` chunk
+0, `Bolsas compostables` chunk 0, `Vasos compostables para cafe` chunk 0 y
+`Envases de cartón para alimentos` chunk 0. El juez seleccionó únicamente
+`Pedidos multitema y confirmación previa` chunk 0 y `Retiro por depósito
+versus entrega domiciliaria` chunk 0; por lo tanto, descartó 6 candidatos,
+incluidos el chunk redundante de pedidos y el documento de reclamos.
+
+La respuesta generada informó las validaciones de SKU, disponibilidad, fecha,
+coherencia y política antes de confirmar; para el domicilio señaló zona, ruta,
+horario, cobertura y coordinación logística, citando ambas fuentes.
+
+### Evidencia visual de la traza
+
+La primera captura muestra la traza completa, con la consulta, las etapas de
+reranking y generación, y los documentos candidatos y seleccionados. La segunda
+muestra los metadatos del proyecto y la corrida, además del detalle de tokens y
+costo de una llamada al juez de relevancia.
+
+![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](image.png)
+
+![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](image-1.png)
