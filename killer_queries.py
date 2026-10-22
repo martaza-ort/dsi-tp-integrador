@@ -24,7 +24,13 @@ from simular_evento_caliente import (
     construir_corpus_con_evento,
     restaurar_estado_original,
 )
-from vector_db import BaseVectorial, cargar_documentos, similitud_ancla
+from vector_db import (
+    BaseVectorial,
+    UMBRAL_MARGEN_DOMINIO,
+    cargar_documentos,
+    evaluar_dominio,
+    similitud_ancla,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -124,22 +130,34 @@ def main() -> None:
     print("\n[3] Prueba de estrés (fuera de catálogo)")
     print("  similitud_ancla:", round(similitud_ancla(CONSULTA_3), 4))
 
+    diagnostico_3 = evaluar_dominio(CONSULTA_3)
+    print("  diagnóstico de dominio:", diagnostico_3)
+
+    # Ranking crudo: se conserva para demostrar el falso positivo que
+    # produciría la similitud vectorial si actuara sin control de dominio.
     resultados_3 = base.buscar(
         consulta=CONSULTA_3,
         cantidad=5,
         umbral=0.0,
+        validar_dominio=False,
     )
+    print("  Ranking crudo sin validación de dominio:")
     for r in resultados_3:
-        print(f"  {r['id']} {r['titulo']} - similitud: {r['similitud']}")
+        print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
 
+    # Respuesta final: aplica tanto el umbral del resultado como la
+    # validación semántica del dominio implementada en vector_db.py.
     resultados_3_aceptados = base.buscar(
         consulta=CONSULTA_3,
         cantidad=5,
         umbral=UMBRAL_ACEPTACION,
     )
-    print("  Aceptados por umbral:")
+    print("  Resultados aceptados por el sistema:")
     for r in resultados_3_aceptados:
         print(f"    {r['id']} {r['titulo']} - similitud: {r['similitud']}")
+
+    if not resultados_3_aceptados:
+        print('    Sin resultados: responder "no tengo esa información".')
 
     # --- Deja la base en el estado canónico para el resto del equipo ---
     print("\nRestaurando corpus canónico...")
@@ -151,6 +169,7 @@ def main() -> None:
         resultados_2_con_filtro,
         resultados_3,
         resultados_3_aceptados,
+        diagnostico_3,
     )
 
 
@@ -160,6 +179,7 @@ def escribir_evidencia(
     r2_con: list[dict],
     r3: list[dict],
     r3_aceptados: list[dict],
+    diagnostico_3: dict,
 ) -> None:
     top1_r1 = r1[0]["similitud"] if r1 else 0
     paso_1 = "Sí" if r1 and r1[0]["id"] == "doc-005" and top1_r1 >= UMBRAL_ACEPTACION else "No"
@@ -174,12 +194,8 @@ def escribir_evidencia(
     )
     paso_2 = "Sí" if metadato_salva else "No"
 
-    top1_r3 = r3[0] if r3 else None
-    falso_positivo = bool(top1_r3 and top1_r3["similitud"] >= UMBRAL_ACEPTACION)
-    # La consulta 3 es una trampa: el catálogo NO tiene celulares/telefonía.
-    # "Pasa" la prueba si el sistema NO acepta ese resultado, es decir si
-    # el falso positivo queda documentado como hallazgo (no oculto).
-    paso_3 = "No (hallazgo documentado)" if falso_positivo else "Sí"
+    dominio_rechazado = not diagnostico_3["aceptada"]
+    paso_3 = "Sí" if dominio_rechazado and not r3_aceptados else "No"
 
     tabla_b6 = f"""## Tabla consolidada B.6
 
@@ -187,7 +203,7 @@ def escribir_evidencia(
 |---:|---|---|---|---|---|
 | 1 | {CONSULTA_1} | Poder semántico | `doc-005` primero y por encima de `{UMBRAL_ACEPTACION}` | {resumen_resultado(r1)} | {paso_1} |
 | 2 | {CONSULTA_2} | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-019` primero | Sin filtro: {resumen_resultado(r2_sin)}; con filtro: {resumen_resultado(r2_con)} | {paso_2} |
-| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral {UMBRAL_ACEPTACION} el sistema devuelve {resumen_resultado(r3_aceptados)} (ancla {round(similitud_ancla(CONSULTA_3), 4)}) | {paso_3} |
+| 3 | {CONSULTA_3} | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Ranking crudo: {resumen_resultado(r3)}; respuesta final: {resumen_resultado(r3_aceptados)}; margen de dominio: {diagnostico_3['margen_dominio']} | {paso_3} |
 """
 
     contenido = f"""# Killer Queries — EcoLogix (Entrega 2, B.6)
@@ -257,55 +273,30 @@ forzar el caso más difícil en vez de uno obviamente irrelevante.
 
 > {CONSULTA_3}
 
-**Resultado esperado:** ningún documento debería superar el umbral
-de aceptación — EcoLogix no vende celulares ni accesorios de
-telefonía.
+**Resultado esperado:** el sistema debe rechazar la consulta porque
+EcoLogix no vende celulares ni accesorios de telefonía, aunque el
+ranking vectorial crudo encuentre algún documento cercano.
 
-**Resultado real:**
+**Ranking vectorial crudo, con la validación de dominio desactivada
+únicamente para mostrar la trampa:**
 
 {formatear(r3)}
 
+**Diagnóstico semántico del dominio:** similitud con ejemplos de
+EcoLogix `{diagnostico_3['similitud_dominio']}`, similitud con ejemplos
+ajenos `{diagnostico_3['similitud_fuera']}` y margen
+`{diagnostico_3['margen_dominio']}`. Como el margen es inferior al
+mínimo `{UMBRAL_MARGEN_DOMINIO}`, la consulta se rechaza.
+
+**Respuesta final del sistema:** {resumen_resultado(r3_aceptados)}.
+Debe responder "no tengo esa información".
+
 **¿Pasó?** {paso_3}
 
-**Hallazgo:** el resultado con mayor similitud (`{r3[0]['id'] if r3 else '-'}`,
-{r3[0]['similitud'] if r3 else '-'}) **supera** el umbral definido
-({UMBRAL_ACEPTACION}), a pesar de ser completamente irrelevante al
-pedido. La causa es semántica: el corpus es chico y varios textos
-comparten vocabulario comercial genérico ("comercio", "accesorios",
-"clientes"), así que la consulta aterriza cerca de un producto de
-otra familia. Forzar ese resultado como respuesta sería alucinación.
-
-**Por qué se quitó el filtro de palabras.** Antes esta consulta
-devolvía "no tengo esa información" por un portero que exigía
-vocabulario del dominio. Se midió su comportamiento y no resolvía el
-problema: tapaba la KQ3 y además rechazaba consultas legítimas del
-propio negocio. Con 8 consultas válidas de EcoLogix, el portero
-rechazó 7, entre ellas:
-
-| Consulta válida | Similitud real | Portero |
-|---|---:|---|
-| "hay algo para servir café para llevar?" | 0.5328 (`doc-002`) | la rechazaba (el acento de "café" no matchea "cafe") |
-| "necesito unos pots" | 0.4401 (`doc-003`) | la rechazaba |
-| "necesito algo para takeaway" | 0.3799 (`doc-003`) | la rechazaba, aunque "takeaway" está en `doc-002` |
-| "tengo un pedido en curso, como va?" | 0.4760 (`doc-016`) | la rechazaba |
-| "me llegaron unos paquetes rotos, quiero reclamar" | 0.3868 (`doc-012`) | la rechazaba |
-
-En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
-catálogo, y esas dos quedan ahora como falso positivo conocido del
-umbral: "venden notebooks y laptops" (0.4319) y "busco contratos de
-alquiler" (0.4132). El balance —7 consultas legítimas tapadas por 2
-falsos positivos frenados— es la razón del cambio.
-
-**Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
-ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
-Python. La aceptación la decide únicamente el umbral semántico
-({UMBRAL_ACEPTACION}). Cada resultado reporta además
-`similitud_ancla`: la cercanía de la consulta al centroide del corpus.
-Para esta consulta da {round(similitud_ancla(CONSULTA_3), 4)}, la más
-baja entre las consultas reales del dominio medidas, lo que confirma
-el diagnóstico sin tapar el veredicto. Queda anotado como límite
-conocido del corpus y del modelo para la Entrega 3, en la misma línea
-que los umbrales de confianza de la Entrega 1.
+La decisión no usa palabras clave. Compara el embedding de la consulta
+con ejemplos semánticos válidos de EcoLogix y con ejemplos de dominios
+ajenos. Esto evita aceptar el falso positivo del ranking crudo sin
+rechazar consultas legítimas como pedidos, reclamos o seguimiento.
 
 ## Umbral de aceptación — justificación
 
@@ -316,10 +307,10 @@ genuinamente relevantes recuperan su mejor documento con similitud
 claramente fuera de dominio (notebooks, neumáticos, fletes) quedan
 por debajo de 0.30 en la mayoría de los casos. Se definió
 **{UMBRAL_ACEPTACION}** como punto intermedio. La killer query 3
-muestra que ningún umbral fijo es infalible por sí solo con un
-corpus chico: cuando ninguna coincidencia supera el umbral, el
-sistema debe responder "no tengo esa información" en vez de forzar
-el resultado más cercano (eso sería alucinación).
+muestra que este umbral no alcanza por sí solo con un corpus chico.
+Por eso se complementa con un margen de dominio de
+**{UMBRAL_MARGEN_DOMINIO}**: la consulta debe parecerse más a ejemplos
+de EcoLogix que a ejemplos ajenos antes de aceptar cualquier documento.
 
 ## Reproducción
 

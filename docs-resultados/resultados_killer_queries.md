@@ -11,7 +11,7 @@ definido: **0.35** (ver justificación al final).
 |---:|---|---|---|---|---|
 | 1 | Necesito packaging para mandar comida caliente a domicilio, que no se rompa ni se moje | Poder semántico | `doc-005` primero y por encima de `0.35` | `doc-005` (0.585) | Sí |
 | 2 | Necesito sorbetes para mi kiosco, que esten disponibles en stock | Filtro híbrido de categoría y estado | Con `categoria=sorbetes AND activo=true`, `doc-019` primero | Sin filtro: `doc-001` (0.432); con filtro: `doc-019` (0.4277) | Sí |
-| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Con el umbral 0.35 el sistema devuelve `doc-013` (0.4874) (ancla 0.3345) | No (hallazgo documentado) |
+| 3 | Venden celulares o accesorios de telefonia? | Rechazo de consultas fuera del catálogo | No aceptar un resultado irrelevante | Ranking crudo: `doc-013` (0.4874); respuesta final: Sin resultados; margen de dominio: -0.2459 | Sí |
 
 
 ## 1 — Poder semántico: jerga sin palabras exactas del documento
@@ -31,7 +31,7 @@ en el primer puesto, por encima del umbral.
 1. `doc-005` Envases de cartón para alimentos — similitud: 0.585
 2. `doc-003` Platos y bowls de bagazo — similitud: 0.5403
 3. `doc-004` Sorbetes de papel — similitud: 0.4812
-4. `doc-019` Vasos compostables para cafe — similitud: 0.4416
+4. `doc-019` Vasos compostables para cafe — similitud: 0.4489
 5. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.4132
 
 **¿Pasó?** Sí — `doc-005` (Envases de cartón para alimentos) supera el umbral (0.585 ≥ 0.35) → se acepta como resultado.
@@ -80,11 +80,12 @@ forzar el caso más difícil en vez de uno obviamente irrelevante.
 
 > Venden celulares o accesorios de telefonia?
 
-**Resultado esperado:** ningún documento debería superar el umbral
-de aceptación — EcoLogix no vende celulares ni accesorios de
-telefonía.
+**Resultado esperado:** el sistema debe rechazar la consulta porque
+EcoLogix no vende celulares ni accesorios de telefonía, aunque el
+ranking vectorial crudo encuentre algún documento cercano.
 
-**Resultado real:**
+**Ranking vectorial crudo, con la validación de dominio desactivada
+únicamente para mostrar la trampa:**
 
 1. `doc-013` Bolsas de papel kraft para comercio — similitud: 0.4874
 2. `doc-001` Bolsas compostables 40x50 cm — similitud: 0.3699
@@ -92,47 +93,21 @@ telefonía.
 4. `doc-005` Envases de cartón para alimentos — similitud: 0.2837
 5. `doc-014` Cubiertos y utensilios de bioplástico — similitud: 0.2794
 
-**¿Pasó?** No (hallazgo documentado)
+**Diagnóstico semántico del dominio:** similitud con ejemplos de
+EcoLogix `0.3512`, similitud con ejemplos
+ajenos `0.5971` y margen
+`-0.2459`. Como el margen es inferior al
+mínimo `0.05`, la consulta se rechaza.
 
-**Hallazgo:** el resultado con mayor similitud (`doc-013`,
-0.4874) **supera** el umbral definido
-(0.35), a pesar de ser completamente irrelevante al
-pedido. La causa es semántica: el corpus es chico y varios textos
-comparten vocabulario comercial genérico ("comercio", "accesorios",
-"clientes"), así que la consulta aterriza cerca de un producto de
-otra familia. Forzar ese resultado como respuesta sería alucinación.
+**Respuesta final del sistema:** Sin resultados.
+Debe responder "no tengo esa información".
 
-**Por qué se quitó el filtro de palabras.** Antes esta consulta
-devolvía "no tengo esa información" por un portero que exigía
-vocabulario del dominio. Se midió su comportamiento y no resolvía el
-problema: tapaba la KQ3 y además rechazaba consultas legítimas del
-propio negocio. Con 8 consultas válidas de EcoLogix, el portero
-rechazó 7, entre ellas:
+**¿Pasó?** Sí
 
-| Consulta válida | Similitud real | Portero |
-|---|---:|---|
-| "hay algo para servir café para llevar?" | 0.5328 (`doc-002`) | la rechazaba (el acento de "café" no matchea "cafe") |
-| "necesito unos pots" | 0.4401 (`doc-003`) | la rechazaba |
-| "necesito algo para takeaway" | 0.3799 (`doc-003`) | la rechazaba, aunque "takeaway" está en `doc-002` |
-| "tengo un pedido en curso, como va?" | 0.4760 (`doc-016`) | la rechazaba |
-| "me llegaron unos paquetes rotos, quiero reclamar" | 0.3868 (`doc-012`) | la rechazaba |
-
-En el otro extremo, el portero solo frenaba 2 de 6 consultas fuera de
-catálogo, y esas dos quedan ahora como falso positivo conocido del
-umbral: "venden notebooks y laptops" (0.4319) y "busco contratos de
-alquiler" (0.4132). El balance —7 consultas legítimas tapadas por 2
-falsos positivos frenados— es la razón del cambio.
-
-**Lo que decide ahora.** Todo filtro duro viaja dentro del `where` de
-ChromaDB (`tipo`, `categoria`, `activo`); no queda post-filtering en
-Python. La aceptación la decide únicamente el umbral semántico
-(0.35). Cada resultado reporta además
-`similitud_ancla`: la cercanía de la consulta al centroide del corpus.
-Para esta consulta da 0.3345, la más
-baja entre las consultas reales del dominio medidas, lo que confirma
-el diagnóstico sin tapar el veredicto. Queda anotado como límite
-conocido del corpus y del modelo para la Entrega 3, en la misma línea
-que los umbrales de confianza de la Entrega 1.
+La decisión no usa palabras clave. Compara el embedding de la consulta
+con ejemplos semánticos válidos de EcoLogix y con ejemplos de dominios
+ajenos. Esto evita aceptar el falso positivo del ranking crudo sin
+rechazar consultas legítimas como pedidos, reclamos o seguimiento.
 
 ## Umbral de aceptación — justificación
 
@@ -143,10 +118,10 @@ genuinamente relevantes recuperan su mejor documento con similitud
 claramente fuera de dominio (notebooks, neumáticos, fletes) quedan
 por debajo de 0.30 en la mayoría de los casos. Se definió
 **0.35** como punto intermedio. La killer query 3
-muestra que ningún umbral fijo es infalible por sí solo con un
-corpus chico: cuando ninguna coincidencia supera el umbral, el
-sistema debe responder "no tengo esa información" en vez de forzar
-el resultado más cercano (eso sería alucinación).
+muestra que este umbral no alcanza por sí solo con un corpus chico.
+Por eso se complementa con un margen de dominio de
+**0.05**: la consulta debe parecerse más a ejemplos
+de EcoLogix que a ejemplos ajenos antes de aceptar cualquier documento.
 
 ## Reproducción
 
