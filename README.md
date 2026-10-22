@@ -82,6 +82,7 @@ del proyecto.
 │   ├── evaluar_a3.py
 │   ├── evaluar_a4.py
 │   ├── golden_dataset.json
+│   ├── evaluar_ragas.py
 │   └── informe.md
 ├── informes/
 │   ├── informe.md
@@ -133,6 +134,7 @@ del proyecto.
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
 | `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
+| `entrega_3/evaluar_ragas.py` | Ejecuta el baseline RAGAS sobre la colección básica `ecologix`. | Entrega 3 |
 | `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
@@ -287,6 +289,12 @@ python -m entrega_3.evaluar_b2
 
 # B.3/B.4: ejecutar reranking y registrar la traza en LangSmith
 python -m entrega_3.evaluar_b3
+
+# C.2: ejecutar el baseline RAGAS (genera respuestas y evalúa métricas)
+python -m entrega_3.evaluar_ragas
+
+# C.2: volver a evaluar las métricas usando las respuestas guardadas
+python -m entrega_3.evaluar_ragas --reutilizar-respuestas
 ```
 
 Para B.4, completar `LANGSMITH_API_KEY` y `LANGSMITH_PROJECT` en `.env` y
@@ -295,6 +303,12 @@ fragmentos candidatos/seleccionados y los prompts enviados al LLM en LangSmith;
 usar únicamente datos de prueba y no incluir información sensible. El evaluador
 falla explícitamente si falta la configuración requerida y nunca imprime la
 clave.
+
+Para C.2, el baseline consulta únicamente la colección original `ecologix`
+con `k=3`. La primera ejecución genera una respuesta por cada caso y luego
+ejecuta las cuatro métricas RAGAS; guarda los datos intermedios y los resultados
+en `docs-resultados/`. `--reutilizar-respuestas` evita repetir la generación
+del RAG y vuelve a ejecutar solo las métricas.
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.

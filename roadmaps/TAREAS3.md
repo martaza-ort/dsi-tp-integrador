@@ -61,9 +61,9 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Incluir 2 preguntas con lenguaje informal.
 
 ### C.2 — Baseline RAGAS
-- [ ] Ejecutar la evaluación sobre el pipeline RAG básico.
-- [ ] Registrar `Faithfulness`, `Answer Relevancy`, `Context Precision` y `Context Recall`.
-- [ ] Explicar brevemente qué mide cada métrica y reportar sus valores obtenidos.
+- [x] Ejecutar la evaluación sobre el pipeline RAG básico con la colección `ecologix` (`k=3`) y el golden dataset de C.1.
+- [x] Registrar `Faithfulness`, `Answer Relevancy`, `Context Precision` y `Context Recall`.
+- [x] Explicar brevemente qué mide cada métrica y reportar sus valores obtenidos en `entrega_3/informe.md`; los datos de generación y resultados están en `docs-resultados/`.
 
 ### C.3 — Comparación entre modelos/pipelines
 - [ ] Evaluar el pipeline avanzado con chunking y reranking.
@@ -78,7 +78,7 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ## Entregables en `entrega_3/`
 
 - [ ] `rag_pipeline.py` o notebook equivalente: implementación de las Partes A y B conectada a la base vectorial original.
-- [ ] `evaluacion_ragas.py` o notebook equivalente: golden dataset de 10 preguntas y ejecución de RAGAS.
+- [x] `evaluar_ragas.py` y `golden_dataset.json`: evaluación RAGAS del golden dataset de 10 preguntas.
 - [x] `image.png` y `image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informe.md`.
 - [ ] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
 

@@ -436,3 +436,39 @@ costo de una llamada al juez de relevancia.
 ![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](image.png)
 
 ![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](image-1.png)
+
+## C.2 — Baseline RAGAS
+
+El evaluador `evaluar_ragas.py` ejecuta los 10 casos del golden dataset de C.1
+contra el pipeline RAG básico, usando la colección original `ecologix` y
+`k=3`. Registra para cada caso la pregunta, la respuesta generada, los contextos
+recuperados y su respuesta de referencia. La configuración permite reutilizar
+esas respuestas para volver a calcular las métricas sin repetir las llamadas
+de generación del RAG.
+
+Las métricas informadas son:
+
+- **Faithfulness:** proporción de afirmaciones de la respuesta respaldadas por
+  los contextos recuperados; evalúa su fidelidad al contexto.
+- **Answer Relevancy:** pertinencia de la respuesta respecto de la pregunta;
+  las respuestas vagas o desalineadas obtienen una puntuación menor.
+- **Context Precision:** proporción y orden de los contextos recuperados que
+  resultan relevantes para la pregunta y su respuesta de referencia.
+- **Context Recall:** proporción de la información necesaria de la respuesta
+  de referencia que queda respaldada por los contextos recuperados.
+
+La corrida se realizó el **22/10/2026** sobre los 10 casos del golden dataset.
+Tanto la generación de respuestas como la evaluación de métricas usaron
+Gemini `gemini-3.5-flash-lite`; los embeddings para `Answer Relevancy` se
+calcularon localmente. Los promedios obtenidos fueron:
+
+| Métrica | Promedio |
+|---|---:|
+| Faithfulness | 0,9833 |
+| Answer Relevancy | 0,5952 |
+| Context Precision | 0,8000 |
+| Context Recall | 1,0000 |
+
+**Estado:** baseline ejecutado y documentado. Las respuestas y contextos por
+caso están en `docs-resultados/datos_ragas_baseline.json`; los resultados por
+caso y los promedios están en `docs-resultados/resultados_ragas_baseline.json`.
