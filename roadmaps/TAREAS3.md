@@ -46,9 +46,9 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Ejecutar la evaluación con el proveedor configurado y documentar los candidatos, selección, respuesta y resultado observado. Con Gemini 3.5 Flash Lite, el juez seleccionó los fragmentos de pedidos y logística, y la respuesta cubrió ambas preguntas con fuentes.
 
 ### B.4 — Traza de LangSmith
-- [ ] Configurar la observabilidad de LangSmith con las variables de trazabilidad, API key y nombre de proyecto.
-- [ ] Registrar una ejecución completa del pipeline.
-- [ ] Documentar tiempos, tokens consumidos y qué chunks se recuperaron frente a cuáles quedaron seleccionados tras el reranking.
+- [x] Preparar las variables de tracing y la validación de API key/proyecto sin versionar secretos.
+- [x] Registrar una ejecución completa del pipeline.
+- [x] Documentar tiempos, tokens consumidos y qué chunks se recuperaron frente a cuáles quedaron seleccionados tras el reranking.
 - [ ] Guardar una captura o un enlace público de la traza como evidencia. No incluir API keys en archivos versionados.
 
 ## Parte C — Evaluación con RAGAS

@@ -133,6 +133,16 @@ def test_cadena_propaga_respuesta_estructurada_invalida_del_juez() -> None:
     assert modelo.i == 1
 
 
+def test_seleccion_relevancia_rechaza_campos_extra() -> None:
+    with pytest.raises(ValueError):
+        SeleccionRelevancia.model_validate(
+            {
+                "indices_seleccionados": [1],
+                "justificacion": "Campo no permitido",
+            }
+        )
+
+
 @pytest.mark.parametrize(
     ("indices", "cantidad_maxima", "mensaje"),
     [

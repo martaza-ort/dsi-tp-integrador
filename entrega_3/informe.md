@@ -386,3 +386,53 @@ Las pruebas automatizadas sin API están en `test_rag_reranking.py` y verifican
 la selección, el filtrado antes de generar, el caso sin fragmentos pertinentes,
 la preservación del chain básico y el rechazo explícito de índices inválidos o
 de una respuesta estructurada malformada del juez.
+
+## B.4 — Captura de traza en LangSmith
+
+La configuración de tracing se agregó a `.env.example`; la clave real debe
+cargarse solo en `.env`, que está ignorado por Git. El evaluador
+`evaluar_b3.py` requiere `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY` y
+`LANGSMITH_PROJECT`, y asigna nombre, etiquetas y metadatos a la corrida. El
+evaluador prioriza la configuración del `.env` del proyecto sobre variables
+heredadas del proceso. Para el tracing estándar de LangChain no hace falta
+definir `LANGSMITH_ENDPOINT` (se usa el endpoint predeterminado de LangSmith)
+ni `LANGSMITH_AGENT_ENVIRONMENT` (metadato de otros flujos de agentes).
+
+**Ejecución observada:** 2026-10-22, proyecto LangSmith `iads3-dsi`
+(`LANGSMITH_PROJECT`), corrida
+`B4-reranking-gemini-35-flash-lite`, modelo `gemini-3.5-flash-lite`, colección
+`ecologix_chunks_500_100`, `k=8`, selección máxima de 4. La traza completó sin
+error:
+[abrir traza B.4 en LangSmith](https://smith.langchain.com/o/30292441-5ba9-471c-95f5-ef6f05584c43/projects/p/11e6da7b-5591-492e-902e-dc1dd5c900c7/r/01a16552-b325-7411-b38b-e0b3fd6e6a7c?poll=true)
+(requiere acceso autenticado al workspace). ID de traza:
+`01a16552-b325-7411-b38b-e0b3fd6e6a7c`.
+
+| Etapa | Duración | Tokens de entrada | Tokens de salida | Total |
+|---|---:|---:|---:|---:|
+| Juez de relevancia | 1.919 s | 2141 | 27 | 2168 |
+| Generador de respuesta | 1.007 s | 628 | 86 | 714 |
+| Ejecución completa (incluye recuperación y composición) | 3.046 s | 2769 | 113 | 2882 |
+
+Los ocho candidatos fueron: `Pedidos multitema` chunk 0, `Vasos de bagazo`
+chunk 0, `Pedidos multitema` chunk 1, `Reclamos por productos rotos o
+faltantes` chunk 0, `Retiro por depósito versus entrega domiciliaria` chunk
+0, `Bolsas compostables` chunk 0, `Vasos compostables para cafe` chunk 0 y
+`Envases de cartón para alimentos` chunk 0. El juez seleccionó únicamente
+`Pedidos multitema y confirmación previa` chunk 0 y `Retiro por depósito
+versus entrega domiciliaria` chunk 0; por lo tanto, descartó 6 candidatos,
+incluidos el chunk redundante de pedidos y el documento de reclamos.
+
+La respuesta generada informó las validaciones de SKU, disponibilidad, fecha,
+coherencia y política antes de confirmar; para el domicilio señaló zona, ruta,
+horario, cobertura y coordinación logística, citando ambas fuentes.
+
+### Evidencia visual de la traza
+
+La primera captura muestra la traza completa, con la consulta, las etapas de
+reranking y generación, y los documentos candidatos y seleccionados. La segunda
+muestra los metadatos del proyecto y la corrida, además del detalle de tokens y
+costo de una llamada al juez de relevancia.
+
+![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](image.png)
+
+![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](image-1.png)
