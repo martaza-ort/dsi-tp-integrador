@@ -85,3 +85,188 @@ un error temporal de límite de solicitudes en el primer intento.
 **Fuentes devueltas por el chain:** `Vasos compostables para cafe` (vajilla), `Platos y bowls de bagazo` (vajilla), `Sorbetes de papel` (sorbetes)
 
 **Evaluación:** Cumple. La fuente de sorbetes fue recuperada y citada al responder usando lenguaje equivalente.
+
+## A.4 — Trazabilidad de fuentes
+
+Evidencia del chain con proveedor `gemini`, modelo `gemini-3.8-flash` y
+colección ChromaDB `ecologix` (`k=3`). A4-1 se ejecutó en la corrida de A.4
+del **2026-10-22T00:41:57-03:00**. A4-2 reutiliza la respuesta observada y las
+fuentes devueltas por el chain en A3-4 el **2026-10-22T00:21:13-03:00** para la
+misma consulta; la recuperación volvió a dar los mismos tres títulos en la
+corrida A.4. Un intento de regenerar A4-2 durante A.4 fue limitado por Gemini
+(HTTP 429), por lo que no se presenta como una nueva respuesta de esa corrida.
+Los fragmentos y metadatos se copian de los documentos recuperados.
+
+### A4-1 — Factual directa
+
+**Consulta:** ¿De qué tamaño son los vasos de bagazo y para qué tipo de bebidas se utilizan?
+
+**Respuesta generada:**
+
+> Los vasos de bagazo son de 12 oz (12 onzas) [Vasos de bagazo 12 oz] [Vasos compostables para cafe]. Se utilizan para bebidas calientes y frías [Vasos de bagazo 12 oz], así como para café y bebidas para llevar [Vasos compostables para cafe].
+
+**Fuentes devueltas por el chain:** 3
+
+#### Fuente 1: Vasos de bagazo 12 oz
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "vajilla",
+  "material": "bagazo",
+  "sku": "ECO-VAS-12OZ",
+  "tags_regionales": "vaso bagazo cafeteria para_llevar vajilla",
+  "tipo": "producto",
+  "titulo": "Vasos de bagazo 12 oz",
+  "unidad_venta": "caja",
+  "unidades_por_bulto": 1000,
+  "uso_principal": "cafe"
+}
+```
+
+**Fragmento utilizado por el chain**
+
+```text
+Título: Vasos de bagazo 12 oz. Categoría: vajilla. Descripción: Los vasos de bagazo de 12 oz son ideales para bebidas calientes y frías, especialmente para cafeterías, kioscos y locales de takeaway. La variante de 12 oz es una de las más demandadas para servicio en local y para llevar. La unidad de venta habitual es caja, con envases de gran volumen para puntos de venta y cadenas de café.. Etiquetas: vaso bagazo cafeteria para_llevar vajilla.
+```
+
+#### Fuente 2: Vasos compostables para cafe
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "vajilla",
+  "material": "bagazo",
+  "sku": "ECO-VAS-12OZ-ALT",
+  "tags_regionales": "vasito biodegradable cafe takeaway",
+  "tipo": "producto",
+  "titulo": "Vasos compostables para cafe",
+  "unidad_venta": "caja",
+  "unidades_por_bulto": 1000,
+  "uso_principal": "cafe"
+}
+```
+
+**Fragmento utilizado por el chain**
+
+```text
+Título: Vasos compostables para cafe. Categoría: vajilla. Descripción: Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.. Etiquetas: vasito biodegradable cafe takeaway.
+```
+
+#### Fuente 3: Platos y bowls de bagazo
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "vajilla",
+  "material": "bagazo",
+  "sku": "ECO-VAJ-BAG",
+  "tags_regionales": "plato bowl bagazo evento catering",
+  "tipo": "producto",
+  "titulo": "Platos y bowls de bagazo",
+  "unidad_venta": "caja",
+  "unidades_por_bulto": 250,
+  "uso_principal": "catering"
+}
+```
+
+**Fragmento utilizado por el chain**
+
+```text
+Título: Platos y bowls de bagazo. Categoría: vajilla. Descripción: La vajilla de bagazo incluye platos y bowls para servicio rápido, catering y eventos. Es una alternativa ecológica para uso en alimentos calientes y húmedos, con buena resistencia y costo competitivo frente a plástico desechable. Se suele vender por caja a restaurantes, eventos y proveedores del sector gastronómico.. Etiquetas: plato bowl bagazo evento catering.
+```
+
+
+### A4-2 — Consulta con sinónimos
+
+**Consulta:** ¿Qué alternativa ofrecen para sorber jugos en un local gastronómico?
+
+**Respuesta generada:**
+
+> Para bebidas frías y calientes en locales como cafeterías y comercios de comida rápida, se ofrecen sorbetes de papel [Sorbetes de papel].
+
+**Proveniencia:** respuesta observada en A3-4 el **2026-10-22T00:21:13-03:00**.
+El chain devolvió estos tres documentos en esa ejecución; en la corrida A.4,
+la búsqueda local de la misma consulta produjo los mismos títulos.
+
+#### Fuente 1: Vasos compostables para cafe
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "vajilla",
+  "material": "bagazo",
+  "sku": "ECO-VAS-12OZ-ALT",
+  "tags_regionales": "vasito biodegradable cafe takeaway",
+  "tipo": "producto",
+  "titulo": "Vasos compostables para cafe",
+  "unidad_venta": "caja",
+  "unidades_por_bulto": 1000,
+  "uso_principal": "cafe"
+}
+```
+
+**Fragmento de la fuente devuelta por el chain en A3-4**
+
+```text
+Título: Vasos compostables para cafe. Categoría: vajilla. Descripción: Vasos biodegradables de bagazo de 12 onzas para cafeterias y bebidas para llevar. Se comercializan por caja para locales gastronomicos.. Etiquetas: vasito biodegradable cafe takeaway.
+```
+
+#### Fuente 2: Platos y bowls de bagazo
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "vajilla",
+  "material": "bagazo",
+  "sku": "ECO-VAJ-BAG",
+  "tags_regionales": "plato bowl bagazo evento catering",
+  "tipo": "producto",
+  "titulo": "Platos y bowls de bagazo",
+  "unidad_venta": "caja",
+  "unidades_por_bulto": 250,
+  "uso_principal": "catering"
+}
+```
+
+**Fragmento de la fuente devuelta por el chain en A3-4**
+
+```text
+Título: Platos y bowls de bagazo. Categoría: vajilla. Descripción: La vajilla de bagazo incluye platos y bowls para servicio rápido, catering y eventos. Es una alternativa ecológica para uso en alimentos calientes y húmedos, con buena resistencia y costo competitivo frente a plástico desechable. Se suele vender por caja a restaurantes, eventos y proveedores del sector gastronómico.. Etiquetas: plato bowl bagazo evento catering.
+```
+
+#### Fuente 3: Sorbetes de papel
+
+**Metadatos**
+
+```text
+{
+  "activo": true,
+  "categoria": "sorbetes",
+  "material": "papel",
+  "sku": "ECO-SOR-PAP",
+  "tags_regionales": "sorbete papel cafeteria comida_rapida biodegradable",
+  "tipo": "producto",
+  "titulo": "Sorbetes de papel",
+  "unidad_venta": "bulto",
+  "unidades_por_bulto": 2000,
+  "uso_principal": "bebidas"
+}
+```
+
+**Fragmento de la fuente devuelta por el chain en A3-4**
+
+```text
+Título: Sorbetes de papel. Categoría: sorbetes. Descripción: Los sorbetes de papel se utilizan para bebidas frías y calientes y son pedidos frecuentes por comercios de café, kioscos y locales de comida rápida. La presentación suele ser por bulto o caja según la demanda del cliente. Son una opción compatible con la imagen de negocio sustentable y con entregas masivas.. Etiquetas: sorbete papel cafeteria comida_rapida biodegradable.
+```
+

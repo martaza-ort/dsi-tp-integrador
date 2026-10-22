@@ -24,8 +24,8 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Documentar consultas, resultados observados y si cada comportamiento esperado se cumplió.
 
 ### A.4 — Trazabilidad de fuentes
-- [ ] Mostrar al menos dos consultas en las que se expongan las fuentes empleadas.
-- [ ] Para cada fuente, registrar el fragmento de texto utilizado y sus metadatos relevantes (por ejemplo, sucursal o categoría).
+- [x] Mostrar al menos dos consultas en las que se expongan las fuentes empleadas.
+- [x] Para cada fuente, registrar el fragmento de texto utilizado y sus metadatos relevantes (por ejemplo, sucursal o categoría).
 
 ## Parte B — RAG avanzado: chunking y reranking
 

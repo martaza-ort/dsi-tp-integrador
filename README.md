@@ -80,6 +80,7 @@ del proyecto.
 ├── entrega_3/
 │   ├── rag_pipeline.py
 │   ├── evaluar_a3.py
+│   ├── evaluar_a4.py
 │   └── informe.md
 ├── informes/
 │   ├── informe.md
@@ -129,7 +130,8 @@ del proyecto.
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
-| `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3. | Entrega 3 |
+| `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
+| `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
 | `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
@@ -252,6 +254,9 @@ python -m entrega_3.rag_pipeline
 
 # Entrega 3 A.3: ejecutar la matriz de resiliencia (4 llamadas al LLM)
 python -m entrega_3.evaluar_a3
+
+# Entrega 3 A.4: registrar respuesta, fragmentos fuente y metadatos
+python -m entrega_3.evaluar_a4
 ```
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
