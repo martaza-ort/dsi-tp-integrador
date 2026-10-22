@@ -81,6 +81,7 @@ del proyecto.
 │   ├── rag_pipeline.py
 │   ├── evaluar_a3.py
 │   ├── evaluar_a4.py
+│   ├── golden_dataset.json
 │   └── informe.md
 ├── informes/
 │   ├── informe.md
@@ -131,6 +132,7 @@ del proyecto.
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
+| `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
 | `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
@@ -259,17 +261,31 @@ python simular_evento_caliente.py --restaurar
 
 # B.6: ejecutar las tres Killer Queries y regenerar evidencia
 python killer_queries.py
+```
 
-# Entrega 3 A.2: ejecutar el chain RAG (requiere OPENAI_API_KEY en .env)
+### Cómo correr — Entrega 3
+
+Ejecutar desde la raíz del repositorio y con el entorno virtual activo. Las
+evaluaciones que llaman al modelo requieren configurar en `.env` el proveedor
+y su clave de API.
+
+```bash
+# A.2: ejecutar el chain RAG interactivo
 python -m entrega_3.rag_pipeline
 
-# Entrega 3 A.3: ejecutar la matriz de resiliencia (4 llamadas al LLM)
+# A.3: ejecutar la matriz de resiliencia
 python -m entrega_3.evaluar_a3
 
-# Entrega 3 A.4: registrar respuesta, fragmentos fuente y metadatos
+# A.4: registrar respuestas, fuentes y metadatos
 python -m entrega_3.evaluar_a4
 
-# Entrega 3 B.4: ejecutar reranking trazado en LangSmith
+# B.2: crear o actualizar la colección con chunks
+python -m entrega_3.indexar_chunks
+
+# B.2: comparar el RAG básico con el índice fragmentado
+python -m entrega_3.evaluar_b2
+
+# B.3/B.4: ejecutar reranking y registrar la traza en LangSmith
 python -m entrega_3.evaluar_b3
 ```
 

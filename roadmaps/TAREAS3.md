@@ -54,11 +54,11 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ## Parte C — Evaluación con RAGAS
 
 ### C.1 — Golden dataset
-- [ ] Crear un conjunto de al menos 10 preguntas del dominio con sus respuestas esperadas (*ground truth*).
-- [ ] Incluir 3 preguntas simples, respondibles desde un chunk.
-- [ ] Incluir 3 preguntas complejas, que requieran combinar chunks.
-- [ ] Incluir 2 preguntas de escape, donde el sistema debe reconocer que no sabe.
-- [ ] Incluir 2 preguntas con lenguaje ambiguo o informal.
+- [x] Crear un conjunto de 10 preguntas del dominio con sus respuestas esperadas (*ground truth*) en `entrega_3/golden_dataset.json`.
+- [x] Incluir 3 preguntas simples, respondibles desde una fuente.
+- [x] Incluir 3 preguntas complejas que requieren combinar fuentes del corpus (documentos en el pipeline básico y chunks en el avanzado).
+- [x] Incluir 2 preguntas de escape sobre datos ausentes del corpus.
+- [x] Incluir 2 preguntas con lenguaje informal.
 
 ### C.2 — Baseline RAGAS
 - [ ] Ejecutar la evaluación sobre el pipeline RAG básico.

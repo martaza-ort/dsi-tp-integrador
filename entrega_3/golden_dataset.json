@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "coleccion_referencia": "ecologix",
+  "respuesta_esperada_sin_informacion": "No poseo información suficiente en el contexto para responder.",
+  "casos": [
+    {
+      "id": "C1-S1",
+      "tipo": "simple",
+      "pregunta": "¿Para qué bebidas y lugares se recomiendan los vasos de bagazo de 12 oz?",
+      "ground_truth": "Los vasos de bagazo de 12 oz se utilizan para bebidas calientes y frías, especialmente en cafeterías, kioscos y locales de takeaway.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-002",
+          "titulo": "Vasos de bagazo 12 oz"
+        }
+      ]
+    },
+    {
+      "id": "C1-S2",
+      "tipo": "simple",
+      "pregunta": "¿Cómo se suelen vender los sorbetes de papel y para qué bebidas se usan?",
+      "ground_truth": "Los sorbetes de papel se utilizan para bebidas frías y calientes. Su presentación suele ser por bulto o caja, según la demanda del cliente.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-004",
+          "titulo": "Sorbetes de papel"
+        }
+      ]
+    },
+    {
+      "id": "C1-S3",
+      "tipo": "simple",
+      "pregunta": "¿Cómo se determina el mínimo para aceptar un pedido pequeño?",
+      "ground_truth": "Los pedidos pequeños deben sumar un monto mínimo. La regla concreta se evalúa con el backend sobre el total del pedido, no sobre la intención del cliente.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-007",
+          "titulo": "Mínimo de compra por cliente"
+        }
+      ]
+    },
+    {
+      "id": "C1-C1",
+      "tipo": "compleja",
+      "pregunta": "Si un cliente pide vasos y sorbetes para el jueves, ¿qué hay que validar antes de confirmar y cuándo se reserva el stock?",
+      "ground_truth": "Antes de reservar stock hay que validar cada SKU, revisar la disponibilidad y confirmar la fecha de entrega, además de comprobar la coherencia del pedido y la política del negocio. El stock se controla por depósito y SKU, considerando lo disponible y lo ya reservado. La reserva se realiza después de confirmar el pedido y antes de generar el pedido final.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-009",
+          "titulo": "Stock por depósito central"
+        },
+        {
+          "id": "doc-010",
+          "titulo": "Reserva de stock al confirmar pedido"
+        },
+        {
+          "id": "doc-016",
+          "titulo": "Pedidos multitema y confirmación previa"
+        }
+      ]
+    },
+    {
+      "id": "C1-C2",
+      "tipo": "compleja",
+      "pregunta": "¿Qué determina si un pedido puede entregarse a domicilio y qué alternativa hay si la zona no tiene cobertura directa?",
+      "ground_truth": "La entrega depende de la zona y de la ruta disponible; también se consideran la cobertura, el horario y la coordinación previa con logística. Algunas zonas tienen servicio programado y otras requieren coordinación o retiro por depósito. Si la zona no está cubierta o no se puede resolver con seguridad, corresponde revisar o derivar el caso a un operador.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-008",
+          "titulo": "Zonas de entrega y cobertura"
+        },
+        {
+          "id": "doc-011",
+          "titulo": "Retiro por depósito versus entrega domiciliaria"
+        },
+        {
+          "id": "doc-018",
+          "titulo": "Derivación a humano cuando no hay certeza"
+        }
+      ]
+    },
+    {
+      "id": "C1-C3",
+      "tipo": "compleja",
+      "pregunta": "Si faltan o llegan rotos productos y además no se puede verificar el stock o la zona del pedido, ¿cómo registrar el reclamo y cuándo debe intervenir una persona?",
+      "ground_truth": "Se debe abrir un ticket asociado al pedido y dejar evidencia del motivo, que puede ser rotura, faltante o diferencia entre lo solicitado y lo recibido. Si la consulta no puede resolverse con datos seguros, faltan datos de stock o la zona no está cubierta, debe derivarse a un operador. Las decisiones financieras o de crédito requieren revisión humana y no se debe emitir automáticamente una nota de crédito.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-012",
+          "titulo": "Reclamos por productos rotos o faltantes"
+        },
+        {
+          "id": "doc-018",
+          "titulo": "Derivación a humano cuando no hay certeza"
+        }
+      ]
+    },
+    {
+      "id": "C1-E1",
+      "tipo": "escape",
+      "pregunta": "¿Cuántas unidades disponibles hay ahora mismo del SKU ECO-VAS-12OZ en el depósito central?",
+      "ground_truth": "No poseo información suficiente en el contexto para responder.",
+      "fuentes_esperadas": []
+    },
+    {
+      "id": "C1-E2",
+      "tipo": "escape",
+      "pregunta": "¿Cuál es el precio vigente por caja de vasos de bagazo de 12 oz?",
+      "ground_truth": "No poseo información suficiente en el contexto para responder.",
+      "fuentes_esperadas": []
+    },
+    {
+      "id": "C1-I1",
+      "tipo": "ambigua_informal",
+      "pregunta": "Che, esos vasitos eco de bagazo para el café, ¿van también para tomar algo frío o son solo para bebidas calientes?",
+      "ground_truth": "Los vasos biodegradables de bagazo de 12 oz pueden usarse para bebidas calientes o frías, tanto para llevar como para consumo en el local.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-019",
+          "titulo": "Vasos compostables para cafe"
+        }
+      ]
+    },
+    {
+      "id": "C1-I2",
+      "tipo": "ambigua_informal",
+      "pregunta": "Me llegó medio fulero el pedido: faltaron un par de cosas y otra vino rota. ¿Cómo hago el reclamo?",
+      "ground_truth": "El reclamo debe registrarse en un ticket asociado al pedido y dejar evidencia del motivo, indicando los productos rotos, faltantes o las diferencias entre lo solicitado y lo recibido.",
+      "fuentes_esperadas": [
+        {
+          "id": "doc-012",
+          "titulo": "Reclamos por productos rotos o faltantes"
+        }
+      ]
+    }
+  ]
+}
