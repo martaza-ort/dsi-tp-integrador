@@ -39,10 +39,11 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Analizar si el nuevo chunking corrige la falla registrada en B.1. Comparación pareada con Gemini 3.5 Flash Lite: ambas respuestas fueron la frase de escape; el índice con chunks aún omite las fuentes de sorbetes y entrega a domicilio.
 
 ### B.3 — Reranking
-- [ ] Aumentar la cantidad inicial de documentos recuperados (por ejemplo, `k=8`).
-- [ ] Incorporar una etapa de filtrado o reordenamiento por relevancia antes de construir el contexto final.
-- [ ] Usar el LLM como juez de relevancia en esa etapa, como propone la consigna.
-- [ ] Pasar al generador de respuesta solo el contexto seleccionado tras el reranking.
+- [x] Aumentar la cantidad inicial de documentos recuperados (por ejemplo, `k=8`).
+- [x] Incorporar una etapa de filtrado o reordenamiento por relevancia antes de construir el contexto final.
+- [x] Usar el LLM como juez de relevancia en esa etapa, como propone la consigna.
+- [x] Pasar al generador de respuesta solo el contexto seleccionado tras el reranking.
+- [x] Ejecutar la evaluación con el proveedor configurado y documentar los candidatos, selección, respuesta y resultado observado. Con Gemini 3.5 Flash Lite, el juez seleccionó los fragmentos de pedidos y logística, y la respuesta cubrió ambas preguntas con fuentes.
 
 ### B.4 — Traza de LangSmith
 - [ ] Configurar la observabilidad de LangSmith con las variables de trazabilidad, API key y nombre de proyecto.

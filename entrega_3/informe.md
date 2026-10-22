@@ -332,3 +332,57 @@ diferencia entre ambos índices.
 **Nota de ejecución:** Gemini 3.5 Flash Lite ignoró el parámetro `temperature` configurado por el cliente porque el modelo usa valores de muestreo fijos. La limitación se observó en ambas condiciones.
 
 **Reproducción:** desde la raíz del proyecto, ejecutar `python -m entrega_3.indexar_chunks` para reconstruir la colección avanzada y `python -m entrega_3.evaluar_b2` para ejecutar la misma consulta sobre ambas colecciones con el mismo modelo.
+
+## B.3 — Reranking con juez LLM
+
+Se implementó un pipeline avanzado que recupera hasta 8 candidatos de
+`ecologix_chunks_500_100`, solicita al mismo modelo que evalúe relevancia y
+seleccione hasta 4 fragmentos ordenados, y pasa únicamente esos fragmentos al
+generador de respuesta. El juez devuelve índices en formato estructurado; la
+cadena valida que no estén duplicados, fuera de rango ni excedan el límite
+antes de construir el contexto final. Si el juez no selecciona fragmentos, el
+generador recibe un contexto vacío y aplica la respuesta de escape configurada.
+La salida conserva tanto los
+candidatos recuperados como los documentos seleccionados para facilitar la
+trazabilidad.
+
+La implementación está en `rag_pipeline.py`; la corrida de evaluación está
+preparada en `evaluar_b3.py` y reutiliza la consulta B.1 con
+`gemini-3.5-flash-lite`.
+
+**Ejecución observada:** 2026-10-22T15:57-03:00. Se realizaron dos llamadas
+al modelo: una para reranking y otra para generar la respuesta. El proveedor
+advirtió que este modelo usa valores de muestreo fijos e ignora `temperature`.
+
+**Candidatos recuperados (`k=8`), en orden:**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0.
+2. `Vasos de bagazo 12 oz`, chunk 0.
+3. `Pedidos multitema y confirmación previa`, chunk 1.
+4. `Reclamos por productos rotos o faltantes`, chunk 0.
+5. `Retiro por depósito versus entrega domiciliaria`, chunk 0.
+6. `Bolsas compostables 40x50 cm`, chunk 0.
+7. `Vasos compostables para cafe`, chunk 0.
+8. `Envases de cartón para alimentos`, chunk 0.
+
+**Seleccionados por el juez (en orden):**
+
+1. `Pedidos multitema y confirmación previa`, chunk 0.
+2. `Retiro por depósito versus entrega domiciliaria`, chunk 0.
+
+El juez dejó fuera el fragmento redundante de pedidos, el documento de
+reclamos y los demás candidatos, y seleccionó la fuente logística necesaria
+que no había aparecido en el top 3 de B.2.
+
+**Respuesta generada:**
+
+> Antes de confirmar el pedido, el sistema debe validar cada SKU, revisar disponibilidad y confirmar la fecha de entrega, además de revisar la coherencia del pedido y la política del negocio antes de producir la confirmación final [Pedidos multitema y confirmación previa].
+>
+> La entrega domiciliaria está determinada por la zona, la ruta disponible, el horario, la cobertura y la coordinación previa con logística [Retiro por depósito versus entrega domiciliaria].
+
+**Evaluación:** en esta corrida, el reranking mejoró la recuperación relevante frente a B.2 al incluir la fuente sobre entrega domiciliaria y eliminar ruido/redundancia. La respuesta cubrió las validaciones previas y los factores logísticos citando ambas fuentes, sin afirmar disponibilidad concreta ni confirmar el pedido. No recuperó `Sorbetes de papel`, por lo que no aporta detalles adicionales del producto; eso no impidió responder las dos preguntas explícitas. El resultado evidencia una mejora en esta consulta, no una garantía general para todas las consultas.
+
+Las pruebas automatizadas sin API están en `test_rag_reranking.py` y verifican
+la selección, el filtrado antes de generar, el caso sin fragmentos pertinentes,
+la preservación del chain básico y el rechazo explícito de índices inválidos o
+de una respuesta estructurada malformada del juez.
