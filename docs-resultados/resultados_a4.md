@@ -19,7 +19,7 @@ Log de las 3 consultas de prueba sobre el índice persistido.
 
 | Puesto | Id | Documento | Score | Distancia |
 |--------|----|-----------|-------|-----------|
-| 1 | doc-019 | Vasos compostables para cafe | 0.6957 | 0.3043 |
+| 1 | doc-019 | Vasos compostables para cafe | 0.7046 | 0.2954 |
 | 2 | doc-014 | Cubiertos y utensilios de bioplástico | 0.5775 | 0.4225 |
 | 3 | doc-001 | Bolsas compostables 40x50 cm | 0.4998 | 0.5002 |
 ### CREAR_PEDIDO
@@ -29,7 +29,7 @@ Log de las 3 consultas de prueba sobre el índice persistido.
 | Puesto | Id | Documento | Score | Distancia |
 |--------|----|-----------|-------|-----------|
 | 1 | doc-001 | Bolsas compostables 40x50 cm | 0.7775 | 0.2225 |
-| 2 | doc-019 | Vasos compostables para cafe | 0.5999 | 0.4001 |
+| 2 | doc-019 | Vasos compostables para cafe | 0.5947 | 0.4053 |
 | 3 | doc-006 | Limpieza ecológica concentrada | 0.5689 | 0.4311 |
 ### RECLAMO_ENTREGA
 
