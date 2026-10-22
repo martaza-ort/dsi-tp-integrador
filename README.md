@@ -78,7 +78,9 @@ del proyecto.
 │   ├── resultados_lote.md
 │   └── resultados_lote_zero.md
 ├── entrega_3/
-│   └── rag_pipeline.py
+│   ├── rag_pipeline.py
+│   ├── evaluar_a3.py
+│   └── informe.md
 ├── informes/
 │   ├── informe.md
 │   └── informe_entrega2.md
@@ -125,7 +127,9 @@ del proyecto.
 | `docs-resultados/resultados_killer_queries.md` | Evidencia y análisis de las Killer Queries. | Entrega 2 |
 | `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
-| `entrega_3/rag_pipeline.py` | Retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
+| `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
+| `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
+| `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
 | `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
@@ -243,8 +247,11 @@ python simular_evento_caliente.py --restaurar
 # B.6: ejecutar las tres Killer Queries y regenerar evidencia
 python killer_queries.py
 
-# Entrega 3 A.1: comprobar el retriever sobre la colección existente
+# Entrega 3 A.2: ejecutar el chain RAG (requiere OPENAI_API_KEY en .env)
 python -m entrega_3.rag_pipeline
+
+# Entrega 3 A.3: ejecutar la matriz de resiliencia (4 llamadas al LLM)
+python -m entrega_3.evaluar_a3
 ```
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde

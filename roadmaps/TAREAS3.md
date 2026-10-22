@@ -11,17 +11,17 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Verificar que use el mismo nombre de colección y la misma ruta de persistencia.
 
 ### A.2 — Chain LCEL completo
-- [ ] Implementar la secuencia retriever → prompt de contexto → LLM → parser.
-- [ ] Configurar el retriever para recuperar los documentos más similares según `k`.
-- [ ] Incluir guardrails en el prompt: responder solo con información explícita del contexto, no confirmar precios que no estén respaldados y usar una respuesta de escape clara cuando falten datos.
-- [ ] Hacer que el chain devuelva tanto la respuesta como los documentos fuente utilizados.
+- [x] Implementar la secuencia retriever → prompt de contexto → LLM → parser.
+- [x] Configurar el retriever para recuperar los documentos más similares según `k`.
+- [x] Incluir guardrails en el prompt: responder solo con información explícita del contexto, no confirmar precios que no estén respaldados y usar una respuesta de escape clara cuando falten datos.
+- [x] Hacer que el chain devuelva tanto la respuesta como los documentos fuente utilizados.
 
 ### A.3 — Matriz de validación de resiliencia
-- [ ] Ejecutar el pipeline y registrar una consulta factual directa; debe responder con apoyo en los documentos correctos.
-- [ ] Probar una consulta fuera del dominio; debe activar la respuesta de escape, sin inventar información.
-- [ ] Probar un intento de inducir una respuesta complaciente o falsa; debe rechazar la afirmación sin inventar datos.
-- [ ] Probar una consulta con sinónimos; debe recuperar el documento pertinente y responder correctamente.
-- [ ] Documentar consultas, resultados observados y si cada comportamiento esperado se cumplió.
+- [x] Ejecutar el pipeline y registrar una consulta factual directa; debe responder con apoyo en los documentos correctos.
+- [x] Probar una consulta fuera del dominio; debe activar la respuesta de escape, sin inventar información.
+- [x] Probar un intento de inducir una respuesta complaciente o falsa; debe rechazar la afirmación sin inventar datos.
+- [x] Probar una consulta con sinónimos; debe recuperar el documento pertinente y responder correctamente.
+- [x] Documentar consultas, resultados observados y si cada comportamiento esperado se cumplió.
 
 ### A.4 — Trazabilidad de fuentes
 - [ ] Mostrar al menos dos consultas en las que se expongan las fuentes empleadas.

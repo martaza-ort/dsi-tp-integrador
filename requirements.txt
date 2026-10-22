@@ -8,3 +8,5 @@ faiss-cpu>=1.8
 sentence-transformers>=3.0
 chromadb>=1.5
 langchain-chroma>=1.1.0,<2
+langchain-openai>=1.1.0,<2
+langchain-google-genai>=4.0.0,<5
