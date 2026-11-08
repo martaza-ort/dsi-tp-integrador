@@ -132,6 +132,81 @@
           "titulo": "Reclamos por productos rotos o faltantes"
         }
       ]
+    },
+    {
+  "id": "C1-S4",
+  "tipo": "simple",
+  "pregunta": "¿Qué información de auditoría debe conservarse cuando se modifica el catálogo?",
+  "ground_truth": "Las modificaciones del catálogo deben registrar quién realizó el cambio, cuándo se aplicó y cuál fue el estado operativo resultante. Este control debe conservarse en altas, bajas, discontinuaciones y reemplazos de productos.",
+  "fuentes_esperadas": [
+    {
+      "id": "doc-018-dup-2",
+      "titulo": "Control de actualización del catálogo"
     }
+  ]
+},
+{
+  "id": "C1-C4",
+  "tipo": "compleja",
+  "pregunta": "¿Qué productos ecológicos puede ofrecer EcoLogix para un evento que necesita servir alimentos calientes y húmedos, preparar pedidos para llevar y entregar cubiertos descartables?",
+  "ground_truth": "Para servir alimentos calientes y húmedos pueden utilizarse platos y bowls de bagazo. Para los pedidos para llevar pueden usarse envases de cartón aptos para alimentos calientes, postres y menús. Como cubiertos descartables pueden ofrecerse utensilios de bioplástico para catering y eventos.",
+  "fuentes_esperadas": [
+    {
+      "id": "doc-003",
+      "titulo": "Platos y bowls de bagazo"
+    },
+    {
+      "id": "doc-005",
+      "titulo": "Envases de cartón para alimentos"
+    },
+    {
+      "id": "doc-014",
+      "titulo": "Cubiertos y utensilios de bioplástico"
+    }
+  ]
+},
+{
+  "id": "C1-C5",
+  "tipo": "compleja",
+  "pregunta": "Si un cliente realiza un pedido pequeño y solicita entrega en una zona cuya cobertura no puede confirmarse, ¿qué validaciones deben realizarse y qué corresponde hacer si no hay datos seguros?",
+  "ground_truth": "Debe verificarse que el pedido alcance el monto mínimo definido por el backend y comprobar la cobertura según la zona y la ruta disponible. Si la cobertura no puede confirmarse o no hay datos seguros para resolver la consulta, el caso debe derivarse a un operador humano.",
+  "fuentes_esperadas": [
+    {
+      "id": "doc-007",
+      "titulo": "Mínimo de compra por cliente"
+    },
+    {
+      "id": "doc-008",
+      "titulo": "Zonas de entrega y cobertura"
+    },
+    {
+      "id": "doc-018",
+      "titulo": "Derivación a humano cuando no hay certeza"
+    }
+  ]
+},
+{
+  "id": "C1-E3",
+  "tipo": "escape",
+  "pregunta": "¿Cuál es el costo exacto de entrega a domicilio para un pedido en Lomas de Zamora?",
+  "ground_truth": "No poseo información suficiente en el contexto para responder.",
+  "fuentes_esperadas": []
+},
+{
+  "id": "C1-I3",
+  "tipo": "ambigua_informal",
+  "pregunta": "Tengo un barcito y necesito vasitos eco y esos tubitos de papel para las bebidas, ¿sirven tanto para algo caliente como para algo frío?",
+  "ground_truth": "Los vasos de bagazo de 12 oz y los sorbetes de papel pueden utilizarse tanto para bebidas calientes como para bebidas frías. Los vasos se comercializan por caja y los sorbetes por bulto o caja, según la demanda.",
+  "fuentes_esperadas": [
+    {
+      "id": "doc-002",
+      "titulo": "Vasos de bagazo 12 oz"
+    },
+    {
+      "id": "doc-004",
+      "titulo": "Sorbetes de papel"
+    }
+  ]
+}
   ]
 }
