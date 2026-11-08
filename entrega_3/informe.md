@@ -290,11 +290,15 @@ con `k=3`.
 2. `Vasos de bagazo 12 oz` (vajilla): describe el uso de los vasos y que su unidad de venta habitual es la caja.
 3. `Reclamos por productos rotos o faltantes` (servicio): trata reclamos por entregas, pero no responde la consulta.
 
-**Falla observada y causa técnica:** la consulta tiene dos partes. El contexto recuperado permite responder qué validaciones previas se mencionan, pero no contiene los datos sobre la cobertura y coordinación de una entrega domiciliaria. Además, aunque el corpus contiene las fuentes `Sorbetes de papel`, `Zonas de entrega y cobertura` y `Retiro por depósito versus entrega domiciliaria`, ninguna apareció entre los tres documentos recuperados. La búsqueda por similitud con `k=3` incluyó una fuente de reclamos y dejó fuera esas fuentes relevantes. Ante ese contexto incompleto, el prompt del chain indica usar la frase de escape cuando falta información suficiente; el modelo aplicó esa instrucción a la consulta completa, sin responder siquiera la parte respaldada.
+**Falla observada y causa técnica — ruido en el contexto:** la consulta tiene dos partes. El contexto recuperado permite responder qué validaciones previas se mencionan, pero no contiene los datos sobre la cobertura y coordinación de una entrega domiciliaria. Aunque el corpus contiene las fuentes `Sorbetes de papel`, `Zonas de entrega y cobertura` y `Retiro por depósito versus entrega domiciliaria`, ninguna apareció entre los tres documentos recuperados.
 
-Esto constituye una falla de recuperación y de completitud de la respuesta para esta consulta multitema, no una alucinación: el modelo no inventó condiciones de entrega ni confirmó el pedido. La observación no permite atribuir el resultado a un chunk cortado o a *Lost in the Middle*; el pipeline básico entrega documentos completos y la limitación visible en esta corrida es la selección de los tres documentos recuperados y el fallback global.
+La falla se categoriza como **ruido en el contexto**: la búsqueda por similitud con `k=3` incluyó `Reclamos por productos rotos o faltantes`, una fuente que no aporta información para responder la consulta, y dejó afuera fuentes relevantes que sí estaban disponibles en el corpus. Al ocupar uno de los tres lugares del contexto, el documento irrelevante redujo la información útil entregada al generador.
 
-**Evaluación:** B.1 cumplido. Esta corrida deja una falla observada para analizar en B.2: el contexto insuficiente recuperado con `k=3` coincidió con que una pregunta parcialmente respondible terminara íntegramente en la respuesta de escape.
+Ante ese contexto incompleto y con ruido, el prompt del chain indicó utilizar la frase de escape cuando no hubiera información suficiente. El modelo aplicó esa instrucción a la consulta completa y no respondió siquiera la parte que sí estaba respaldada.
+
+No se trata de un **chunk cortado**, porque el pipeline básico recupera documentos completos, ni de **Lost in the Middle**, porque las fuentes necesarias no estaban presentes en el contexto recuperado. Tampoco es una alucinación, ya que el modelo no inventó condiciones de entrega ni confirmó el pedido.
+
+**Evaluación:** la falla del RAG básico queda categorizada como **ruido en el contexto**. Con `k=3`, el recuperador incorporó un documento irrelevante y omitió fuentes necesarias para contestar la consulta completa. Como consecuencia, el generador recibió un contexto incompleto y respondió con la frase de escape.
 
 ## B.2 — Chunking con solapamiento
 
