@@ -1,6 +1,6 @@
 {
   "estado": "completado",
-  "fecha": "2026-10-22T19:06:07-03:00",
+  "fecha": "2026-11-10T11:11:15-03:00",
   "pipeline": "rag_basico",
   "proveedor_generacion": "gemini",
   "modelo_generacion": "gemini-3.5-flash-lite",
@@ -8,12 +8,12 @@
   "modelo_evaluacion": "gemini-3.5-flash-lite",
   "coleccion": "ecologix",
   "k": 3,
-  "cantidad_casos": 10,
+  "cantidad_casos": 15,
   "metricas_promedio": {
-    "faithfulness": 0.9833333333333332,
-    "answer_relevancy": 0.5952448243023454,
-    "context_precision": 0.7999999999366667,
-    "context_recall": 1.0
+    "faithfulness": 0.9177777777777777,
+    "answer_relevancy": 0.586879349575581,
+    "context_precision": 0.7999999999344444,
+    "context_recall": 0.9111111111111111
   },
   "resultados_por_caso": [
     {
@@ -21,7 +21,7 @@
       "tipo": "simple",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.9383632786385312,
+        "answer_relevancy": 0.9794110935902701,
         "context_precision": 0.99999999995,
         "context_recall": 1.0
       }
@@ -31,7 +31,7 @@
       "tipo": "simple",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.8990822624019573,
+        "answer_relevancy": 0.8291695576204735,
         "context_precision": 0.9999999999,
         "context_recall": 1.0
       }
@@ -41,7 +41,7 @@
       "tipo": "simple",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.8067098399168483,
+        "answer_relevancy": 0.5786587573662962,
         "context_precision": 0.9999999999,
         "context_recall": 1.0
       }
@@ -51,7 +51,7 @@
       "tipo": "compleja",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.6652685402655972,
+        "answer_relevancy": 0.623284333136577,
         "context_precision": 0.9999999999,
         "context_recall": 1.0
       }
@@ -60,8 +60,8 @@
       "id": "C1-C2",
       "tipo": "compleja",
       "metricas": {
-        "faithfulness": 0.8333333333333334,
-        "answer_relevancy": 0.8119294489016738,
+        "faithfulness": 0.6,
+        "answer_relevancy": 0.8661780956819541,
         "context_precision": 0.9999999999666667,
         "context_recall": 1.0
       }
@@ -71,7 +71,7 @@
       "tipo": "compleja",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.7013187729776093,
+        "answer_relevancy": 0.6858009713776538,
         "context_precision": 0.99999999995,
         "context_recall": 1.0
       }
@@ -92,7 +92,7 @@
       "metricas": {
         "faithfulness": 1.0,
         "answer_relevancy": 0.0,
-        "context_precision": 0.0,
+        "context_precision": 0.49999999995,
         "context_recall": 1.0
       }
     },
@@ -101,7 +101,7 @@
       "tipo": "ambigua_informal",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.6152403193915653,
+        "answer_relevancy": 0.560077077582024,
         "context_precision": 0.9999999999,
         "context_recall": 1.0
       }
@@ -111,8 +111,58 @@
       "tipo": "ambigua_informal",
       "metricas": {
         "faithfulness": 1.0,
-        "answer_relevancy": 0.5145357805296705,
+        "answer_relevancy": 0.5559545753430255,
         "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-S4",
+      "tipo": "simple",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7819304855690709,
+        "context_precision": 0.9999999999,
+        "context_recall": 0.5
+      }
+    },
+    {
+      "id": "C1-C4",
+      "tipo": "compleja",
+      "metricas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.9589143686672698,
+        "context_precision": 0.0,
+        "context_recall": 0.6666666666666666
+      }
+    },
+    {
+      "id": "C1-C5",
+      "tipo": "compleja",
+      "metricas": {
+        "faithfulness": 0.5,
+        "answer_relevancy": 0.6911130164167409,
+        "context_precision": 0.9999999999,
+        "context_recall": 0.5
+      }
+    },
+    {
+      "id": "C1-E3",
+      "tipo": "escape",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.49999999995,
+        "context_recall": 1.0
+      }
+    },
+    {
+      "id": "C1-I3",
+      "tipo": "ambigua_informal",
+      "metricas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6926979112823582,
+        "context_precision": 0.99999999995,
         "context_recall": 1.0
       }
     }
