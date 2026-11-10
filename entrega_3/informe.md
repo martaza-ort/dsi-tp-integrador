@@ -443,7 +443,7 @@ costo de una llamada al juez de relevancia.
 
 ## C.2 — Baseline RAGAS
 
-El evaluador `evaluar_ragas.py` ejecuta los 10 casos del golden dataset de C.1
+El evaluador `evaluar_ragas.py` ejecuta los 15 casos del golden dataset de C.1
 contra el pipeline RAG básico, usando la colección original `ecologix` y
 `k=3`. Registra para cada caso la pregunta, la respuesta generada, los contextos
 recuperados y su respuesta de referencia. La configuración permite reutilizar
@@ -461,17 +461,17 @@ Las métricas informadas son:
 - **Context Recall:** proporción de la información necesaria de la respuesta
   de referencia que queda respaldada por los contextos recuperados.
 
-La corrida se realizó el **22/10/2026** sobre los 10 casos del golden dataset.
+La corrida se realizó el **10/11/2026** sobre los 15 casos del golden dataset.
 Tanto la generación de respuestas como la evaluación de métricas usaron
 Gemini `gemini-3.5-flash-lite`; los embeddings para `Answer Relevancy` se
 calcularon localmente. Los promedios obtenidos fueron:
 
 | Métrica | Promedio |
 |---|---:|
-| Faithfulness | 0,9833 |
-| Answer Relevancy | 0,5952 |
+| Faithfulness | 0,9178 |
+| Answer Relevancy | 0,5869 |
 | Context Precision | 0,8000 |
-| Context Recall | 1,0000 |
+| Context Recall | 0,9111 |
 
 **Estado:** baseline ejecutado y documentado. Las respuestas y contextos por
 caso están en `docs-resultados/datos_ragas_baseline.json`; los resultados por
@@ -479,7 +479,7 @@ caso y los promedios están en `docs-resultados/resultados_ragas_baseline.json`.
 
 ## C.3 — Comparativa de pipelines
 
-Se evaluaron los mismos 10 casos de C.1 con ambos pipelines y el mismo modelo
+Se evaluaron los mismos 15 casos de C.1 con ambos pipelines y el mismo modelo
 Gemini `gemini-3.5-flash-lite` para generar respuestas y calcular las métricas.
 El básico recupera hasta 3 documentos de `ecologix`; el avanzado usa chunks de
 500 caracteres con solapamiento de 100, recupera hasta 8 candidatos de
@@ -488,39 +488,43 @@ usa los embeddings locales en ambas corridas.
 
 | Métrica | RAG básico | RAG avanzado | Delta (avanzado − básico) |
 |---|---:|---:|---:|
-| Faithfulness | 0,9833 | 0,9500 | −0,0333 |
-| Answer Relevancy | 0,5952 | 0,6231 | **+0,0279** |
-| Context Precision | 0,8000 | 0,7500 | −0,0500 |
-| Context Recall | 1,0000 | 0,9333 | −0,0667 |
+| Faithfulness | 0,9178 | 0,8111 | −0,1067 |
+| Answer Relevancy | 0,5869 | 0,5976 | **+0,0107** |
+| Context Precision | 0,8000 | 0,7333 | −0,0667 |
+| Context Recall | 0,9111 | 0,9556 | **+0,0444** |
 
-El delta positivo de `Answer Relevancy` muestra una mejora del pipeline
-avanzado en esta corrida. Las métricas restantes bajaron, por lo que el
-resultado no representa una mejora uniforme. Los promedios corresponden a una
-corrida por pipeline, realizada el 22/10/2026; no miden la variabilidad entre
-ejecuciones. Las respuestas, contextos y resultados por caso se conservaron
-por separado en `docs-resultados/datos_ragas_avanzado.json` y
+En esta corrida, el pipeline avanzado obtuvo promedios algo mayores en
+`Answer Relevancy` y `Context Recall`, y menores en `Faithfulness` y
+`Context Precision`; por lo tanto, no representa una mejora uniforme. Los
+promedios corresponden a una corrida por pipeline, realizada el 10/11/2026;
+no miden la variabilidad entre ejecuciones. Las respuestas, contextos y
+resultados por caso se conservaron por separado en
+`docs-resultados/datos_ragas_avanzado.json` y
 `docs-resultados/resultados_ragas_avanzado.json`.
 
 ## C.4 — Diagnóstico y mitigación
 
-La métrica más baja del pipeline avanzado es **Answer Relevancy (0,6231)**.
-Los dos casos de escape (`C1-E1` y `C1-E2`) obtuvieron 0,0000: el RAG respondió
-correctamente en ambos que no tenía información suficiente, igual que la
-respuesta esperada. La métrica penaliza esas abstenciones breves porque evalúa
-la pertinencia semántica de la respuesta respecto de la pregunta; por eso, en
-estos casos, el valor bajo no indica por sí solo una respuesta incorrecta. Al
-considerar solo los ocho casos que requieren una respuesta sustantiva, el
-promedio de Answer Relevancy fue 0,7789 en el avanzado y 0,7441 en el básico.
+La métrica promedio más baja del pipeline avanzado es **Answer Relevancy
+(0,5976)**. Los tres casos de escape (`C1-E1`, `C1-E2` y `C1-E3`) obtuvieron
+0,0000 en esta métrica, aunque las respuestas coincidieron con la frase de
+abstención esperada. Por eso, el promedio global penaliza las abstenciones
+correctas. Al considerar solo los 12 casos que requieren una respuesta
+sustantiva, el promedio de Answer Relevancy fue 0,7470 en el avanzado y 0,7336
+en el básico.
 
-También hay margen de mejora en la cobertura de respuestas: en `C1-I2`, la
-respuesta avanzada indica abrir un ticket y dejar evidencia, pero no explicita
-que se deben identificar los productos rotos, faltantes o las diferencias.
-Obtuvo 0,5526 en Answer Relevancy.
+El caso `C1-C5` muestra una limitación distinta: el pipeline avanzado recuperó
+los contextos de mínimo de compra, cobertura y derivación a una persona
+(Context Recall 1,0000), pero respondió con la frase de abstención general
+(Answer Relevancy 0,0000). En `C1-C4`, en cambio, la respuesta avanzada cubrió
+los tres productos pedidos y obtuvo 0,9355 en Answer Relevancy, aunque
+Faithfulness fue 0,5000 y Context Precision 0,0000. Estos resultados aconsejan
+revisar tanto la cobertura de las respuestas como la correspondencia entre
+contextos recuperados y respuesta.
 
 **Acción técnica propuesta:** desglosar Answer Relevancy por tipo de caso y
-evaluar los casos de escape con una métrica específica de abstención correcta,
-sin confundir una respuesta de rechazo esperada con falta de pertinencia.
-Además, agregar una comprobación de cobertura de cada aspecto de la consulta
-al prompt del generador y una prueba de regresión para `C1-I2`; así se puede
-mejorar la respuesta en casos contestables y distinguir ese avance del
-comportamiento correcto de abstención.
+evaluar por separado la corrección de las abstenciones. Agregar una prueba de
+regresión para `C1-C5` que verifique que se contesten los aspectos respaldados
+por el contexto y que se derive a una persona solo la incertidumbre sobre la
+cobertura. También revisar la evaluación de relevancia y fidelidad de `C1-C4`,
+contrastando las puntuaciones con los contextos seleccionados y el contenido
+de la respuesta.

@@ -9,10 +9,10 @@ RAIZ_PROYECTO = Path(__file__).resolve().parent
 RUTA_DATASET = RAIZ_PROYECTO / "entrega_3" / "golden_dataset.json"
 RUTA_CORPUS = RAIZ_PROYECTO / "base_conocimiento_limpia.json"
 DISTRIBUCION_ESPERADA = {
-    "simple": 3,
-    "compleja": 3,
-    "escape": 2,
-    "ambigua_informal": 2,
+    "simple": 4,
+    "compleja": 5,
+    "escape": 3,
+    "ambigua_informal": 3,
 }
 
 
@@ -29,7 +29,7 @@ def test_golden_dataset_tiene_las_categorias_y_cantidades_requeridas() -> None:
         for tipo in DISTRIBUCION_ESPERADA
     }
 
-    assert len(casos) == 10
+    assert len(casos) == 15
     assert distribucion == DISTRIBUCION_ESPERADA
 
 

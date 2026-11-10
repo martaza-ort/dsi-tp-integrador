@@ -54,11 +54,11 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ## Parte C — Evaluación con RAGAS
 
 ### C.1 — Golden dataset
-- [x] Crear un conjunto de 10 preguntas del dominio con sus respuestas esperadas (*ground truth*) en `entrega_3/golden_dataset.json`.
-- [x] Incluir 3 preguntas simples, respondibles desde una fuente.
-- [x] Incluir 3 preguntas complejas que requieren combinar fuentes del corpus (documentos en el pipeline básico y chunks en el avanzado).
-- [x] Incluir 2 preguntas de escape sobre datos ausentes del corpus.
-- [x] Incluir 2 preguntas con lenguaje informal.
+- [x] Crear un conjunto de 15 preguntas del dominio con sus respuestas esperadas (*ground truth*) en `entrega_3/golden_dataset.json`.
+- [x] Incluir 4 preguntas simples, respondibles desde una fuente.
+- [x] Incluir 5 preguntas complejas que requieren combinar fuentes del corpus (documentos en el pipeline básico y chunks en el avanzado).
+- [x] Incluir 3 preguntas de escape sobre datos ausentes del corpus.
+- [x] Incluir 3 preguntas con lenguaje informal.
 
 ### C.2 — Baseline RAGAS
 - [x] Ejecutar la evaluación sobre el pipeline RAG básico con la colección `ecologix` (`k=3`) y el golden dataset de C.1.
@@ -78,12 +78,12 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ## Entregables en `entrega_3/`
 
 - [x] `rag_pipeline.py`: implementación de las Partes A y B conectada a la base vectorial original.
-- [x] `evaluar_ragas.py` y `golden_dataset.json`: evaluación RAGAS del golden dataset de 10 preguntas.
+- [x] `evaluar_ragas.py` y `golden_dataset.json`: evaluación RAGAS del golden dataset de 15 preguntas.
 - [x] `image.png` y `image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informe.md`.
 - [x] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
 
 ## Criterio de cierre
 
-- [x] Verificar que los scripts y evidencias usen el mismo golden dataset de 10 casos y consignen las colecciones y configuraciones de cada pipeline.
+- [x] Verificar que los scripts y evidencias usen el mismo golden dataset de 15 casos y consignen las colecciones y configuraciones de cada pipeline.
 - [x] Confirmar que el informe incluya resultados observados, no solo resultados esperados o tareas planificadas.
 - [x] Confirmar que `.env` esté ignorado y no versionado.
