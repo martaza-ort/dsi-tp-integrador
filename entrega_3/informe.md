@@ -495,10 +495,35 @@ usa los embeddings locales en ambas corridas.
 
 En esta corrida, el pipeline avanzado obtuvo promedios algo mayores en
 `Answer Relevancy` y `Context Recall`, y menores en `Faithfulness` y
-`Context Precision`; por lo tanto, no representa una mejora uniforme. Los
-promedios corresponden a una corrida por pipeline, realizada el 10/11/2026;
-no miden la variabilidad entre ejecuciones. Las respuestas, contextos y
-resultados por caso se conservaron por separado en
+`Context Precision`; por lo tanto, no representa una mejora uniforme. La
+comparación por caso muestra pérdidas de cobertura en dos preguntas complejas:
+
+| Caso | Comportamiento observado | Efecto en las métricas |
+|---|---|---|
+| `C1-C1` | Los ocho candidatos incluían `Stock por depósito central`, pero el reranker seleccionó solo `Pedidos multitema y confirmación previa` y `Reserva de stock al confirmar pedido`. La respuesta no incluyó el detalle de control de stock por depósito y SKU. | `Context Recall` bajó de 1,0000 a 0,6667; `Faithfulness` y `Context Precision` se mantuvieron en 1,0000. |
+| `C1-C2` | Los candidatos incluían `Derivación a humano cuando no hay certeza`, pero el reranker seleccionó `Zonas de entrega y cobertura` y `Retiro por depósito versus entrega domiciliaria`. La respuesta no mencionó la derivación cuando no hay datos seguros. | `Context Recall` bajó de 1,0000 a 0,6667. `Faithfulness` subió de 0,6000 a 0,6667 y `Context Precision` se mantuvo en 1,0000. |
+
+En ambos casos, la fuente necesaria estaba entre los ocho candidatos y se
+perdió en la selección del reranker. Esto respalda investigar cómo el reranker
+conserva fuentes complementarias para consultas con varios aspectos. Sin
+embargo, no explica por sí solo todos los cambios de los promedios: la caída de
+`Faithfulness` también incluye `C1-E2`, `C1-C4` y `C1-C5`, mientras que la de
+`Context Precision` se refleja en los casos de escape `C1-E2` y `C1-E3`.
+Además, en `C1-C5` el avanzado seleccionó los contextos pertinentes, pero el
+generador respondió con la frase de abstención general; ese caso requiere
+analizar la generación por separado.
+
+Como mejora, el prompt del reranker debería indicar explícitamente que debe
+identificar todas las partes de una consulta compleja y conservar fuentes
+complementarias cuando cada una respalde un aspecto diferente de la respuesta.
+También conviene agregar pruebas de regresión para `C1-C1` y `C1-C2` que
+verifiquen la conservación de las fuentes necesarias cuando estas aparecen
+entre los candidatos, y revisar por separado el comportamiento de generación
+en `C1-C5`.
+
+Los promedios corresponden a una sola corrida por pipeline, realizada el
+10/11/2026, por lo que no permiten medir la variabilidad entre ejecuciones. Las
+respuestas, candidatos, contextos seleccionados y resultados por caso están en
 `docs-resultados/datos_ragas_avanzado.json` y
 `docs-resultados/resultados_ragas_avanzado.json`.
 
