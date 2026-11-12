@@ -52,10 +52,12 @@ del proyecto.
 ├── CLAUDE.md
 ├── requirements.txt
 ├── app.py
+├── herramientas_rag.py
 ├── lote.py
 ├── schemas.py
 ├── schema.sql
 ├── test_schemas.py
+├── test_herramientas_rag.py
 ├── base_conocimiento.json
 ├── base_conocimiento_limpia.json
 ├── etl_purga.py
@@ -109,6 +111,7 @@ del proyecto.
 | `roadmaps/TAREAS2.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
 | `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
+| `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | TP Final |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
@@ -131,6 +134,7 @@ del proyecto.
 | `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
+| `test_herramientas_rag.py` | Pruebas de la herramienta RAG y del contrato de recuperación 8→4. | TP Final |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
 | `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
@@ -270,6 +274,16 @@ python killer_queries.py
 Ejecutar desde la raíz del repositorio y con el entorno virtual activo. Las
 evaluaciones que llaman al modelo requieren configurar en `.env` el proveedor
 y su clave de API.
+
+Para preparar el índice RAG avanzado en una instalación limpia, construir
+primero la colección base y luego la colección fragmentada que usa el
+reranking. Estos pasos se ejecutan una vez al preparar o actualizar los datos,
+no durante cada consulta del agente:
+
+```bash
+python vector_db.py
+python -m entrega_3.indexar_chunks
+```
 
 ```bash
 # A.2: ejecutar el chain RAG interactivo
