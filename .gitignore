@@ -10,6 +10,8 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+*-wal
+*-shm
 
 # Base vectorial persistente (se regenera con vector_db.py)
 chroma/

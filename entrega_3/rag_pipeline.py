@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 import chromadb
+from chromadb.errors import NotFoundError
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.embeddings import Embeddings
@@ -31,6 +32,8 @@ RAIZ_PROYECTO = DIRECTORIO_CHROMA.parent
 RESPUESTA_SIN_INFORMACION = (
     "No poseo información suficiente en el contexto para responder."
 )
+CANTIDAD_CANDIDATOS_RERANKING = 8
+CANTIDAD_DOCUMENTOS_RERANKEADOS = 4
 
 PROMPT_RAG = ChatPromptTemplate.from_messages(
     [
@@ -115,12 +118,21 @@ def crear_retriever(
         )
 
     cliente = chromadb.PersistentClient(path=str(DIRECTORIO_CHROMA))
-    coleccion = cliente.get_collection(name=nombre_coleccion)
+    try:
+        coleccion = cliente.get_collection(name=nombre_coleccion)
+    except NotFoundError as error:
+        raise FileNotFoundError(
+            f"No existe la colección ChromaDB '{nombre_coleccion}' en "
+            f"{DIRECTORIO_CHROMA}. Construí primero la colección base con "
+            "'python vector_db.py' y luego la colección fragmentada con "
+            "'python -m entrega_3.indexar_chunks'."
+        ) from error
 
     if coleccion.count() == 0:
         raise ValueError(
             f"La colección ChromaDB '{nombre_coleccion}' está vacía. "
-            "Ejecutá el indexador correspondiente antes de crear el retriever."
+            "Ejecutá primero 'python vector_db.py' y luego "
+            "'python -m entrega_3.indexar_chunks'."
         )
 
     base_vectorial = Chroma(
@@ -216,7 +228,42 @@ def _construir_cadena_rag_con_reranking(
     modelo_chat: BaseChatModel,
     cantidad_seleccionados: int,
 ) -> Runnable[str, dict[str, Any]]:
-    """Recupera candidatos, los reranquea con el LLM y genera la respuesta."""
+    """Recupera y reranquea candidatos antes de generar la respuesta."""
+
+    recuperador = _construir_recuperador_rag_con_reranking(
+        retriever=retriever,
+        modelo_chat=modelo_chat,
+        cantidad_seleccionados=cantidad_seleccionados,
+    )
+    generador = PROMPT_RAG | modelo_chat | StrOutputParser()
+
+    return (
+        recuperador
+        | RunnablePassthrough.assign(
+            contexto=RunnableLambda(
+                lambda entrada: formatear_contexto(
+                    entrada["selected_documents"]
+                )
+            )
+        )
+        | RunnablePassthrough.assign(respuesta=generador)
+        | RunnableLambda(
+            lambda salida: {
+                "answer": salida["respuesta"],
+                "candidate_documents": salida["candidate_documents"],
+                "selected_documents": salida["selected_documents"],
+                "source_documents": salida["selected_documents"],
+            }
+        )
+    )
+
+
+def _construir_recuperador_rag_con_reranking(
+    retriever: BaseRetriever,
+    modelo_chat: BaseChatModel,
+    cantidad_seleccionados: int,
+) -> Runnable[str, dict[str, Any]]:
+    """Recupera candidatos y devuelve los documentos elegidos por el juez."""
 
     evaluador = (
         RunnableLambda(
@@ -232,7 +279,6 @@ def _construir_cadena_rag_con_reranking(
         | modelo_chat
         | PARSER_RERANKING
     )
-    generador = PROMPT_RAG | modelo_chat | StrOutputParser()
 
     return (
         RunnableParallel(
@@ -242,28 +288,13 @@ def _construir_cadena_rag_con_reranking(
         | RunnablePassthrough.assign(decision=evaluador)
         | RunnableLambda(
             lambda entrada: {
-                **entrada,
-                "documentos_seleccionados": _validar_seleccion_reranking(
+                "pregunta": entrada["pregunta"],
+                "candidate_documents": entrada["candidatos"],
+                "selected_documents": _validar_seleccion_reranking(
                     entrada["decision"],
                     entrada["candidatos"],
                     cantidad_seleccionados,
                 ),
-            }
-        )
-        | RunnablePassthrough.assign(
-            contexto=RunnableLambda(
-                lambda entrada: formatear_contexto(
-                    entrada["documentos_seleccionados"]
-                )
-            )
-        )
-        | RunnablePassthrough.assign(respuesta=generador)
-        | RunnableLambda(
-            lambda salida: {
-                "answer": salida["respuesta"],
-                "candidate_documents": salida["candidatos"],
-                "selected_documents": salida["documentos_seleccionados"],
-                "source_documents": salida["documentos_seleccionados"],
             }
         )
     )
@@ -341,8 +372,8 @@ def crear_cadena_rag(
 
 
 def crear_cadena_rag_con_reranking(
-    cantidad_candidatos: int = 8,
-    cantidad_seleccionados: int = 4,
+    cantidad_candidatos: int = CANTIDAD_CANDIDATOS_RERANKING,
+    cantidad_seleccionados: int = CANTIDAD_DOCUMENTOS_RERANKEADOS,
     modelo: str | None = None,
     nombre_coleccion: str = NOMBRE_COLECCION_CHUNKS,
     limitador_tasa: BaseRateLimiter | None = None,
@@ -360,6 +391,35 @@ def crear_cadena_rag_con_reranking(
         )
 
     return _construir_cadena_rag_con_reranking(
+        retriever=crear_retriever(
+            cantidad=cantidad_candidatos,
+            nombre_coleccion=nombre_coleccion,
+        ),
+        modelo_chat=_crear_modelo_chat(modelo, limitador_tasa),
+        cantidad_seleccionados=cantidad_seleccionados,
+    )
+
+
+def crear_recuperador_rag_con_reranking(
+    cantidad_candidatos: int = CANTIDAD_CANDIDATOS_RERANKING,
+    cantidad_seleccionados: int = CANTIDAD_DOCUMENTOS_RERANKEADOS,
+    modelo: str | None = None,
+    nombre_coleccion: str = NOMBRE_COLECCION_CHUNKS,
+    limitador_tasa: BaseRateLimiter | None = None,
+) -> Runnable[str, dict[str, Any]]:
+    """Crea recuperación avanzada que devuelve fuentes sin redactar respuesta."""
+
+    if cantidad_candidatos < 1:
+        raise ValueError("La cantidad de candidatos debe ser al menos 1.")
+    if cantidad_seleccionados < 1:
+        raise ValueError("La cantidad seleccionada debe ser al menos 1.")
+    if cantidad_seleccionados > cantidad_candidatos:
+        raise ValueError(
+            "La cantidad seleccionada no puede superar la cantidad de "
+            "candidatos."
+        )
+
+    return _construir_recuperador_rag_con_reranking(
         retriever=crear_retriever(
             cantidad=cantidad_candidatos,
             nombre_coleccion=nombre_coleccion,
