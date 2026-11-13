@@ -53,11 +53,13 @@ del proyecto.
 ├── requirements.txt
 ├── app.py
 ├── herramientas_rag.py
+├── herramientas_operativas.py
 ├── lote.py
 ├── schemas.py
 ├── schema.sql
 ├── test_schemas.py
 ├── test_herramientas_rag.py
+├── test_herramientas_operativas.py
 ├── base_conocimiento.json
 ├── base_conocimiento_limpia.json
 ├── etl_purga.py
@@ -112,6 +114,7 @@ del proyecto.
 | `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
 | `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | TP Final |
+| `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite, con `cliente_id` inyectado desde estado confiable. | TP Final |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
@@ -135,6 +138,7 @@ del proyecto.
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
 | `test_herramientas_rag.py` | Pruebas de la herramienta RAG y del contrato de recuperación 8→4. | TP Final |
+| `test_herramientas_operativas.py` | Pruebas aisladas de autorización, consultas de envíos y altas de reclamos. | TP Final |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
 | `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |

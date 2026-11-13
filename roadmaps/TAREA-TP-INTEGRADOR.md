@@ -46,6 +46,7 @@ Se realiza una propuesta general de alto nivel como base para medir el esfuerzo 
 2. Comprobar la persistencia de conversación mediante HTTP, incluyendo una prueba después de reiniciar el servicio.
 3. Documentar en `README.md` la configuración, dependencias, variables de entorno, preparación del índice RAG y ejecución en otra máquina siguiendo únicamente esas instrucciones.
 4. Probar los endpoints y mantener respuestas de error que no expongan datos personales, entradas completas ni detalles internos.
+5. **Advertencia sobre identidad y autorización:** la API todavía debe definir cómo autentica o identifica de forma confiable al cliente. Debe pasar el `cliente_id` autenticado al estado de LangGraph para que las tools operativas lo reciban por inyección; nunca debe aceptar ese identificador desde el mensaje ni desde argumentos generados por el LLM. La prueba local con identidad fija sirve solo para tests/demo y no constituye autenticación de producción.
 
 ### C. Observabilidad
 
