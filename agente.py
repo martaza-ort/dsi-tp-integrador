@@ -6,12 +6,14 @@ from typing import Any
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
 from langchain_core.tools import BaseTool
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
-from typing_extensions import TypedDict
 
+from contexto_agente import ContextoAgente
 from herramientas_operativas import crear_herramientas_operativas
 from herramientas_rag import crear_herramienta_rag
+from memoria import MemoriaConversacional, validar_thread_id
 
 
 MAX_CICLOS_HERRAMIENTAS = 5
@@ -45,9 +47,8 @@ MENSAJE_LLAMADAS_PARALELAS = (
 
 
 class EstadoAgente(MessagesState):
-    """Estado efímero del grafo; el cliente debe venir del backend confiable."""
+    """Estado del grafo; no contiene identidad autenticada del cliente."""
 
-    cliente_id: int
     ciclos_herramientas: int
 
 
@@ -72,6 +73,7 @@ def crear_herramientas(
 def crear_grafo_agente(
     modelo_chat: BaseChatModel,
     herramientas: list[BaseTool],
+    checkpointer: BaseCheckpointSaver | None = None,
 ) -> Any:
     """Construye el ciclo ReAct con límite de cinco ciclos y una tool por turno.
 
@@ -86,9 +88,9 @@ def crear_grafo_agente(
         ValueError: Si no se proporcionan herramientas o hay nombres duplicados.
 
     Note:
-        El grafo no configura memoria persistente; la persistencia SQLite por
-        ``thread_id`` pertenece al punto A.4. El campo ``cliente_id`` debe
-        poblarse desde contexto confiable del backend.
+        El estado no guarda la identidad del cliente. Si se configura un
+        checkpointer, la identidad se pasa por el contexto de ejecución en
+        cada invocación.
     """
 
     if not herramientas:
@@ -177,14 +179,15 @@ def crear_grafo_agente(
     grafo.add_edge("herramientas", "agente")
     grafo.add_edge("rechazar_solicitud_multiple", END)
     grafo.add_edge("detener_por_limite", END)
-    return grafo.compile()
+    return grafo.compile(checkpointer=checkpointer)
 
 
 def invocar_agente(
     grafo: Any,
     mensaje: str,
     cliente_id: int,
-    mensajes_previos: list[BaseMessage] | None = None,
+    thread_id: str,
+    memoria: MemoriaConversacional | None = None,
 ) -> dict[str, Any]:
     """Invoca el grafo con el contexto efímero mínimo requerido.
 
@@ -192,7 +195,8 @@ def invocar_agente(
         grafo: Grafo creado con :func:`crear_grafo_agente`.
         mensaje: Mensaje nuevo del usuario.
         cliente_id: Identidad resuelta por el backend confiable.
-        mensajes_previos: Mensajes previos opcionales de la conversación.
+        thread_id: Identificador de la conversación autorizado por el backend.
+        memoria: Gestor SQLite; requerido para persistencia y TTL en ejecución.
 
     Returns:
         Estado final del grafo, incluidos mensajes y ciclos ejecutados.
@@ -204,12 +208,24 @@ def invocar_agente(
         raise ValueError("cliente_id debe ser positivo.")
     if not isinstance(mensaje, str) or not mensaje.strip():
         raise ValueError("El mensaje no puede estar vacío.")
+    identificador_hilo = validar_thread_id(thread_id)
 
-    return grafo.invoke(
-        {
-            "messages": [*(mensajes_previos or []), ("human", mensaje)],
-            "cliente_id": cliente_id,
-            "ciclos_herramientas": 0,
-        },
-        config={"recursion_limit": 2 * MAX_CICLOS_HERRAMIENTAS + 5},
-    )
+    entrada = {
+        "messages": [("human", mensaje)],
+        "ciclos_herramientas": 0,
+    }
+    config = {
+        "configurable": {"thread_id": identificador_hilo},
+        "recursion_limit": 2 * MAX_CICLOS_HERRAMIENTAS + 5,
+    }
+    contexto = ContextoAgente(cliente_id=cliente_id)
+
+    if memoria is not None:
+        return memoria.invocar(
+            grafo,
+            entrada,
+            thread_id=identificador_hilo,
+            contexto=contexto,
+            config=config,
+        )
+    return grafo.invoke(entrada, config=config, context=contexto)

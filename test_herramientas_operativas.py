@@ -10,6 +10,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from typing_extensions import TypedDict
 
+from contexto_agente import ContextoAgente
 from herramientas_operativas import crear_herramientas_operativas
 
 
@@ -22,7 +23,6 @@ ID_PEDIDO_B = 202
 
 class EstadoPrueba(TypedDict):
     messages: list[Any]
-    cliente_id: int
 
 
 @pytest.fixture
@@ -73,7 +73,7 @@ def _invocar_tool(
 ) -> str:
     herramientas = crear_herramientas_operativas(ruta_db)
     nodo = ToolNode(herramientas)
-    grafo = StateGraph(EstadoPrueba)
+    grafo = StateGraph(EstadoPrueba, context_schema=ContextoAgente)
     grafo.add_node("herramientas", nodo)
     grafo.add_edge(START, "herramientas")
     grafo.add_edge("herramientas", END)
@@ -86,8 +86,8 @@ def _invocar_tool(
     resultado = grafo.compile().invoke(
         {
             "messages": [AIMessage(content="", tool_calls=[llamada])],
-            "cliente_id": cliente_id,
-        }
+        },
+        context=ContextoAgente(cliente_id),
     )
     return resultado["messages"][-1].content
 

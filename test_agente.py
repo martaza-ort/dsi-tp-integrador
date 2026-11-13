@@ -77,7 +77,9 @@ def test_grafo_responde_sin_invocar_herramientas() -> None:
         [_crear_herramienta_contadora(contador)],
     )
 
-    resultado = invocar_agente(grafo, "Hola", cliente_id=1)
+    resultado = invocar_agente(
+        grafo, "Hola", cliente_id=1, thread_id="hilo-hola"
+    )
 
     assert resultado["messages"][-1].content == (
         "Hola, ¿en qué puedo ayudarte?"
@@ -99,7 +101,9 @@ def test_grafo_ejecuta_una_herramienta_y_vuelve_al_agente() -> None:
         [_crear_herramienta_contadora(contador)],
     )
 
-    resultado = invocar_agente(grafo, "Buscá el dato", cliente_id=1)
+    resultado = invocar_agente(
+        grafo, "Buscá el dato", cliente_id=1, thread_id="hilo-dato"
+    )
 
     assert resultado["messages"][-1].content == (
         "Encontré el dato solicitado."
@@ -133,7 +137,9 @@ def test_grafo_rechaza_llamadas_paralelas_sin_ejecutarlas() -> None:
         [_crear_herramienta_contadora(contador)],
     )
 
-    resultado = invocar_agente(grafo, "Hacé dos consultas", cliente_id=1)
+    resultado = invocar_agente(
+        grafo, "Hacé dos consultas", cliente_id=1, thread_id="hilo-paralelo"
+    )
 
     assert resultado["messages"][-1].content == MENSAJE_LLAMADAS_PARALELAS
     assert resultado["ciclos_herramientas"] == 0
@@ -155,7 +161,9 @@ def test_grafo_detiene_una_sexta_llamada_de_herramienta() -> None:
         [_crear_herramienta_contadora(contador)],
     )
 
-    resultado = invocar_agente(grafo, "Seguí consultando", cliente_id=1)
+    resultado = invocar_agente(
+        grafo, "Seguí consultando", cliente_id=1, thread_id="hilo-limite"
+    )
 
     assert resultado["messages"][-1].content == MENSAJE_LIMITE_CICLOS
     assert resultado["ciclos_herramientas"] == MAX_CICLOS_HERRAMIENTAS
@@ -185,7 +193,12 @@ def test_grafo_propaga_errores_de_herramienta() -> None:
     grafo = crear_grafo_agente(modelo, [herramienta_con_error])
 
     with pytest.raises(RuntimeError, match="Falló la herramienta"):
-        invocar_agente(grafo, "Ejecutá la operación", cliente_id=1)
+        invocar_agente(
+            grafo,
+            "Ejecutá la operación",
+            cliente_id=1,
+            thread_id="hilo-error",
+        )
 
 
 def test_grafo_exige_cliente_id_confiable_positivo() -> None:
@@ -195,7 +208,9 @@ def test_grafo_exige_cliente_id_confiable_positivo() -> None:
     grafo = crear_grafo_agente(modelo, [_crear_herramienta_contadora({"ejecuciones": 0})])
 
     with pytest.raises(ValueError, match="cliente_id"):
-        invocar_agente(grafo, "Consulta", cliente_id=0)
+        invocar_agente(
+            grafo, "Consulta", cliente_id=0, thread_id="hilo-invalido"
+        )
 
 
 def test_grafo_requiere_al_menos_una_herramienta() -> None:

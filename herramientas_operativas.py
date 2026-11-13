@@ -3,10 +3,11 @@ from __future__ import annotations
 import sqlite3
 from contextlib import closing
 from pathlib import Path
-from typing import Annotated
 
 from langchain_core.tools import BaseTool, tool
-from langgraph.prebuilt import InjectedState
+from langgraph.prebuilt import ToolRuntime
+
+from contexto_agente import ContextoAgente
 
 
 def _validar_cliente_id(cliente_id: int) -> int:
@@ -27,6 +28,15 @@ def _validar_nro_pedido(nro_pedido: int) -> int:
     return nro_pedido
 
 
+def _cliente_id_de_contexto(
+    runtime: ToolRuntime[ContextoAgente],
+) -> int:
+    contexto = runtime.context
+    if not isinstance(contexto, ContextoAgente):
+        raise ValueError("El contexto autenticado del agente no es válido.")
+    return _validar_cliente_id(contexto.cliente_id)
+
+
 def _conectar_base(ruta_db: Path) -> sqlite3.Connection:
     if not ruta_db.is_file():
         raise FileNotFoundError(
@@ -43,10 +53,10 @@ def _conectar_base(ruta_db: Path) -> sqlite3.Connection:
 def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
     """Crea las tools de envío y reclamos ligadas a una base SQLite.
 
-    `cliente_id` se inyecta desde el estado confiable de LangGraph y se excluye
-    del esquema visible para el modelo. La API debe poblar ese estado a partir
-    de la identidad autenticada, nunca desde el mensaje ni desde argumentos
-    generados por el LLM.
+    `cliente_id` se inyecta desde el contexto confiable de ejecución de
+    LangGraph y se excluye tanto del esquema visible para el modelo como del
+    estado persistido. La API debe poblar ese contexto a partir de la identidad
+    autenticada, nunca desde el mensaje ni desde argumentos del LLM.
     """
 
     ruta_db = Path(ruta_db)
@@ -54,7 +64,7 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
     @tool
     def consultar_estado_envio(
         nro_pedido: int,
-        cliente_id: Annotated[int, InjectedState("cliente_id")],
+        runtime: ToolRuntime[ContextoAgente],
     ) -> str:
         """Consulta el estado de envío de un pedido propio del cliente.
 
@@ -71,7 +81,7 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
             grafo; no se acepta un identificador de cliente del modelo.
         """
 
-        id_cliente = _validar_cliente_id(cliente_id)
+        id_cliente = _cliente_id_de_contexto(runtime)
         id_pedido = _validar_nro_pedido(nro_pedido)
         consulta = """
             SELECT envios.estado, envios.despachado_en, envios.entregado_en
@@ -100,7 +110,7 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
 
     @tool
     def registrar_reclamo(
-        cliente_id: Annotated[int, InjectedState("cliente_id")],
+        runtime: ToolRuntime[ContextoAgente],
         motivo: str,
         nro_pedido: int | None = None,
     ) -> str:
@@ -119,7 +129,7 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
             alta no genera notas de crédito ni aprueba compensaciones.
         """
 
-        id_cliente = _validar_cliente_id(cliente_id)
+        id_cliente = _cliente_id_de_contexto(runtime)
         if not isinstance(motivo, str) or not motivo.strip():
             raise ValueError("El motivo del reclamo no puede estar vacío.")
 

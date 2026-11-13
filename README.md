@@ -115,14 +115,19 @@ del proyecto.
 | `roadmaps/TAREAS2.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
 | `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
-| `agente.py` | Grafo ReAct LangGraph con cinco ciclos máximos de herramientas y rechazo de llamadas paralelas. | TP Final |
+| `agente.py` | Grafo ReAct LangGraph con memoria configurable, cinco ciclos máximos de herramientas y rechazo de llamadas paralelas. | TP Final |
+| `contexto_agente.py` | Contexto confiable de ejecución; mantiene `cliente_id` fuera del estado persistido. | TP Final |
+| `memoria.py` | Checkpointer SQLite, actividad por hilo y purga automática con TTL de 30 días. | TP Final |
+| `mantenimiento_memoria.py` | Ejecución puntual de la purga de hilos vencidos. | TP Final |
 | `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | TP Final |
-| `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite, con `cliente_id` inyectado desde estado confiable. | TP Final |
+| `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite; reciben `cliente_id` desde el contexto confiable, no desde el estado. | TP Final |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
 | `test_schemas.py` | Tests del contrato Pydantic sin consumo de API. | Entrega 1 |
 | `test_agente.py` | Pruebas del flujo ReAct, límite de ciclos, llamadas de herramientas y propagación de errores. | TP Final |
+| `test_memoria.py` | Pruebas de persistencia, aislamiento de hilos, ausencia de `cliente_id` en estado y purga por TTL. | TP Final |
+| `test_matriz_agente.py` | Matriz A.5 de integración del RAG, herramientas operativas y autorización con base temporal. | TP Final |
 | `informes/informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
 | `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
 | `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
@@ -345,3 +350,107 @@ al reejecutar el comando avanzado normal continúa desde el último caso guardad
 
 Los directorios `indice_faiss/` y `chroma/` son derivados. Se reconstruyen desde
 `base_conocimiento.json` y no se incluyen en el repositorio.
+
+### Memoria del agente — TP Final (A.4)
+
+El agente usa `langgraph-checkpoint-sqlite`. La aplicación debe mantener una
+instancia de `MemoriaConversacional` abierta durante su vida, compilar el grafo
+con `memoria.checkpointer` e invocar `invocar_agente` con un `thread_id`
+autorizado y esa misma instancia. Por ejemplo:
+
+```python
+from pathlib import Path
+
+from agente import crear_grafo_agente, invocar_agente
+from memoria import MemoriaConversacional
+
+with MemoriaConversacional(Path("runtime/checkpoints.sqlite")) as memoria:
+    grafo = crear_grafo_agente(
+        modelo_chat,
+        herramientas,
+        checkpointer=memoria.checkpointer,
+    )
+    resultado = invocar_agente(
+        grafo,
+        mensaje="¿En qué estado está mi pedido?",
+        cliente_id=cliente_autenticado_id,
+        thread_id=thread_id_autorizado,
+        memoria=memoria,
+    )
+```
+
+El gestor actualiza la última actividad antes de procesar cada interacción,
+purga al iniciar y luego cada 24 horas los hilos inactivos por más de 30 días.
+La configuración inicial presupone un único proceso de API y una única
+instancia compartida de memoria; no ejecutar varios workers sobre el mismo
+archivo sin agregar coordinación entre procesos.
+La identidad autenticada viaja por el contexto de ejecución y no se guarda en
+el estado del grafo. Cada hilo debe pertenecer al usuario autenticado; el
+`thread_id` no autentica ni autoriza por sí solo. La lectura y eliminación
+expuestas por la futura API también deberán validar esa relación.
+El checkpointer usa deserialización restringida de MsgPack para no aceptar
+tipos ejecutables arbitrarios almacenados en una base manipulada.
+
+El archivo de checkpoints debe estar en una ubicación local no versionada y
+separado de la base de negocio. En Unix se restringe a modo `600`; en Windows
+se deben configurar ACL para que solo la cuenta del servicio tenga acceso.
+SQLite utiliza archivos auxiliares WAL/SHM: `.gitignore` los excluye. Las
+copias de seguridad deben tener su propia política de retención y borrado; la
+purga de checkpoints no modifica copias previas ni garantiza sobrescritura
+física de páginas borradas.
+
+Para ejecutar las pruebas de A.4 desde la raíz del repositorio:
+
+#### macOS
+
+```bash
+source .venv/bin/activate
+python -m pytest -q test_memoria.py
+```
+
+#### Windows — PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pytest -q test_memoria.py
+```
+
+Se puede ejecutar una purga puntual con el servicio detenido y la base de
+checkpoints existente:
+
+#### macOS
+
+```bash
+python3 mantenimiento_memoria.py --db runtime/checkpoints.sqlite
+```
+
+#### Windows — PowerShell
+
+```powershell
+python .\mantenimiento_memoria.py --db runtime\checkpoints.sqlite
+```
+
+El proceso devuelve un error si no puede completar la purga; no debe reportarse
+como exitosa en ese caso.
+
+### Matriz de integración del agente — TP Final (A.5)
+
+La matriz usa un modelo falso con respuestas preparadas y una base SQLite
+temporal creada desde `schema.sql`. No consume APIs externas ni toca la base
+local de negocio. Cubre recuperación de evidencia RAG, consulta de un envío
+propio, consultas de pedidos ajenos/inexistentes y creación/rechazo de
+reclamos, verificando los resultados y las escrituras efectivas.
+
+#### macOS
+
+```bash
+source .venv/bin/activate
+python -m pytest -q test_matriz_agente.py
+```
+
+#### Windows — PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pytest -q test_matriz_agente.py
+```
