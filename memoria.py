@@ -4,7 +4,6 @@ import logging
 import os
 import sqlite3
 import threading
-from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -34,6 +33,13 @@ class MemoriaConversacional:
     Usar una única instancia por proceso y mantenerla abierta durante la vida
     del agente. La base configurada debe ser exclusiva para checkpoints y
     metadatos de actividad, separada de la base de negocio.
+
+    `purgados_al_abrir` queda disponible después de `__enter__` con la
+    cantidad de hilos vencidos que se purgaron al abrir la conexión. Una
+    purga explícita posterior sobre esos mismos hilos no va a encontrar
+    nada pendiente, así que quien necesite reportar cuánto se purgó al
+    iniciar debe leer este atributo en vez de llamar de nuevo a
+    `purgar_hilos_vencidos()`.
     """
 
     def __init__(self, ruta_db: Path) -> None:
@@ -44,6 +50,7 @@ class MemoriaConversacional:
         self._locks_hilos: dict[str, threading.RLock] = {}
         self._detener_mantenimiento = threading.Event()
         self._hilo_mantenimiento: threading.Thread | None = None
+        self.purgados_al_abrir: int = 0
 
     @property
     def checkpointer(self) -> SqliteSaver:
@@ -71,6 +78,7 @@ class MemoriaConversacional:
             self.ruta_db,
             check_same_thread=False,
         )
+        self._conexion.execute("PRAGMA journal_mode=WAL")
         try:
             self._checkpointer = SqliteSaver(
                 self._conexion,
@@ -79,7 +87,7 @@ class MemoriaConversacional:
             self._checkpointer.setup()
             self._crear_tabla_actividad()
             self._restringir_permisos()
-            self.purgar_hilos_vencidos()
+            self.purgados_al_abrir = self.purgar_hilos_vencidos()
             self._detener_mantenimiento.clear()
             self._hilo_mantenimiento = threading.Thread(
                 target=self._mantener_retencion,
@@ -159,12 +167,19 @@ class MemoriaConversacional:
                 self._eliminar_actividad(thread_id)
                 self._restringir_permisos()
                 cantidad_purgada += 1
+            self._olvidar_lock_hilo(thread_id)
 
         return cantidad_purgada
 
     def _lock_hilo(self, thread_id: str) -> threading.RLock:
         with self._lock_mapa:
             return self._locks_hilos.setdefault(thread_id, threading.RLock())
+
+    def _olvidar_lock_hilo(self, thread_id: str) -> None:
+        """Libera el lock de un hilo purgado para no crecer sin límite."""
+
+        with self._lock_mapa:
+            self._locks_hilos.pop(thread_id, None)
 
     def _mantener_retencion(self) -> None:
         while not self._detener_mantenimiento.wait(
@@ -182,16 +197,15 @@ class MemoriaConversacional:
                 )
 
     def _crear_tabla_actividad(self) -> None:
-        with closing(sqlite3.connect(self.ruta_db)) as conexion:
-            with conexion:
-                conexion.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS actividad_hilos (
-                        thread_id TEXT PRIMARY KEY,
-                        ultima_actividad TEXT NOT NULL
-                    )
-                    """
+        with self._conexion:
+            self._conexion.execute(
+                """
+                CREATE TABLE IF NOT EXISTS actividad_hilos (
+                    thread_id TEXT PRIMARY KEY,
+                    ultima_actividad TEXT NOT NULL
                 )
+                """
+            )
 
     def _restringir_permisos(self) -> None:
         if os.name == "nt":
@@ -211,46 +225,42 @@ class MemoriaConversacional:
         instante: datetime,
     ) -> None:
         marca_tiempo = instante.astimezone(timezone.utc).isoformat()
-        with closing(sqlite3.connect(self.ruta_db)) as conexion:
-            with conexion:
-                conexion.execute(
-                    """
-                    INSERT INTO actividad_hilos (thread_id, ultima_actividad)
-                    VALUES (?, ?)
-                    ON CONFLICT(thread_id) DO UPDATE SET
-                        ultima_actividad = excluded.ultima_actividad
-                    """,
-                    (thread_id, marca_tiempo),
-                )
+        with self._conexion:
+            self._conexion.execute(
+                """
+                INSERT INTO actividad_hilos (thread_id, ultima_actividad)
+                VALUES (?, ?)
+                ON CONFLICT(thread_id) DO UPDATE SET
+                    ultima_actividad = excluded.ultima_actividad
+                """,
+                (thread_id, marca_tiempo),
+            )
 
     def _buscar_hilos_vencidos(self, limite: str) -> list[str]:
-        with closing(sqlite3.connect(self.ruta_db)) as conexion:
-            filas = conexion.execute(
-                """
-                SELECT thread_id
-                FROM actividad_hilos
-                WHERE ultima_actividad <= ?
-                """,
-                (limite,),
-            ).fetchall()
+        filas = self._conexion.execute(
+            """
+            SELECT thread_id
+            FROM actividad_hilos
+            WHERE ultima_actividad <= ?
+            """,
+            (limite,),
+        ).fetchall()
         return [fila[0] for fila in filas]
 
     def _sigue_vencido(self, thread_id: str, limite: str) -> bool:
-        with closing(sqlite3.connect(self.ruta_db)) as conexion:
-            fila = conexion.execute(
-                """
-                SELECT 1
-                FROM actividad_hilos
-                WHERE thread_id = ? AND ultima_actividad <= ?
-                """,
-                (thread_id, limite),
-            ).fetchone()
+        fila = self._conexion.execute(
+            """
+            SELECT 1
+            FROM actividad_hilos
+            WHERE thread_id = ? AND ultima_actividad <= ?
+            """,
+            (thread_id, limite),
+        ).fetchone()
         return fila is not None
 
     def _eliminar_actividad(self, thread_id: str) -> None:
-        with closing(sqlite3.connect(self.ruta_db)) as conexion:
-            with conexion:
-                conexion.execute(
-                    "DELETE FROM actividad_hilos WHERE thread_id = ?",
-                    (thread_id,),
-                )
+        with self._conexion:
+            self._conexion.execute(
+                "DELETE FROM actividad_hilos WHERE thread_id = ?",
+                (thread_id,),
+            )

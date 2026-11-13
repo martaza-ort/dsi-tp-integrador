@@ -21,7 +21,10 @@ def main() -> None:
         parser.error(f"No existe la base SQLite indicada: {argumentos.db}")
 
     with MemoriaConversacional(argumentos.db) as memoria:
-        cantidad = memoria.purgar_hilos_vencidos()
+        # __enter__ ya purga al abrir la conexión; llamar de nuevo acá
+        # encontraría los mismos hilos ya purgados y reportaría 0 aunque
+        # sí se haya purgado algo. El conteo real queda en este atributo.
+        cantidad = memoria.purgados_al_abrir
     print(f"Hilos vencidos purgados: {cantidad}")
 
 
