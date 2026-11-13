@@ -70,7 +70,6 @@ def crear_herramienta_rag(
     return StructuredTool.from_function(
         func=buscar_conocimiento_ecologix,
         name="buscar_conocimiento_ecologix",
-        description=buscar_conocimiento_ecologix.__doc__,
         parse_docstring=True,
         error_on_invalid_docstring=True,
     )
