@@ -52,12 +52,14 @@ del proyecto.
 ├── CLAUDE.md
 ├── requirements.txt
 ├── app.py
+├── agente.py
 ├── herramientas_rag.py
 ├── herramientas_operativas.py
 ├── lote.py
 ├── schemas.py
 ├── schema.sql
 ├── test_schemas.py
+├── test_agente.py
 ├── test_herramientas_rag.py
 ├── test_herramientas_operativas.py
 ├── base_conocimiento.json
@@ -113,12 +115,14 @@ del proyecto.
 | `roadmaps/TAREAS2.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
 | `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
+| `agente.py` | Grafo ReAct LangGraph con cinco ciclos máximos de herramientas y rechazo de llamadas paralelas. | TP Final |
 | `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | TP Final |
 | `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite, con `cliente_id` inyectado desde estado confiable. | TP Final |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
 | `test_schemas.py` | Tests del contrato Pydantic sin consumo de API. | Entrega 1 |
+| `test_agente.py` | Pruebas del flujo ReAct, límite de ciclos, llamadas de herramientas y propagación de errores. | TP Final |
 | `informes/informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
 | `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
 | `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |

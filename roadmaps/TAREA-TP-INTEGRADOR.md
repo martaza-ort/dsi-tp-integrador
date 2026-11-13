@@ -36,7 +36,7 @@ Se realiza una propuesta general de alto nivel como base para medir el esfuerzo 
    - **Retriever:** consulta conocimiento comercial en la base RAG.
    - **Sensor — consultar estado de envío:** obtiene el estado de un pedido solo si el backend verifica que pertenece al cliente autenticado.
    - **Actuador — registrar reclamo:** registra un reclamo para el cliente autenticado y, si corresponde, un pedido propio. No aprueba notas de crédito ni compensaciones.
-3. **Implementar el grafo ReAct** para seleccionar herramientas, procesar sus resultados y detenerse al alcanzar un límite de iteraciones.
+3. **Implementar el grafo ReAct** con un nodo agente y un nodo de herramientas; enrutar los resultados de vuelta al agente hasta la respuesta final. Limitar cada consulta a cinco ciclos de herramientas y permitir una sola herramienta por decisión. Si el agente pide varias en paralelo, no ejecutar ninguna y terminar con una respuesta segura. Si pide otra herramienta después de cinco ciclos, no ejecutarla y terminar sin afirmar que la operación pendiente se realizó. Propagar explícitamente los errores de herramientas, sin presentarlos como éxitos. La memoria persistente se implementa en A.4.
 4. **Agregar memoria persistente SQLite por `thread_id`** y comprobar que el historial correspondiente se recupera al reiniciar.
 5. **Preparar una matriz de al menos cuatro escenarios** que compruebe el uso del RAG, el acceso autorizado a un envío, el rechazo de acceso a datos de otro cliente y el registro controlado de un reclamo. Incluir escenarios positivos y negativos sin ejecutar escrituras no autorizadas.
 
