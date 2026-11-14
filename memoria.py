@@ -171,6 +171,33 @@ class MemoriaConversacional:
 
         return cantidad_purgada
 
+    def eliminar_hilo(self, thread_id: str) -> bool:
+        """Elimina un hilo completo y su metadato de actividad.
+
+        Usa la API del checkpointer (`delete_thread`), sin SQL sobre sus
+        tablas internas. La autorización para borrar el hilo es
+        responsabilidad de quien invoca (la API).
+
+        Returns:
+            True si el hilo existía y se eliminó; False si no existía.
+
+        Raises:
+            RuntimeError: Si la memoria no está abierta.
+            Exception: Si falla el borrado; el error se propaga.
+        """
+
+        identificador = validar_thread_id(thread_id)
+        checkpointer = self.checkpointer
+        with self._lock_hilo(identificador):
+            configuracion = {"configurable": {"thread_id": identificador}}
+            existia = checkpointer.get_tuple(configuracion) is not None
+            if existia:
+                checkpointer.delete_thread(identificador)
+            self._eliminar_actividad(identificador)
+            self._restringir_permisos()
+        self._olvidar_lock_hilo(identificador)
+        return existia
+
     def _lock_hilo(self, thread_id: str) -> threading.RLock:
         with self._lock_mapa:
             return self._locks_hilos.setdefault(thread_id, threading.RLock())

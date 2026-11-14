@@ -36,3 +36,6 @@ env/
 .DS_Store
 .vscode/
 .idea/
+
+# Datos locales de la API (memoria y base de negocio de demo)
+runtime/
