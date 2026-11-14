@@ -128,6 +128,15 @@ del proyecto.
 | `test_agente.py` | Pruebas del flujo ReAct, límite de ciclos, llamadas de herramientas y propagación de errores. | TP Final |
 | `test_memoria.py` | Pruebas de persistencia, aislamiento de hilos, ausencia de `cliente_id` en estado y purga por TTL. | TP Final |
 | `test_matriz_agente.py` | Matriz A.5 de integración del RAG, herramientas operativas y autorización con base temporal. | TP Final |
+| `api.py` | API REST FastAPI del agente: `/health`, `/consultar`, `/estado/{thread_id}` (GET y DELETE) y `/metricas`, con guardrails integrados. | TP Final |
+| `guardrails.py` | Validators de entrada (longitud y prompt injection) y de salida (enmascarado de CUIT/CUIL, DNI, email y teléfono). | TP Final |
+| `observabilidad.py` | Logs JSON, métricas thread-safe (latencia promedio y p95, alerta, herramientas, bloqueos, costos) y configuración de LangSmith. | TP Final |
+| `inicializar_base_demo.py` | Crea la base SQLite de negocio con datos ficticios para la demo. | TP Final |
+| `test_api.py` | Pruebas de endpoints, autenticación, aislamiento de hilos, persistencia tras reinicio y métricas. | TP Final |
+| `security_tests.py` | Suite de seguridad: inyección, longitud, acceso a pedidos ajenos, escrituras no autorizadas, logs/trazas y enmascarado. | TP Final |
+| `utilidades_tests_api.py` | Modelo falso y bases temporales compartidas por los tests de la API. | TP Final |
+| `informe.md` | Informe del TP Final (agente, API, observabilidad, seguridad y validación). | TP Final |
+| `ficha_tecnica.md` | Ficha técnica del sistema. | TP Final |
 | `informes/informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
 | `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
 | `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
@@ -453,4 +462,137 @@ python -m pytest -q test_matriz_agente.py
 ```powershell
 .\.venv\Scripts\Activate.ps1
 python -m pytest -q test_matriz_agente.py
+```
+
+### API del agente — TP Final (B, C y D)
+
+La API expone el agente como servicio REST con FastAPI. Corre en **un solo
+proceso** porque la memoria SQLite y las métricas viven en ese proceso.
+
+| Endpoint | Autenticación | Qué hace |
+|---|---|---|
+| `GET /health` | No | Estado del servicio, del agente y de la memoria. |
+| `POST /consultar` | Sí | Consulta al agente. Aplica los guardrails antes del modelo y enmascara datos personales en la respuesta. |
+| `GET /estado/{thread_id}` | Sí | Historial de una conversación propia (con datos personales enmascarados). |
+| `DELETE /estado/{thread_id}` | Sí | Borra una conversación propia (checkpoints y metadatos). |
+| `GET /metricas` | No | Consultas (total, exitosas, fallidas, bloqueadas), errores, latencia promedio y p95, alerta, herramientas, bloqueos y costos estimados. No contiene datos personales. |
+
+**Identidad.** Cada solicitud autenticada lleva `Authorization: Bearer <token>`.
+El backend resuelve el token a un `cliente_id` usando `API_CLIENTES` y lo pasa
+al contexto confiable del agente; nunca se toma del mensaje ni del LLM. Es una
+identidad fija para demo y tests, **no** una autenticación de producción.
+
+**Aislamiento de conversaciones.** El `thread_id` no es una credencial.
+Internamente la API usa `HMAC(HILOS_SECRETO, cliente_id:thread_id)`, así que un
+cliente no puede leer ni borrar la conversación de otro aunque conozca su
+`thread_id` (recibe 404), y el identificador guardado en checkpoints y trazas no
+revela al cliente.
+
+**Guardrails en `POST /consultar`.**
+
+1. Más de 1000 caracteres → `400 Bad Request`, sin invocar modelo, memoria ni herramientas.
+2. Prompt injection (heurístico) → `200` con `exito: false`, mensaje neutro, sin herramientas ni actualización de memoria.
+3. La respuesta se devuelve con CUIT/CUIL, DNI, email y teléfono enmascarados.
+
+Los guardrails no reemplazan la autorización de cada herramienta: la
+titularidad del pedido se sigue validando en `herramientas_operativas.py`.
+
+#### Cómo levantarla en otra máquina
+
+Partir de la [instalación general](#instalación-general) (entorno virtual y
+`pip install -r requirements.txt`).
+
+1. Copiar `.env.example` a `.env` y completar el proveedor del modelo
+   (`RAG_PROVIDER` y su clave), `API_CLIENTES` y `HILOS_SECRETO`. Ejemplo de
+   valores de demo:
+
+   ```text
+   API_CLIENTES=token-demo-cliente-1:1,token-demo-cliente-2:2
+   HILOS_SECRETO=<salida de python -c "import secrets; print(secrets.token_hex(32))">
+   ```
+
+2. Preparar el índice RAG (una sola vez, ver Entrega 3):
+
+   ```bash
+   python vector_db.py
+   python -m entrega_3.indexar_chunks
+   ```
+
+3. Crear la base de negocio de demo (clientes, pedidos y envíos ficticios en
+   `runtime/ecologix.db`):
+
+   ```bash
+   python inicializar_base_demo.py
+   ```
+
+4. Levantar la API:
+
+   ```bash
+   uvicorn api:app --host 127.0.0.1 --port 8000
+   ```
+
+   La documentación interactiva queda en `http://127.0.0.1:8000/docs`.
+
+#### Probar los endpoints
+
+##### macOS / Linux (curl)
+
+```bash
+curl http://127.0.0.1:8000/health
+
+curl -X POST http://127.0.0.1:8000/consultar \
+  -H "Authorization: Bearer token-demo-cliente-1" \
+  -H "Content-Type: application/json" \
+  -d '{"mensaje": "¿En qué estado está mi pedido 101?", "thread_id": "demo-1"}'
+
+curl http://127.0.0.1:8000/estado/demo-1 -H "Authorization: Bearer token-demo-cliente-1"
+curl -X DELETE http://127.0.0.1:8000/estado/demo-1 -H "Authorization: Bearer token-demo-cliente-1"
+curl http://127.0.0.1:8000/metricas
+```
+
+##### Windows — PowerShell
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+
+$headers = @{ Authorization = "Bearer token-demo-cliente-1" }
+$body = @{ mensaje = "¿En qué estado está mi pedido 101?"; thread_id = "demo-1" } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/consultar `
+  -Headers $headers -ContentType "application/json; charset=utf-8" -Body $body
+
+Invoke-RestMethod http://127.0.0.1:8000/estado/demo-1 -Headers $headers
+Invoke-RestMethod -Method Delete http://127.0.0.1:8000/estado/demo-1 -Headers $headers
+Invoke-RestMethod http://127.0.0.1:8000/metricas
+```
+
+**Memoria después de reiniciar (B.2):** hacer una consulta con
+`thread_id` `demo-1`, cortar `uvicorn` (Ctrl+C), volver a levantarlo y llamar a
+`GET /estado/demo-1`: el historial sigue ahí. El test
+`test_memoria_persiste_via_http_despues_de_reiniciar` lo verifica de forma
+automática.
+
+#### Observabilidad (C)
+
+- **Logs JSON** a la salida estándar, uno por línea (`consulta_procesada`,
+  `consulta_bloqueada`, `consulta_fallida`, `alerta_latencia_activada`, etc.).
+  No incluyen el texto de la consulta, datos personales, tokens ni `thread_id`:
+  se correlacionan con un `correlacion_id` aleatorio por solicitud.
+- **`GET /metricas`** acumula desde el inicio del proceso. El p95 se publica
+  recién con `MUESTRA_MINIMA_P95` consultas (20 por defecto); antes devuelve
+  `null`. `alerta_latencia` se activa si el p95 supera 5 segundos.
+- **Costos:** se suman los tokens de entrada y salida informados por el modelo y
+  se estima el costo con `PRECIO_ENTRADA_USD_MILLON` y `PRECIO_SALIDA_USD_MILLON`
+  (verificar los precios vigentes del proveedor).
+- **LangSmith:** con `LANGSMITH_TRACING=true` y `LANGSMITH_API_KEY`, cada consulta
+  queda como una traza `consulta_agente_ecologix` con sus nodos, herramientas,
+  latencias y tokens. La API activa `LANGSMITH_HIDE_INPUTS` y
+  `LANGSMITH_HIDE_OUTPUTS` para no enviar el texto; las consultas bloqueadas no
+  se trazan porque nunca llegan al agente.
+
+#### Tests de la API y de seguridad
+
+No consumen APIs externas (modelo falso y bases temporales).
+
+```bash
+python -m pytest -q test_api.py security_tests.py
 ```

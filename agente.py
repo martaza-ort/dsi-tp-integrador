@@ -188,6 +188,7 @@ def invocar_agente(
     cliente_id: int,
     thread_id: str,
     memoria: MemoriaConversacional | None = None,
+    metadatos_traza: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Invoca el grafo con el contexto efímero mínimo requerido.
 
@@ -197,6 +198,9 @@ def invocar_agente(
         cliente_id: Identidad resuelta por el backend confiable.
         thread_id: Identificador de la conversación autorizado por el backend.
         memoria: Gestor SQLite; requerido para persistencia y TTL en ejecución.
+        metadatos_traza: Metadatos sanitizados para LangSmith (por ejemplo,
+            un identificador de correlación). Nunca deben incluir texto del
+            usuario, `cliente_id` ni `thread_id`.
 
     Returns:
         Estado final del grafo, incluidos mensajes y ciclos ejecutados.
@@ -217,7 +221,10 @@ def invocar_agente(
     config = {
         "configurable": {"thread_id": identificador_hilo},
         "recursion_limit": 2 * MAX_CICLOS_HERRAMIENTAS + 5,
+        "run_name": "consulta_agente_ecologix",
     }
+    if metadatos_traza:
+        config["metadata"] = dict(metadatos_traza)
     contexto = ContextoAgente(cliente_id=cliente_id)
 
     if memoria is not None:
