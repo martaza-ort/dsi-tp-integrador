@@ -17,7 +17,7 @@ El TP Final integra la unidad 5 y 6 en un único sistema. Tomen el RAG de la Ent
 
 ## Qué se entrega
 
-El link al repositorio público a la rama main o master: código del agente y de la API, security_tests.py, requirements.txt, .env.example, README.md, .gitignore, informe.md y ficha_tecnica.md
+El link al repositorio público a la rama main o master: código del agente y de la API, security_tests.py, requirements.txt, .env.example, README.md, .gitignore, `informes/informe-entrega-04.md` y `ficha_tecnica.md`.
 
 ---
 
@@ -99,7 +99,7 @@ Propuesta inicial basada en el enfoque de la Clase 12. Se podrá revisar durante
 
 ### E. Cierre y entrega
 
-1. Preparar `informe.md` y `ficha_tecnica.md` con el diseño, herramientas, memoria, API, guardrails, observabilidad, validación y limitaciones.
+1. Preparar `informes/informe-entrega-04.md` y `ficha_tecnica.md` con el diseño, herramientas, memoria, API, guardrails, observabilidad, validación y limitaciones.
 2. Preparar la defensa de 15 minutos con presentación, demostración del flujo y respuestas a preguntas.
-3. Verificar los archivos de entrega indicados en la consigna, incluyendo código del agente y API, `security_tests.py`, `requirements.txt`, `.env.example`, `README.md`, `.gitignore`, `informe.md` y `ficha_tecnica.md`.
+3. Verificar los archivos de entrega indicados en la consigna, incluyendo código del agente y API, `security_tests.py`, `requirements.txt`, `.env.example`, `README.md`, `.gitignore`, `informes/informe-entrega-04.md` y `ficha_tecnica.md`.
 4. Verificar que la entrega esté publicada en un repositorio público en `main` o `master`.

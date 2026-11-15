@@ -15,7 +15,7 @@
 | Gisella Aramayo | `giaramayo` |
 | Lucía Lopez Guerrero | `LuciaLG1988` |
 
-Las asignaciones de tareas y la distribución por integrante se encuentran en las hojas de ruta de la carpeta [`roadmaps/`](roadmaps/): [`TAREAS.md`](roadmaps/TAREAS.md) y [`TAREAS2.md`](roadmaps/TAREAS2.md).
+Las asignaciones de tareas y la distribución por integrante se encuentran en las hojas de ruta de la carpeta [`roadmaps/`](roadmaps/): [`TAREAS-01.md`](roadmaps/TAREAS-01.md), [`TAREAS-02.md`](roadmaps/TAREAS-02.md) y [`TAREAS-03.md`](roadmaps/TAREAS-03.md).
 
 ## Dominio elegido
 
@@ -35,12 +35,16 @@ Intenciones (árbol cerrado): `CONSULTA_STOCK` · `CREAR_PEDIDO` · `SEGUIMIENTO
 ## Descripción del repositorio
 
 Este repositorio contiene el Proyecto Integrador de EcoLogix Systems para IADS 3, ORT.
-El proyecto evoluciona por entregas: la Entrega 1 implementa un asistente híbrido de stock
-y pedidos con LLM, Pydantic y SQL; la Entrega 2 agrega una base de conocimiento vectorial
-con embeddings, FAISS, ChromaDB, filtros híbridos y purga semántica.
+El proyecto evoluciona por entregas: las Entregas 1 y 2 construyen el asistente de stock
+y pedidos y su base de conocimiento vectorial; la Entrega 3 evalúa el RAG y el TP Final
+lo integra como agente con memoria, API, guardrails y observabilidad.
 
 Esta sección y la tabla siguiente se actualizarán en cada nueva entrega o avance relevante
 del proyecto.
+
+Los informes de entrega se agrupan en `informes/` y usan el formato
+`informe-entrega-NN.md`. Los archivos de `docs-resultados/` son evidencias y reportes
+de ejecuciones, no informes generales de entrega.
 
 ## Árbol actual del repositorio
 
@@ -88,15 +92,17 @@ del proyecto.
 │   ├── evaluar_a3.py
 │   ├── evaluar_a4.py
 │   ├── golden_dataset.json
-│   ├── evaluar_ragas.py
-│   └── informe.md
+│   └── evaluar_ragas.py
 ├── informes/
-│   ├── informe.md
-│   └── informe_entrega2.md
+│   ├── informe-entrega-01.md
+│   ├── informe-entrega-02.md
+│   ├── informe-entrega-03.md
+│   └── informe-entrega-04.md
 ├── roadmaps/
-│   ├── TAREAS.md
-│   ├── TAREAS2.md
-│   └── TAREAS3.md
+│   ├── TAREAS-01.md
+│   ├── TAREAS-02.md
+│   ├── TAREAS-03.md
+│   └── TAREA-TP-INTEGRADOR.md
 ├── logs/                 # generado localmente, ignorado por Git
 ├── indice_faiss/         # generado localmente, ignorado por Git
 └── chroma/               # generado localmente, ignorado por Git
@@ -111,28 +117,32 @@ del proyecto.
 | `.env.example` | Plantilla de variables de entorno sin secretos. | General |
 | `.gitignore` | Exclusión de credenciales, logs y artefactos binarios. | General |
 | `CLAUDE.md` | Contexto, invariantes y convenciones del proyecto. | General |
-| `roadmaps/TAREAS.md` | Hoja de ruta y asignaciones de la Entrega 1. | Entrega 1 |
-| `roadmaps/TAREAS2.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
-| `roadmaps/TAREAS3.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
+| `roadmaps/TAREAS-01.md` | Hoja de ruta y asignaciones de la Entrega 1. | Entrega 1 |
+| `roadmaps/TAREAS-02.md` | Hoja de ruta y asignaciones de la Entrega 2. | Entrega 2 |
+| `roadmaps/TAREAS-03.md` | Hoja de ruta de la Entrega 3. | Entrega 3 |
+| `roadmaps/TAREA-TP-INTEGRADOR.md` | Consigna y propuesta de trabajo del TP Final Integrador. | Entrega 4 (TP Final) |
 | `app.py` | Pipeline con OpenAI, Structured Outputs, Pydantic y enrutamiento. | Entrega 1 |
-| `agente.py` | Grafo ReAct LangGraph con memoria configurable, cinco ciclos máximos de herramientas y rechazo de llamadas paralelas. | TP Final |
-| `contexto_agente.py` | Contexto confiable de ejecución; mantiene `cliente_id` fuera del estado persistido. | TP Final |
-| `memoria.py` | Checkpointer SQLite, actividad por hilo y purga automática con TTL de 30 días. | TP Final |
-| `mantenimiento_memoria.py` | Ejecución puntual de la purga de hilos vencidos. | TP Final |
-| `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | TP Final |
-| `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite; reciben `cliente_id` desde el contexto confiable, no desde el estado. | TP Final |
+| `agente.py` | Grafo ReAct LangGraph con memoria configurable, cinco ciclos máximos de herramientas y rechazo de llamadas paralelas. | Entrega 4 (TP Final) |
+| `contexto_agente.py` | Contexto confiable de ejecución; mantiene `cliente_id` fuera del estado persistido. | Entrega 4 (TP Final) |
+| `memoria.py` | Checkpointer SQLite, actividad por hilo y purga automática con TTL de 30 días. | Entrega 4 (TP Final) |
+| `mantenimiento_memoria.py` | Ejecución puntual de la purga de hilos vencidos. | Entrega 4 (TP Final) |
+| `herramientas_rag.py` | Herramienta RAG invocable por el futuro grafo LangGraph; devuelve fragmentos rerankeados y fuentes para que el agente redacte la respuesta. | Entrega 4 (TP Final) |
+| `herramientas_operativas.py` | Tools LangGraph para consultar envíos propios y registrar reclamos en SQLite; reciben `cliente_id` desde el contexto confiable, no desde el estado. | Entrega 4 (TP Final) |
 | `schemas.py` | Contrato Pydantic V2 e intenciones cerradas. | Entrega 1 |
 | `lote.py` | Lote de mensajes para evaluar el pipeline y prompting. | Entrega 1 |
 | `schema.sql` | Esquema SQLite de clientes, productos, stock, pedidos y operaciones. | Entrega 1 |
 | `test_schemas.py` | Tests del contrato Pydantic sin consumo de API. | Entrega 1 |
-| `test_agente.py` | Pruebas del flujo ReAct, límite de ciclos, llamadas de herramientas y propagación de errores. | TP Final |
-| `test_memoria.py` | Pruebas de persistencia, aislamiento de hilos, ausencia de `cliente_id` en estado y purga por TTL. | TP Final |
-| `test_matriz_agente.py` | Matriz A.5 de integración del RAG, herramientas operativas y autorización con base temporal. | TP Final |
-| `api.py` | API REST FastAPI del agente: `/health`, `/consultar` y `/estado/{thread_id}` (GET y DELETE). | TP Final |
-| `inicializar_base_demo.py` | Crea la base SQLite de negocio con datos ficticios para la demo. | TP Final |
-| `test_api.py` | Pruebas de endpoints, autenticación, aislamiento de hilos y persistencia tras reinicio. | TP Final |
-| `utilidades_tests_api.py` | Modelo falso y bases temporales compartidas por los tests de la API. | TP Final |
-| `informes/informe.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
+| `test_agente.py` | Pruebas del flujo ReAct, límite de ciclos, llamadas de herramientas y propagación de errores. | Entrega 4 (TP Final) |
+| `test_memoria.py` | Pruebas de persistencia, aislamiento de hilos, ausencia de `cliente_id` en estado y purga por TTL. | Entrega 4 (TP Final) |
+| `test_matriz_agente.py` | Matriz A.5 de integración del RAG, herramientas operativas y autorización con base temporal. | Entrega 4 (TP Final) |
+| `api.py` | API REST FastAPI del agente: `/health`, `/consultar` y `/estado/{thread_id}` (GET y DELETE). | Entrega 4 (TP Final) |
+| `inicializar_base_demo.py` | Crea la base SQLite de negocio con datos ficticios para la demo. | Entrega 4 (TP Final) |
+| `test_api.py` | Pruebas de endpoints, autenticación, aislamiento de hilos y persistencia tras reinicio. | Entrega 4 (TP Final) |
+| `utilidades_tests_api.py` | Modelo falso y bases temporales compartidas por los tests de la API. | Entrega 4 (TP Final) |
+| `informes/informe-entrega-01.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
+| `informes/informe-entrega-02.md` | Informe y resultados de la Entrega 2. | Entrega 2 |
+| `informes/informe-entrega-03.md` | Evaluación del RAG y trazabilidad de la Entrega 3. | Entrega 3 |
+| `informes/informe-entrega-04.md` | Informe del TP Final Integrador, incluida la observabilidad. | Entrega 4 (TP Final) |
 | `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
 | `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
 | `base_conocimiento.json` | Corpus fuente del dominio y casos de prueba estructurales. | Entrega 2 |
@@ -150,16 +160,14 @@ del proyecto.
 | `medir_tokens_a1.py` | Tokens y costo del catálogo completo vs. top-3 recuperados (A.1) y largo del corpus (A.3). | Entrega 2 |
 | `docs-resultados/resultados_a1_tokens.md` | Evidencia de tokens y costo de A.1. | Entrega 2 |
 | `entrega_3/rag_pipeline.py` | Chain RAG LCEL y retriever LangChain conectado a la colección ChromaDB persistida de la Entrega 2. | Entrega 3 |
-| `test_herramientas_rag.py` | Pruebas de la herramienta RAG y del contrato de recuperación 8→4. | TP Final |
-| `test_herramientas_operativas.py` | Pruebas aisladas de autorización, consultas de envíos y altas de reclamos. | TP Final |
+| `test_herramientas_rag.py` | Pruebas de la herramienta RAG y del contrato de recuperación 8→4. | Entrega 4 (TP Final) |
+| `test_herramientas_operativas.py` | Pruebas aisladas de autorización, consultas de envíos y altas de reclamos. | Entrega 4 (TP Final) |
 | `entrega_3/evaluar_a3.py` | Ejecuta y documenta la matriz de resiliencia de A.3. | Entrega 3 |
 | `entrega_3/evaluar_a4.py` | Ejecuta dos consultas y registra las fuentes del chain para A.4. | Entrega 3 |
 | `entrega_3/golden_dataset.json` | Preguntas, respuestas esperadas y fuentes del dataset C.1. | Entrega 3 |
 | `entrega_3/evaluar_ragas.py` | Ejecuta RAGAS sobre los pipelines básico (`ecologix`) o avanzado (chunks y reranking). | Entrega 3 |
-| `entrega_3/informe.md` | Informe de Entrega 3; incluye resultados observados de A.3 y trazabilidad A.4. | Entrega 3 |
 | `reporte_a4.py` | Log de 3 consultas de prueba sobre el índice FAISS (A.4). | Entrega 2 |
 | `prueba_volatilidad.py` | Prueba destructiva de persistencia de FAISS (A.5). | Entrega 2 |
-| `informes/informe_entrega2.md` | Informe, tablas B.2/B.6 y coherencia con la Entrega 1. | Entrega 2 |
 | `logs/` | Registro local de interacciones; no se versiona. | General |
 | `indice_faiss/` | Índice FAISS derivado; se reconstruye y no se versiona. | Entrega 2 |
 | `chroma/` | Base persistente ChromaDB derivada; se reconstruye y no se versiona. | Entrega 2 |
@@ -596,4 +604,3 @@ curl http://127.0.0.1:8000/metricas
                "alerta_latencia": false,
                "umbral_alerta_ms": 5000.0
                }
-
