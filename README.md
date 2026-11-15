@@ -561,3 +561,39 @@ No consumen APIs externas (modelo falso y bases temporales).
 ```bash
 python -m pytest -q test_api.py
 ```
+
+### Observabilidad — TP Final (Parte C)
+
+La API incorpora observabilidad local mediante logs estructurados en JSON y
+métricas acumuladas en memoria desde el inicio del proceso.
+
+#### Endpoint de métricas
+
+```bash
+curl http://127.0.0.1:8000/metricas
+
+      Ejemplo ilustrativo de respuesta antes de alcanzar la muestra mínima del p95:
+               {
+               "desde": "2026-11-15T15:00:00+00:00",
+               "consultas": {
+                  "total": 3,
+                  "exitosas": 2,
+                  "fallidas": 1,
+                  "bloqueadas": 0
+               },
+               "latencia_ms": {
+                  "promedio": 842.31,
+                  "p95": null,
+                  "muestras": 3,
+                  "muestra_minima_p95": 20
+               },
+               "herramientas": {
+                  "invocaciones_por_nombre": {
+                     "consultar_estado_envio": 1
+                  },
+                  "errores": 0
+               },
+               "alerta_latencia": false,
+               "umbral_alerta_ms": 5000.0
+               }
+
