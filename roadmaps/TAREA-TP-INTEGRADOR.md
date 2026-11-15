@@ -84,6 +84,7 @@ Propuesta inicial basada en el enfoque de la Clase 12. Se podrá revisar durante
 5. Aplicar autorización y validación determinista dentro de cada herramienta: el filtro no reemplaza la comprobación de propiedad del pedido ni los permisos de escritura del reclamo. Las herramientas deben validar argumentos y permisos inmediatamente antes de consultar o modificar datos, usar solo los datos necesarios y no delegar decisiones de autorización al LLM.
 6. Incorporar el enmascarado de CUIT/CUIL, DNI, correo electrónico y teléfono antes de devolver respuestas, con las etiquetas y precauciones especificadas en la subsección "Parámetros definidos" de esta parte.
 7. Crear `security_tests.py` con al menos cinco pruebas: bloqueo antes de invocar modelo/herramientas; no bloqueo de consultas legítimas del dominio; rechazo del acceso a pedidos de otro cliente; ausencia de escrituras de reclamos no autorizadas; y ausencia de texto sensible en logs o trazas.
+8. **Integrar los bloqueos con las métricas de C:** cuando el límite de longitud o el filtro de prompt injection interrumpan una solicitud válida dentro de `POST /consultar`, contabilizarla como consulta bloqueada e incluir su latencia, sin incrementar errores técnicos. Verificar que el bloqueo ocurra antes de invocar el modelo, las herramientas o actualizar la memoria, y que no genere trazas externas con el contenido recibido. Agregar pruebas de integración que comprueben los contadores de `/metricas` y esos efectos observables.
 
 #### Parámetros definidos
 
