@@ -50,6 +50,13 @@ from observabilidad import (
     configurar_logging_json,
     validar_privacidad_langsmith,
 )
+from guardrails import (
+    MENSAJE_BLOQUEO_INYECCION,
+    MENSAJE_LIMITE_LONGITUD,
+    detectar_prompt_injection,
+    enmascarar_datos_personales,
+    excede_longitud,
+)
 
 
 RAIZ = Path(__file__).resolve().parent
@@ -309,6 +316,52 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
         correlacion_id = uuid.uuid4().hex
         metricas: MetricasAPI = request.app.state.metricas
 
+        # Guardrail de entrada 1: longitud. Corta antes de memoria, agente y
+        # herramientas. No se registra el texto ni su longitud, solo el límite.
+        if excede_longitud(solicitud.mensaje):
+            metricas.registrar_consulta(
+                latencia_ms=(perf_counter() - inicio) * 1000,
+                exito=False,
+                bloqueada=True,
+            )
+            logger.warning(
+                "Consulta bloqueada por longitud.",
+                extra={
+                    "categoria": "longitud",
+                    "resultado": "bloqueada",
+                    "correlacion_id": correlacion_id,
+                },
+            )
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                MENSAJE_LIMITE_LONGITUD,
+            )
+
+        # Guardrail de entrada 2: prompt injection heurístico. Respuesta
+        # neutra, sin invocar al agente: no actualiza memoria ni ejecuta
+        # herramientas. No se registra el texto ni el patrón detectado.
+        deteccion = detectar_prompt_injection(solicitud.mensaje)
+        if deteccion is not None:
+            metricas.registrar_consulta(
+                latencia_ms=(perf_counter() - inicio) * 1000,
+                exito=False,
+                bloqueada=True,
+            )
+            logger.warning(
+                "Consulta bloqueada por prompt injection.",
+                extra={
+                    "categoria": deteccion.categoria,
+                    "resultado": "bloqueada",
+                    "correlacion_id": correlacion_id,
+                },
+            )
+            return RespuestaConsulta(
+                thread_id=solicitud.thread_id or str(uuid.uuid4()),
+                respuesta=MENSAJE_BLOQUEO_INYECCION,
+                exito=False,
+                herramientas_utilizadas=[],
+            )
+
         thread_id = solicitud.thread_id or str(uuid.uuid4())
         config: ConfiguracionAPI = request.app.state.config
 
@@ -372,9 +425,13 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
             },
         )
 
+        # Guardrail de salida: enmascarado de datos personales antes de
+        # devolver la respuesta al cliente.
         return RespuestaConsulta(
             thread_id=thread_id,
-            respuesta=turno["respuesta"] or MENSAJE_ERROR_INTERNO,
+            respuesta=enmascarar_datos_personales(
+                turno["respuesta"] or MENSAJE_ERROR_INTERNO
+            ),
             exito=exito,
             herramientas_utilizadas=turno["herramientas"],
         )
@@ -403,9 +460,19 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
         historial = []
         for mensaje in mensajes:
             if isinstance(mensaje, HumanMessage):
-                historial.append(MensajeHistorial(rol="cliente", contenido=_texto(mensaje)))
+                historial.append(
+                    MensajeHistorial(
+                        rol="cliente",
+                        contenido=enmascarar_datos_personales(_texto(mensaje)),
+                    )
+                )
             elif isinstance(mensaje, AIMessage) and not mensaje.tool_calls:
-                historial.append(MensajeHistorial(rol="asistente", contenido=_texto(mensaje)))
+                historial.append(
+                    MensajeHistorial(
+                        rol="asistente",
+                        contenido=enmascarar_datos_personales(_texto(mensaje)),
+                    )
+                )
         return RespuestaEstado(
             thread_id=thread_id,
             cantidad_mensajes=len(historial),
