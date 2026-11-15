@@ -33,6 +33,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 from fastapi.exceptions import RequestValidationError
+from time import perf_counter
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -42,9 +43,13 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field, field_validator
-
 from agente import crear_grafo_agente, crear_herramientas, invocar_agente
 from memoria import MemoriaConversacional, validar_thread_id
+from observabilidad import (
+    MetricasAPI,
+    configurar_logging_json,
+    validar_privacidad_langsmith,
+)
 
 
 RAIZ = Path(__file__).resolve().parent
@@ -222,6 +227,9 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
     @asynccontextmanager
     async def ciclo_de_vida(app: FastAPI):
         config = configuracion or configuracion_desde_entorno()
+        configurar_logging_json()
+        validar_privacidad_langsmith()
+        metricas = MetricasAPI()
         if config.fabrica_modelo is None or config.fabrica_herramientas is None:
             raise RuntimeError("La configuración necesita fábrica de modelo y de herramientas.")
 
@@ -236,6 +244,7 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
             app.state.config = config
             app.state.memoria = memoria
             app.state.grafo = grafo
+            app.state.metricas = metricas
             logger.info("Servicio iniciado.")
             yield
         finally:
@@ -286,38 +295,91 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
             "memoria": getattr(request.app.state, "memoria", None) is not None,
         }
 
+    @app.get("/metricas")
+    def obtener_metricas(request: Request) -> dict[str, Any]:
+        return request.app.state.metricas.obtener()
+
     @app.post("/consultar", response_model=RespuestaConsulta)
     def consultar(
         solicitud: SolicitudConsulta,
         request: Request,
         cliente_id: int = Depends(cliente_autenticado),
     ) -> Any:
+        inicio = perf_counter()
+        correlacion_id = uuid.uuid4().hex
+        metricas: MetricasAPI = request.app.state.metricas
+
         thread_id = solicitud.thread_id or str(uuid.uuid4())
         config: ConfiguracionAPI = request.app.state.config
+
         try:
             resultado = invocar_agente(
                 request.app.state.grafo,
                 mensaje=solicitud.mensaje,
                 cliente_id=cliente_id,
-                thread_id=_hilo_interno(config.secreto_hilos, cliente_id, thread_id),
+                thread_id=_hilo_interno(
+                    config.secreto_hilos,
+                    cliente_id,
+                    thread_id,
+                ),
                 memoria=request.app.state.memoria,
             )
         except Exception as error:
-            # Solo el tipo de error: el mensaje puede incluir datos del usuario.
-            logger.error("Falló la consulta al agente (%s).", type(error).__name__)
+            latencia_ms = (perf_counter() - inicio) * 1000
+            metricas.registrar_consulta(
+                latencia_ms=latencia_ms,
+                exito=False,
+            )
+
+            # No registrar el mensaje, cliente_id, thread_id ni el detalle
+            # de la excepción porque podrían contener datos personales.
+            logger.error(
+                "Falló la consulta al agente.",
+                extra={
+                    "categoria": "consulta",
+                    "resultado": "error_tecnico",
+                    "correlacion_id": correlacion_id,
+                    "tipo_error": type(error).__name__,
+                },
+            )
             raise HTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR, MENSAJE_ERROR_INTERNO
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                MENSAJE_ERROR_INTERNO,
             ) from None
 
-        turno = _resumir_turno(_mensajes_del_turno(resultado["messages"]))
-        exito = turno["errores_herramientas"] == 0 and bool(turno["respuesta"])
+        turno = _resumir_turno(
+            _mensajes_del_turno(resultado["messages"])
+        )
+        exito = (
+            turno["errores_herramientas"] == 0
+            and bool(turno["respuesta"])
+        )
+        latencia_ms = (perf_counter() - inicio) * 1000
+
+        metricas.registrar_consulta(
+            latencia_ms=latencia_ms,
+            exito=exito,
+            herramientas=turno["herramientas"],
+            errores_herramientas=turno["errores_herramientas"],
+        )
+
+        logger.info(
+            "Consulta procesada.",
+            extra={
+                "categoria": "consulta",
+                "resultado": "exitosa" if exito else "fallida",
+                "correlacion_id": correlacion_id,
+            },
+        )
+
         return RespuestaConsulta(
             thread_id=thread_id,
             respuesta=turno["respuesta"] or MENSAJE_ERROR_INTERNO,
             exito=exito,
             herramientas_utilizadas=turno["herramientas"],
         )
-
+    
+    
     def _validar_hilo_publico(thread_id: str) -> str:
         try:
             return validar_thread_id(thread_id)

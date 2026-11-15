@@ -437,9 +437,9 @@ reranking y generación, y los documentos candidatos y seleccionados. La segunda
 muestra los metadatos del proyecto y la corrida, además del detalle de tokens y
 costo de una llamada al juez de relevancia.
 
-![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](image.png)
+![Detalle de la traza B.4: consulta, etapas del pipeline y documentos seleccionados](../entrega_3/image.png)
 
-![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](image-1.png)
+![Metadatos de la traza B.4 y consumo de tokens y costo del juez de relevancia](../entrega_3/image-1.png)
 
 ## C.2 — Baseline RAGAS
 

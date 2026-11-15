@@ -49,7 +49,7 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 - [x] Preparar las variables de tracing y la validación de API key/proyecto sin versionar secretos.
 - [x] Registrar una ejecución completa del pipeline.
 - [x] Documentar tiempos, tokens consumidos y qué chunks se recuperaron frente a cuáles quedaron seleccionados tras el reranking.
-- [x] Guardar capturas de la traza como evidencia en `entrega_3/image.png` y `entrega_3/image-1.png`, e incluirlas en `informe.md`. No se publicó un enlace público; el enlace privado requiere acceso autenticado. No incluir API keys en archivos versionados.
+- [x] Guardar capturas de la traza como evidencia en `entrega_3/image.png` y `entrega_3/image-1.png`, e incluirlas en `informes/informe-entrega-03.md`. No se publicó un enlace público; el enlace privado requiere acceso autenticado. No incluir API keys en archivos versionados.
 
 ## Parte C — Evaluación con RAGAS
 
@@ -63,24 +63,24 @@ Evolucionar la base vectorial de la Entrega 2 hacia un pipeline RAG con LangChai
 ### C.2 — Baseline RAGAS
 - [x] Ejecutar la evaluación sobre el pipeline RAG básico con la colección `ecologix` (`k=3`) y el golden dataset de C.1.
 - [x] Registrar `Faithfulness`, `Answer Relevancy`, `Context Precision` y `Context Recall`.
-- [x] Explicar brevemente qué mide cada métrica y reportar sus valores obtenidos en `entrega_3/informe.md`; los datos de generación y resultados están en `docs-resultados/`.
+- [x] Explicar brevemente qué mide cada métrica y reportar sus valores obtenidos en `informes/informe-entrega-03.md`; los datos de generación y resultados están en `docs-resultados/`.
 
 ### C.3 — Comparación entre modelos/pipelines
 - [x] Evaluar el pipeline avanzado con chunking y reranking sobre el golden dataset.
-- [x] Presentar en `entrega_3/informe.md` una tabla comparativa de las cuatro métricas para RAG básico y avanzado, con su delta.
+- [x] Presentar en `informes/informe-entrega-03.md` una tabla comparativa de las cuatro métricas para RAG básico y avanzado, con su delta.
 - [x] Mostrar la mejora de `Answer Relevancy` (+0,0279) en esta corrida.
 
 ### C.4 — Diagnóstico y mitigación
 - [x] Identificar `Answer Relevancy` (0,6231) como la métrica más baja del pipeline avanzado.
 - [x] Explicar el efecto de los casos de escape y señalar la falta de cobertura observada en `C1-I2`.
-- [x] Proponer en `entrega_3/informe.md` una evaluación de abstención por separado y una comprobación de cobertura de respuesta con prueba de regresión.
+- [x] Proponer en `informes/informe-entrega-03.md` una evaluación de abstención por separado y una comprobación de cobertura de respuesta con prueba de regresión.
 
-## Entregables en `entrega_3/`
+## Entregables de la Entrega 3
 
 - [x] `rag_pipeline.py`: implementación de las Partes A y B conectada a la base vectorial original.
 - [x] `evaluar_ragas.py` y `golden_dataset.json`: evaluación RAGAS del golden dataset de 15 preguntas.
-- [x] `image.png` y `image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informe.md`.
-- [x] `informe.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
+- [x] `entrega_3/image.png` y `entrega_3/image-1.png`: capturas de la traza de LangSmith de la Parte B.4, referenciadas en `informes/informe-entrega-03.md`.
+- [x] `informes/informe-entrega-03.md`: análisis de la falla del RAG básico y su causa (B.1), tabla comparativa básico/avanzado (C.3), y diagnóstico de la peor métrica con una propuesta concreta de mejora (C.4).
 
 ## Criterio de cierre
 

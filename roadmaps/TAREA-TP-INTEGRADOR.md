@@ -17,7 +17,7 @@ El TP Final integra la unidad 5 y 6 en un único sistema. Tomen el RAG de la Ent
 
 ## Qué se entrega
 
-El link al repositorio público a la rama main o master: código del agente y de la API, security_tests.py, requirements.txt, .env.example, README.md, .gitignore, informe.md y ficha_tecnica.md
+El link al repositorio público a la rama main o master: código del agente y de la API, security_tests.py, requirements.txt, .env.example, README.md, .gitignore, `informes/informe-entrega-04.md` y `ficha_tecnica.md`.
 
 ---
 
@@ -84,6 +84,7 @@ Propuesta inicial basada en el enfoque de la Clase 12. Se podrá revisar durante
 5. Aplicar autorización y validación determinista dentro de cada herramienta: el filtro no reemplaza la comprobación de propiedad del pedido ni los permisos de escritura del reclamo. Las herramientas deben validar argumentos y permisos inmediatamente antes de consultar o modificar datos, usar solo los datos necesarios y no delegar decisiones de autorización al LLM.
 6. Incorporar el enmascarado de CUIT/CUIL, DNI, correo electrónico y teléfono antes de devolver respuestas, con las etiquetas y precauciones especificadas en la subsección "Parámetros definidos" de esta parte.
 7. Crear `security_tests.py` con al menos cinco pruebas: bloqueo antes de invocar modelo/herramientas; no bloqueo de consultas legítimas del dominio; rechazo del acceso a pedidos de otro cliente; ausencia de escrituras de reclamos no autorizadas; y ausencia de texto sensible en logs o trazas.
+8. **Integrar los bloqueos con las métricas de C:** cuando el límite de longitud o el filtro de prompt injection interrumpan una solicitud válida dentro de `POST /consultar`, contabilizarla como consulta bloqueada e incluir su latencia, sin incrementar errores técnicos. Verificar que el bloqueo ocurra antes de invocar el modelo, las herramientas o actualizar la memoria, y que no genere trazas externas con el contenido recibido. Agregar pruebas de integración que comprueben los contadores de `/metricas` y esos efectos observables.
 
 #### Parámetros definidos
 
@@ -98,7 +99,7 @@ Propuesta inicial basada en el enfoque de la Clase 12. Se podrá revisar durante
 
 ### E. Cierre y entrega
 
-1. Preparar `informe.md` y `ficha_tecnica.md` con el diseño, herramientas, memoria, API, guardrails, observabilidad, validación y limitaciones.
+1. Preparar `informes/informe-entrega-04.md` y `ficha_tecnica.md` con el diseño, herramientas, memoria, API, guardrails, observabilidad, validación y limitaciones.
 2. Preparar la defensa de 15 minutos con presentación, demostración del flujo y respuestas a preguntas.
-3. Verificar los archivos de entrega indicados en la consigna, incluyendo código del agente y API, `security_tests.py`, `requirements.txt`, `.env.example`, `README.md`, `.gitignore`, `informe.md` y `ficha_tecnica.md`.
+3. Verificar los archivos de entrega indicados en la consigna, incluyendo código del agente y API, `security_tests.py`, `requirements.txt`, `.env.example`, `README.md`, `.gitignore`, `informes/informe-entrega-04.md` y `ficha_tecnica.md`.
 4. Verificar que la entrega esté publicada en un repositorio público en `main` o `master`.
