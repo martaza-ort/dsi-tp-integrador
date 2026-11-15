@@ -32,6 +32,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
+from fastapi.exceptions import RequestValidationError
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -56,6 +57,7 @@ MENSAJE_ERROR_INTERNO = (
 )
 MENSAJE_NO_AUTENTICADO = "Credenciales inválidas o ausentes."
 MENSAJE_HILO_INEXISTENTE = "No se encontró una conversación con ese identificador."
+MENSAJE_SOLICITUD_INVALIDA = "La solicitud no tiene un formato válido."
 
 logger = logging.getLogger("ecologix.api")
 
@@ -258,6 +260,19 @@ def crear_app(configuracion: ConfiguracionAPI | None = None) -> FastAPI:
                 return cliente_id
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, MENSAJE_NO_AUTENTICADO)
 
+    @app.exception_handler(RequestValidationError)
+    async def error_de_validacion(
+        request: Request,
+        error: RequestValidationError,
+    ) -> JSONResponse:
+        # No registrar error.errors(), error.body ni el contenido recibido:
+        # pueden contener datos personales o la consulta completa.
+        logger.warning("Solicitud rechazada por formato inválido.")
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": MENSAJE_SOLICITUD_INVALIDA},
+        )
+    
     @app.exception_handler(Exception)
     async def error_no_controlado(request: Request, error: Exception) -> JSONResponse:
         logger.error("Error no controlado (%s).", type(error).__name__)

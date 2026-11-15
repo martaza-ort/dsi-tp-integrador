@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from langchain_core.messages import AIMessage
+from api import MENSAJE_SOLICITUD_INVALIDA
 
 from utilidades_tests_api import (
     PEDIDO_CLIENTE_1,
@@ -128,9 +129,6 @@ def test_delete_borra_la_conversacion(rutas):
     assert de_nuevo.status_code == 404
 
 
-
-
-
 def test_error_del_agente_devuelve_500_neutro(rutas):
     class ModeloQueFalla(ModeloFalso):
         def _generate(self, *args, **kwargs):
@@ -140,3 +138,72 @@ def test_error_del_agente_devuelve_500_neutro(rutas):
         respuesta = cliente.post("/consultar", json={"mensaje": "Hola"}, headers=encabezado(TOKEN_CLIENTE_1))
     assert respuesta.status_code == 500
     assert "detalle interno" not in respuesta.text
+
+def test_error_de_validacion_no_expone_la_entrada(rutas):
+    texto_sensible = "Mi DNI es 12345678 y mi correo es persona@example.com"
+
+    with TestClient(
+        crear_app_de_prueba(
+            ModeloFalso(responses=[]),
+            rutas["negocio"],
+            rutas["memoria"],
+        )
+    ) as cliente:
+        respuesta = cliente.post(
+            "/consultar",
+            json={"mensaje": [texto_sensible]},
+            headers=encabezado(TOKEN_CLIENTE_1),
+        )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json() == {
+        "detail": MENSAJE_SOLICITUD_INVALIDA
+    }
+    assert texto_sensible not in respuesta.text
+    assert "12345678" not in respuesta.text
+    assert "persona@example.com" not in respuesta.text
+
+
+def test_thread_id_invalido_devuelve_error_neutro(rutas):
+    thread_id_sensible = " hilo-con-dato-personal@example.com "
+
+    with TestClient(
+        crear_app_de_prueba(
+            ModeloFalso(responses=[]),
+            rutas["negocio"],
+            rutas["memoria"],
+        )
+    ) as cliente:
+        respuesta = cliente.post(
+            "/consultar",
+            json={
+                "mensaje": "Hola",
+                "thread_id": thread_id_sensible,
+            },
+            headers=encabezado(TOKEN_CLIENTE_1),
+        )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json() == {
+        "detail": MENSAJE_SOLICITUD_INVALIDA
+    }
+    assert thread_id_sensible not in respuesta.text
+    assert "dato-personal@example.com" not in respuesta.text
+
+
+def test_estado_y_borrado_requieren_autenticacion(rutas):
+    with TestClient(
+        crear_app_de_prueba(
+            ModeloFalso(responses=[]),
+            rutas["negocio"],
+            rutas["memoria"],
+        )
+    ) as cliente:
+        estado = cliente.get("/estado/conv-privada")
+        borrado = cliente.delete("/estado/conv-privada")
+
+    assert estado.status_code == 401
+    assert estado.json()["detail"] == "Credenciales inválidas o ausentes."
+
+    assert borrado.status_code == 401
+    assert borrado.json()["detail"] == "Credenciales inválidas o ausentes."
