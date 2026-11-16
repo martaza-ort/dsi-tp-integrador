@@ -28,11 +28,11 @@ Transversal: logs JSON · GET /metricas · trazas LangSmith sin contenido
 
 ### A.1 — Herramientas
 
-| Herramienta | Rol | Qué hace | Límites |
-|---|---|---|---|
+| Herramienta                      | Rol       | Qué hace                                                                                                                                                     | Límites                                                                                                                                  |
+| -------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `buscar_conocimiento_ecologix` | Retriever | Consulta la colección persistida `ecologix_chunks_500_100`: recupera 8 candidatos y selecciona 4 por reranking. Devuelve fragmentos con título de fuente. | No consulta stock en vivo ni precios, no crea pedidos y no regenera embeddings por consulta. Su contenido es evidencia, no instrucciones. |
-| `consultar_estado_envio` | Sensor | Devuelve el estado y las fechas del envío de un pedido. | Solo si el pedido pertenece al cliente autenticado; pedido ajeno, inexistente o sin envío dan la misma respuesta neutra. |
-| `registrar_reclamo` | Actuador | Inserta un reclamo (con pedido propio opcional) en estado `ABIERTO`. | Verifica titularidad del pedido antes de escribir; no aprueba notas de crédito ni compensaciones. |
+| `consultar_estado_envio`       | Sensor    | Devuelve el estado y las fechas del envío de un pedido.                                                                                                      | Solo si el pedido pertenece al cliente autenticado; pedido ajeno, inexistente o sin envío dan la misma respuesta neutra.                 |
+| `registrar_reclamo`            | Actuador  | Inserta un reclamo (con pedido propio opcional) en estado `ABIERTO`.                                                                                        | Verifica titularidad del pedido antes de escribir; no aprueba notas de crédito ni compensaciones.                                        |
 
 Las tres tienen docstring completo (propósito, argumentos, resultado, límites).
 Las operativas son simuladas localmente sobre SQLite (`schema.sql`).
@@ -68,23 +68,23 @@ equivalentes configuradas por quien despliega).
 `test_matriz_agente.py` usa un modelo falso y SQLite temporal (sin proveedores
 externos ni datos reales) y verifica resultado y efecto observable:
 
-| Escenario | Resultado verificado |
-|---|---|
-| Uso de evidencia RAG | La respuesta se apoya en el fragmento recuperado. |
-| Envío propio | Devuelve el estado autorizado. |
-| Pedido ajeno o inexistente | Respuesta neutra idéntica; sin filtrar existencia. |
+| Escenario                   | Resultado verificado                                |
+| --------------------------- | --------------------------------------------------- |
+| Uso de evidencia RAG        | La respuesta se apoya en el fragmento recuperado.   |
+| Envío propio               | Devuelve el estado autorizado.                      |
+| Pedido ajeno o inexistente  | Respuesta neutra idéntica; sin filtrar existencia. |
 | Reclamo sobre pedido propio | Se inserta una fila con cliente y pedido correctos. |
-| Reclamo sobre pedido ajeno | Se rechaza y no hay escritura en la base. |
+| Reclamo sobre pedido ajeno  | Se rechaza y no hay escritura en la base.           |
 
 ## B. API REST
 
-| Endpoint | Auth | Función |
-|---|---|---|
-| `GET /health` | No | Estado de servicio, agente y memoria. |
-| `POST /consultar` | Sí | Consulta al agente; devuelve `thread_id`, `respuesta`, `exito`, `herramientas_utilizadas`. |
-| `GET /estado/{thread_id}` | Sí | Historial de un hilo propio (con datos personales enmascarados). |
-| `DELETE /estado/{thread_id}` | Sí | Borra checkpoints y metadato auxiliar del hilo propio. |
-| `GET /metricas` | No | Métricas de la parte C. |
+| Endpoint                       | Auth | Función                                                                                           |
+| ------------------------------ | ---- | -------------------------------------------------------------------------------------------------- |
+| `GET /health`                | No   | Estado de servicio, agente y memoria.                                                              |
+| `POST /consultar`            | Sí  | Consulta al agente; devuelve `thread_id`, `respuesta`, `exito`, `herramientas_utilizadas`. |
+| `GET /estado/{thread_id}`    | Sí  | Historial de un hilo propio (con datos personales enmascarados).                                   |
+| `DELETE /estado/{thread_id}` | Sí  | Borra checkpoints y metadato auxiliar del hilo propio.                                             |
+| `GET /metricas`              | No   | Métricas de la parte C.                                                                           |
 
 **Identidad.** `Authorization: Bearer <token>`; el backend resuelve el token a
 `cliente_id` con `API_CLIENTES`. Es una identidad fija para demo y tests, **no**
@@ -122,16 +122,16 @@ La instrumentación se implementó en `observabilidad.py` y se integró en
 
 ### C.2 — Métricas implementadas
 
-| Métrica | Criterio |
-|---|---|
-| Consultas totales | Solicitudes con formato válido que ingresan al manejador de `/consultar`. |
-| Exitosas | El agente finaliza y devuelve una respuesta procesada sin errores de herramientas. |
-| Fallidas | Ocurre un error técnico o el flujo no puede completarse correctamente. |
-| Bloqueadas | Un guardrail interrumpe la consulta antes del modelo y las herramientas. |
-| Latencia promedio | Promedio acumulado del tiempo total de procesamiento en milisegundos. |
-| Latencia p95 | Percentil 95 calculado mediante rango más próximo desde las 20 muestras. |
-| Herramientas | Invocaciones efectivamente ejecutadas, agrupadas por nombre. |
-| Errores de herramientas | Resultados técnicos fallidos producidos durante las invocaciones. |
+| Métrica                | Criterio                                                                           |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| Consultas totales       | Solicitudes con formato válido que ingresan al manejador de `/consultar`.       |
+| Exitosas                | El agente finaliza y devuelve una respuesta procesada sin errores de herramientas. |
+| Fallidas                | Ocurre un error técnico o el flujo no puede completarse correctamente.            |
+| Bloqueadas              | Un guardrail interrumpe la consulta antes del modelo y las herramientas.           |
+| Latencia promedio       | Promedio acumulado del tiempo total de procesamiento en milisegundos.              |
+| Latencia p95            | Percentil 95 calculado mediante rango más próximo desde las 20 muestras.         |
+| Herramientas            | Invocaciones efectivamente ejecutadas, agrupadas por nombre.                       |
+| Errores de herramientas | Resultados técnicos fallidos producidos durante las invocaciones.                 |
 
 Las solicitudes bloqueadas cuentan como consultas y bloqueos, pero no como
 errores técnicos. Las solicitudes rechazadas por FastAPI antes de ingresar al
@@ -205,9 +205,9 @@ El 15 de noviembre de 2026 se hicieron pruebas para verificar la privacidad
 del tracing y el flujo real con el índice RAG persistido. Este cuadro resume
 los grupos antes de detallar sus resultados:
 
-| Prueba | Sección | Ejecución | Objetivo | Resultado principal |
-|---|---|---|---|---|
-| **Privacidad del tracing con canario** | **C.6.1** | 18:09 | Comprobar que inputs y outputs queden ocultos en una llamada identificable por marcador | HTTP 200; traza localizada por ID raíz; inputs/outputs vacíos en el dashboard |
+| Prueba                                                    | Sección        | Ejecución    | Objetivo                                                                                                    | Resultado principal                                                              |
+| --------------------------------------------------------- | --------------- | ------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Privacidad del tracing con canario**              | **C.6.1** | 18:09         | Comprobar que inputs y outputs queden ocultos en una llamada identificable por marcador                     | HTTP 200; traza localizada por ID raíz; inputs/outputs vacíos en el dashboard  |
 | **Integración E2E y medición con RAG persistido** | **C.6.2** | 16:49 y 16:51 | Comprobar el flujo con Chroma, embeddings, reranking y herramienta RAG; obtener tokens y revisar jerarquía | Dos respuestas HTTP 200; la traza queda documentada en C.6.2 y los costos en C.7 |
 
 Los distintos sets de pruebas se ejecutaron con un objetivo específico,
@@ -328,11 +328,11 @@ ambas ejecuciones para transparentar la variación entre consultas; la
 ejecución de las 16:49 se excluye porque no se obtuvo un conteo fiable de
 tokens.
 
-| Ejecución | Tokens de entrada | Tokens de salida | Equivalente a tarifa paga |
-|---|---:|---:|---:|
-| 16:51, E2E RAG | 3656 | 146 | USD 0.0014618 |
-| 18:09, E2E RAG con canario | 3712 | 116 | USD 0.0014036 |
-| **Total (2 solicitudes)** | **7368** | **262** | **USD 0.0028654** |
+| Ejecución                      | Tokens de entrada | Tokens de salida | Equivalente a tarifa paga |
+| ------------------------------- | ----------------: | ---------------: | ------------------------: |
+| 16:51, E2E RAG                  |              3656 |              146 |             USD 0.0014618 |
+| 18:09, E2E RAG con canario      |              3712 |              116 |             USD 0.0014036 |
+| **Total (2 solicitudes)** |    **7368** |    **262** |   **USD 0.0028654** |
 
 El equivalente medio de esta muestra es USD 0.0014327 por solicitud. Son dos
 observaciones de prueba, no una proyección representativa de producción.
@@ -374,11 +374,11 @@ Google indica que el contenido puede usarse para mejorar sus productos.
 
 Implementados en `guardrails.py`, deterministas y sin segundo LLM.
 
-| Control | Momento | Comportamiento |
-|---|---|---|
-| Longitud | Entrada | Más de 1000 caracteres (1000 inclusive es válido): `400`, antes de modelo, memoria y herramientas. El mensaje indica el límite, no el texto ni su longitud. |
+| Control          | Momento | Comportamiento                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Longitud         | Entrada | Más de 1000 caracteres (1000 inclusive es válido): `400`, antes de modelo, memoria y herramientas. El mensaje indica el límite, no el texto ni su longitud.                                                                                                                                                  |
 | Prompt injection | Entrada | Patrones por categoría (cambio de reglas, cambio de rol, extracción de instrucciones o credenciales, evasión de validaciones, acceso a otro cliente). Los patrones combinan verbo y objeto, no palabras aisladas. Ante detección: `HTTP 200`, `exito: false`, sin herramientas, sin escritura en memoria. |
-| Enmascarado | Salida | CUIT/CUIL, DNI, correo y teléfono pasan a `[CUIT_CUIL_ENMASCARADO]`, `[DNI_ENMASCARADO]`, `[EMAIL_ENMASCARADO]`, `[TELEFONO_ENMASCARADO]`. No toca números de pedido, SKU ni montos. También se aplica al historial de `GET /estado`. |
+| Enmascarado      | Salida  | CUIT/CUIL, DNI, correo y teléfono pasan a `[CUIT_CUIL_ENMASCARADO]`, `[DNI_ENMASCARADO]`, `[EMAIL_ENMASCARADO]`, `[TELEFONO_ENMASCARADO]`. No toca números de pedido, SKU ni montos. También se aplica al historial de `GET /estado`.                                                                |
 
 Los bloqueos se cuentan como consulta y bloqueo en `/metricas`, con su latencia,
 y no como error técnico. El log `WARNING` solo lleva categoría, resultado y un
@@ -410,41 +410,85 @@ desempeño.
 
 El 16 de noviembre de 2026 se levantó la API con el modelo real
 `gemini-3.5-flash-lite`, el índice Chroma persistido y la base de demo con
-datos sintéticos, y se ejecutó el recorrido `ejecucion/recorrido_real.py` por
-HTTP. El detalle completo (mensajes, respuestas, latencias y efectos sobre la
-base) está en
+datos sintéticos, y se ejecutó por HTTP el recorrido
+`ejecucion/recorrido_real.py`. El reporte generado, con mensajes, respuestas,
+latencias y el resultado de cada aserción, está en
 [`docs-resultados/resultados_ejecucion_real.md`](../docs-resultados/resultados_ejecucion_real.md).
-**16 de 16 verificaciones cumplen.**
 
-| # | Escenario | Resultado observado |
-|---|---|---|
-| 1, 8 | RAG con dos clientes | Usó `buscar_conocimiento_ecologix` y respondió con evidencia del corpus. |
-| 2 | Envío propio (cliente 1, pedido 101) | Usó `consultar_estado_envio`; informó "en camino" y la fecha de despacho. |
-| 3 | Pedido ajeno (cliente 1 pide el 202) | Respuesta neutra ("No se encontró un envío disponible"); no reveló estado ni transportista. |
-| 4 | Reclamo sobre pedido propio | Usó `registrar_reclamo`; la tabla `reclamos` pasó de 0 a 1 fila. |
-| 5 | Reclamo sobre pedido ajeno | La herramienta lo rechazó; la tabla `reclamos` quedó en 1 (sin escritura). |
-| 6 | Prompt injection | `HTTP 200`, `exito: false`, sin herramientas, latencia ≈ 0 s (no llegó al modelo). |
-| 7 | 1001 caracteres | `HTTP 400` antes del modelo. |
-| 9, 11 | Memoria en el mismo hilo | El segundo turno recordó el pedido 102 del primero (4 mensajes guardados). |
-| 10 | Aislamiento de hilos | El cliente 2 recibió 404 al pedir el hilo del cliente 1. |
-| 13–15 | Reinicio de la API | Las métricas volvieron a 0, el hilo se recuperó del disco (4 mensajes) y el agente retomó la conversación (mencionó el pedido 102). |
-| 16 | Borrado | `DELETE` 200 y `GET` posterior 404. |
+**Qué cuenta como verificación y qué como observación.** Este informe
+distingue dos tipos de afirmaciones:
 
-`GET /metricas` al cierre de la primera fase informó 11 consultas (9 exitosas,
-0 fallidas, 2 bloqueadas), promedio de 1866,56 ms, herramientas
-(RAG 3, envío 3, reclamo 2) y 0 errores de herramientas. El p95 fue `null`
-porque se alcanzaron 11 de las 20 muestras mínimas, como define el diseño.
+- **Verificado por el script:** una aserción que el código evalúa de forma
+  automática (códigos HTTP, herramientas usadas, filas de la base antes y
+  después, contadores de `/metricas`). Determina CUMPLE o NO CUMPLE.
+- **Observación:** una lectura de la salida hecha por quien analiza, o una
+  inferencia. El script no la evalúa y no se presenta como comprobada.
 
-Alcance y límites de esta ejecución:
+**Resultado:** los 18 pasos del recorrido (13 en la fase 1 y 5 en la fase 2)
+cumplen todas sus aserciones. El recorrido incluye un reinicio real de la API
+entre las dos fases.
+
+##### Escenarios
+
+| # | Escenario | Verificado por el script | Observación (no verificada por el script) |
+|---|---|---|---|
+| 1, 8 | RAG con dos clientes | HTTP 200, `exito: true` y uso de `buscar_conocimiento_ecologix`. | El contenido de la respuesta parece apoyado en el corpus; no se comparó contra las fuentes recuperadas. |
+| 2 | Envío propio (cliente 1, pedido 101) | HTTP 200, uso de `consultar_estado_envio` y que la respuesta menciona "camino" (estado de la base). | La respuesta incluye una fecha de despacho; su valor no se validó. |
+| 3 | Pedido ajeno (cliente 1 pide el 202) | HTTP 200, la herramienta se ejecutó y la respuesta **no** contiene el estado real ("camino") ni el transportista ("transporte norte"). | El mensaje es neutro ("No se encontró un envío disponible"). El script verifica la ausencia de datos filtrados, no el texto. |
+| 4 | Reclamo sobre pedido propio | Uso de `registrar_reclamo`; la tabla `reclamos` pasó de 1 a 2 filas; la fila insertada es del cliente 1 y del pedido 101. | — |
+| 5 | Reclamo sobre pedido ajeno | La herramienta fue invocada y la tabla `reclamos` **no cambió** (2 → 2). | El texto de la respuesta lo redacta el modelo y no se evalúa. `exito: true` indica que el flujo terminó sin error técnico, no que el reclamo se haya registrado. |
+| 6 | Prompt injection | HTTP 200, `exito: false`, sin herramientas, y no se creó memoria para el hilo (`GET /estado` → 404). | La latencia de 0,03 s es compatible con que no se llamó al modelo; es una **inferencia por latencia**. Que el bloqueo ocurre antes del modelo lo comprueban los tests automáticos con modelo falso (`security_tests.py`), no esta corrida. |
+| 7 | 1001 caracteres | HTTP 400; el detalle menciona el límite 1000, no repite el texto recibido y no se creó memoria del hilo. | La latencia de 0,05 s es compatible con un rechazo previo al modelo (inferencia por latencia). |
+| 9, 11 | Memoria en el mismo hilo | El segundo turno menciona "102", dato que solo estaba en el primero, sin volver a usar herramientas; el hilo tiene 4 mensajes y 1 herramienta ejecutada. | — |
+| 10 | Aislamiento de hilos | El cliente 2 recibe 404 al pedir el hilo del cliente 1. | — |
+| 13–15b | Reinicio de la API | Las métricas vuelven a 0 consultas y 0 muestras; el hilo se recupera del disco con 4 mensajes; el agente menciona "102" en el turno posterior al reinicio; las métricas posteriores indican 1 consulta exitosa y ninguna herramienta. | — |
+| 16 | Borrado | `DELETE` 200 y `GET` posterior 404. | — |
+
+##### Resolución de las métricas
+
+La corrida comparó `GET /metricas` antes y después de las 10 solicitudes que
+llegan al manejador de `POST /consultar` (casos 1 a 9b), contra el cambio
+esperado por los casos enviados. Todas las comparaciones las hace el script.
+
+| Métrica | Esperado | Observado | Resultado |
+|---|---:|---:|---|
+| Consultas totales | +10 | +10 | Correcta |
+| Exitosas | +8 | +8 | Correcta |
+| Fallidas | +0 | +0 | Correcta |
+| Bloqueadas (casos 6 y 7) | +2 | +2 | Correcta |
+| Herramienta RAG | +2 (casos 1 y 8) | +2 | Correcta |
+| Herramienta de envío | +3 (casos 2, 3 y 9a) | +3 | Correcta |
+| Herramienta de reclamos | +2 (casos 4 y 5) | +2 | Correcta |
+| Errores de herramientas | +0 | +0 | Correcta |
+| Muestras de latencia | +10 (bloqueadas incluidas) | +10 | Correcta |
+| Latencia acumulada | servidor ≤ cliente, con diferencia razonable de red | servidor 25 033 ms, cliente 25 442 ms (409 ms para 10 solicitudes) | Coherente |
+| p95 | `null` con menos de 20 muestras | `null` (10 muestras) | Correcta |
+| Alerta de latencia | `false` sin p95 | `false` | Correcta |
+
+**Veredicto: las métricas son correctas** respecto de las solicitudes enviadas
+en esta corrida: los contadores coinciden con lo esperado, los bloqueos no se
+cuentan como fallos, y el p95 y la alerta se comportan como define el diseño.
+Con 10 muestras el promedio informado fue de 2503,34 ms.
+
+Qué **no** demuestra esta resolución:
+
+- No valida el cálculo del p95 con valores: la muestra mínima (20) no se
+  alcanzó, por lo que solo se comprobó que valga `null`. El cálculo del p95 y
+  la alerta con muestras suficientes quedan cubiertos por los tests
+  automáticos (`test_observabilidad.py`), no por esta corrida.
+- El promedio se contrastó contra las latencias medidas por el cliente (con
+  una diferencia coherente), no contra una fuente de verdad independiente.
+
+##### Alcance y límites
 
 - Una sola corrida, con un caso por escenario y un modelo que no es
   determinista: demuestra que los flujos funcionan, no una tasa de acierto.
 - El enmascarado de datos personales de salida no se forzó en la corrida real
-  (depende de que el modelo emita un dato personal); se verifica en los tests
-  automáticos.
+  (depende de que el modelo emita un dato personal); se verifica solo en los
+  tests automáticos.
 - Los reclamos creados quedan en la base de demo (`runtime/ecologix.db`).
 - Las dos corridas con trazas de LangSmith y la medición de costos están en
-  C.6 y C.7.
+  C.6 y C.7; esta corrida no verificó las trazas de LangSmith.
 
 #### E.1.2 — Tests automáticos (regresión)
 
@@ -452,18 +496,18 @@ Corrida del 15 de noviembre de 2026, en un entorno virtual limpio con las
 dependencias de `requirements.txt`. Usan modelo falso y bases temporales, sin
 claves ni llamadas a proveedores:
 
-| Archivo | Casos | Qué valida |
-|---|---:|---|
-| `test_agente.py` | 7 | Flujo ReAct, límite de ciclos, llamadas paralelas, errores de herramientas |
-| `test_memoria.py` | 5 | Persistencia, aislamiento, ausencia de `cliente_id` en estado, purga por TTL |
-| `test_matriz_agente.py` | 6 | Matriz de integración A.4 |
-| `test_herramientas_operativas.py` | 8 | Autorización y escrituras de las tools |
-| `test_herramientas_rag.py` | 4 | Contrato del retriever 8→4 |
-| `test_api.py` | 11 | Endpoints, autenticación, aislamiento, persistencia tras reinicio |
-| `test_observabilidad.py` | 10 | Métricas, p95, alerta, logs |
-| `security_tests.py` | 25 | Guardrails y privacidad |
-| `test_schemas.py` | 12 | Contrato de la Entrega 1 |
-| **Total** | **88** | **88 aprobados, 0 fallos** |
+| Archivo                             |        Casos | Qué valida                                                                    |
+| ----------------------------------- | -----------: | ------------------------------------------------------------------------------ |
+| `test_agente.py`                  |            7 | Flujo ReAct, límite de ciclos, llamadas paralelas, errores de herramientas    |
+| `test_memoria.py`                 |            5 | Persistencia, aislamiento, ausencia de `cliente_id` en estado, purga por TTL |
+| `test_matriz_agente.py`           |            6 | Matriz de integración A.4                                                     |
+| `test_herramientas_operativas.py` |            8 | Autorización y escrituras de las tools                                        |
+| `test_herramientas_rag.py`        |            4 | Contrato del retriever 8→4                                                    |
+| `test_api.py`                     |           11 | Endpoints, autenticación, aislamiento, persistencia tras reinicio             |
+| `test_observabilidad.py`          |           10 | Métricas, p95, alerta, logs                                                   |
+| `security_tests.py`               |           25 | Guardrails y privacidad                                                        |
+| `test_schemas.py`                 |           12 | Contrato de la Entrega 1                                                       |
+| **Total**                     | **88** | **88 aprobados, 0 fallos**                                               |
 
 Estos tests comprueban lógica y garantías (autorización, ausencia de
 escrituras, bloqueos antes del modelo, privacidad de logs), pero al usar un
@@ -497,12 +541,7 @@ la latencia o el costo: para eso está E.1.1.
 - **Sin límite de tasa ni de tamaño de cuerpo HTTP.** El límite de 1000
   caracteres no sustituye controles contra abuso.
 
-### E.3 — Defensa
-
-La defensa contempla una presentación de 15 minutos, una demostración del flujo
-del sistema y respuestas a preguntas.
-
-### E.4 — Archivos de entrega
+### E.3 — Archivos de entrega
 
 Código del agente (`agente.py`, `memoria.py`, `herramientas_*.py`,
 `contexto_agente.py`) y de la API (`api.py`, `guardrails.py`,

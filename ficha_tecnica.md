@@ -63,7 +63,10 @@ y se expone por API REST con guardrails y observabilidad.
 - **Ejecución real (16/11/2026):** recorrido contra la API con Gemini
   (`gemini-3.5-flash-lite`), sin mocks: RAG, envío propio y ajeno, reclamo propio
   y ajeno, injection, límite de longitud, memoria, aislamiento, persistencia tras
-  reinicio y borrado. 16 de 16 verificaciones cumplen
+  reinicio y borrado. Los 18 pasos del recorrido cumplen sus aserciones
+  automáticas, incluida la resolución de las métricas (correctas respecto de
+  las solicitudes enviadas). Las lecturas del texto de las respuestas son
+  observaciones y no se cuentan como verificación
   (`docs-resultados/resultados_ejecucion_real.md`). Trazas y costos con
   LangSmith en el informe (C.6 y C.7).
 - **Tests automáticos (regresión):** 88 aprobados (15/11/2026) con modelo falso y
