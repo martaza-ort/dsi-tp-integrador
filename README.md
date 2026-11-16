@@ -116,8 +116,7 @@ de ejecuciones, no informes generales de entrega.
 │   ├── TAREAS-01.md
 │   ├── TAREAS-02.md
 │   ├── TAREAS-03.md
-│   ├── TAREA-TP-INTEGRADOR.md
-│   └── GUION-DEFENSA.md
+│   └── TAREA-TP-INTEGRADOR.md
 ├── evidencias/langsmith/ # capturas de trazas del informe de la Entrega 4
 ├── runtime/              # memoria y base de demo, ignorado por Git
 ├── logs/                 # generado localmente, ignorado por Git
@@ -161,7 +160,6 @@ de ejecuciones, no informes generales de entrega.
 | `informes/informe-entrega-03.md` | Evaluación del RAG y trazabilidad de la Entrega 3. | Entrega 3 |
 | `informes/informe-entrega-04.md` | Informe del TP Final Integrador (agente, API, observabilidad, seguridad, validación y limitaciones). | Entrega 4 (TP Final) |
 | `ficha_tecnica.md` | Ficha técnica resumida del sistema final. | Entrega 4 (TP Final) |
-| `roadmaps/GUION-DEFENSA.md` | Guion de la defensa de 15 minutos, demo, preguntas y checklist de entrega. | Entrega 4 (TP Final) |
 | `guardrails.py` | Límite de longitud, filtro de prompt injection y enmascarado de datos personales. | Entrega 4 (TP Final) |
 | `observabilidad.py` | Logs JSON, métricas thread-safe y validación de privacidad de LangSmith. | Entrega 4 (TP Final) |
 | `security_tests.py` | Suite automática de seguridad y privacidad. | Entrega 4 (TP Final) |

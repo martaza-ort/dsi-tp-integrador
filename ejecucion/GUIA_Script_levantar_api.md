@@ -132,9 +132,8 @@ Invoke-RestMethod http://127.0.0.1:8000/estado/demo-1 -Headers $headers
 Invoke-RestMethod http://127.0.0.1:8000/metricas
 ```
 
-El resto de los ejemplos (borrado, bloqueos de seguridad, memoria tras
-reiniciar) están en el `README.md`, sección "API del agente", y el guion de la
-demo en `roadmaps/GUION-DEFENSA.md`.
+El resto de los ejemplos (borrado, bloqueos de seguridad y memoria tras
+reiniciar) están en el `README.md`, sección "API del agente".
 
 ## 6. Problemas frecuentes
 

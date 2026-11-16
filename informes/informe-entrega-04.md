@@ -499,8 +499,8 @@ la latencia o el costo: para eso está E.1.1.
 
 ### E.3 — Defensa
 
-Guion de 15 minutos, demo y preguntas probables en
-[`roadmaps/GUION-DEFENSA.md`](../roadmaps/GUION-DEFENSA.md).
+La defensa contempla una presentación de 15 minutos, una demostración del flujo
+del sistema y respuestas a preguntas.
 
 ### E.4 — Archivos de entrega
 
@@ -508,5 +508,5 @@ Código del agente (`agente.py`, `memoria.py`, `herramientas_*.py`,
 `contexto_agente.py`) y de la API (`api.py`, `guardrails.py`,
 `observabilidad.py`), `security_tests.py`, `requirements.txt`, `.env.example`,
 `README.md`, `.gitignore`, `informes/informe-entrega-04.md` y
-`ficha_tecnica.md`. La publicación en el repositorio público (`main`) se
-confirma antes de la defensa con el checklist del guion.
+`ficha_tecnica.md`. La publicación en el repositorio público (`main`) debe
+confirmarse antes de la defensa.
