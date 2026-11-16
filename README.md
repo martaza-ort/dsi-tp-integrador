@@ -59,6 +59,15 @@ de ejecuciones, no informes generales de entrega.
 ├── agente.py
 ├── herramientas_rag.py
 ├── herramientas_operativas.py
+├── contexto_agente.py
+├── memoria.py
+├── mantenimiento_memoria.py
+├── api.py
+├── guardrails.py
+├── observabilidad.py
+├── inicializar_base_demo.py
+├── security_tests.py
+├── ficha_tecnica.md
 ├── lote.py
 ├── schemas.py
 ├── schema.sql
@@ -66,6 +75,11 @@ de ejecuciones, no informes generales de entrega.
 ├── test_agente.py
 ├── test_herramientas_rag.py
 ├── test_herramientas_operativas.py
+├── test_memoria.py
+├── test_matriz_agente.py
+├── test_api.py
+├── test_observabilidad.py
+├── utilidades_tests_api.py
 ├── base_conocimiento.json
 ├── base_conocimiento_limpia.json
 ├── etl_purga.py
@@ -103,6 +117,8 @@ de ejecuciones, no informes generales de entrega.
 │   ├── TAREAS-02.md
 │   ├── TAREAS-03.md
 │   └── TAREA-TP-INTEGRADOR.md
+├── evidencias/langsmith/ # capturas de trazas del informe de la Entrega 4
+├── runtime/              # memoria y base de demo, ignorado por Git
 ├── logs/                 # generado localmente, ignorado por Git
 ├── indice_faiss/         # generado localmente, ignorado por Git
 └── chroma/               # generado localmente, ignorado por Git
@@ -142,7 +158,13 @@ de ejecuciones, no informes generales de entrega.
 | `informes/informe-entrega-01.md` | Informe de diagnóstico, PEAS, intenciones y decisiones de la Entrega 1. | Entrega 1 |
 | `informes/informe-entrega-02.md` | Informe y resultados de la Entrega 2. | Entrega 2 |
 | `informes/informe-entrega-03.md` | Evaluación del RAG y trazabilidad de la Entrega 3. | Entrega 3 |
-| `informes/informe-entrega-04.md` | Informe del TP Final Integrador, incluida la observabilidad. | Entrega 4 (TP Final) |
+| `informes/informe-entrega-04.md` | Informe del TP Final Integrador (agente, API, observabilidad, seguridad, validación y limitaciones). | Entrega 4 (TP Final) |
+| `ficha_tecnica.md` | Ficha técnica resumida del sistema final. | Entrega 4 (TP Final) |
+| `guardrails.py` | Límite de longitud, filtro de prompt injection y enmascarado de datos personales. | Entrega 4 (TP Final) |
+| `observabilidad.py` | Logs JSON, métricas thread-safe y validación de privacidad de LangSmith. | Entrega 4 (TP Final) |
+| `security_tests.py` | Suite automática de seguridad y privacidad. | Entrega 4 (TP Final) |
+| `test_observabilidad.py` | Pruebas de métricas, p95, alerta y logs. | Entrega 4 (TP Final) |
+| `evidencias/langsmith/` | Capturas de las trazas citadas en el informe. | Entrega 4 (TP Final) |
 | `docs-resultados/resultados_lote.md` | Evidencia del lote few-shot. | Entrega 1 |
 | `docs-resultados/resultados_lote_zero.md` | Evidencia del lote zero-shot. | Entrega 1 |
 | `base_conocimiento.json` | Corpus fuente del dominio y casos de prueba estructurales. | Entrega 2 |
