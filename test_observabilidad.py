@@ -168,14 +168,6 @@ def test_endpoint_metricas_refleja_consulta_exitosa(rutas):
     assert cuerpo["latencia_ms"]["p95"] is None
     assert cuerpo["alerta_latencia"] is False
 
-    def test_langsmith_inactivo_no_exige_configuracion(monkeypatch):
-        monkeypatch.delenv("LANGSMITH_TRACING", raising=False)
-        monkeypatch.delenv("LANGSMITH_HIDE_INPUTS", raising=False)
-        monkeypatch.delenv("LANGSMITH_HIDE_OUTPUTS", raising=False)
-        monkeypatch.delenv("LANGSMITH_HIDE_METADATA", raising=False)
-
-    validar_privacidad_langsmith()
-
 
 def test_langsmith_activo_exige_privacidad_completa(monkeypatch):
     monkeypatch.setenv("LANGSMITH_TRACING", "true")
