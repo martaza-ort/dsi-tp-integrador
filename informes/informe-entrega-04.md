@@ -401,9 +401,56 @@ y enmascarado correcto sin tocar datos comerciales.
 
 ### E.1 — Validación
 
+La validación tiene dos niveles con alcances distintos. La **ejecución real**
+es la evidencia del comportamiento y el desempeño del sistema; los **tests
+automáticos** protegen contra regresiones y no se presentan como evidencia de
+desempeño.
+
+#### E.1.1 — Ejecución real contra la API (Gemini, sin mocks)
+
+El 16 de noviembre de 2026 se levantó la API con el modelo real
+`gemini-3.5-flash-lite`, el índice Chroma persistido y la base de demo con
+datos sintéticos, y se ejecutó el recorrido `ejecucion/recorrido_real.py` por
+HTTP. El detalle completo (mensajes, respuestas, latencias y efectos sobre la
+base) está en
+[`docs-resultados/resultados_ejecucion_real.md`](../docs-resultados/resultados_ejecucion_real.md).
+**16 de 16 verificaciones cumplen.**
+
+| # | Escenario | Resultado observado |
+|---|---|---|
+| 1, 8 | RAG con dos clientes | Usó `buscar_conocimiento_ecologix` y respondió con evidencia del corpus. |
+| 2 | Envío propio (cliente 1, pedido 101) | Usó `consultar_estado_envio`; informó "en camino" y la fecha de despacho. |
+| 3 | Pedido ajeno (cliente 1 pide el 202) | Respuesta neutra ("No se encontró un envío disponible"); no reveló estado ni transportista. |
+| 4 | Reclamo sobre pedido propio | Usó `registrar_reclamo`; la tabla `reclamos` pasó de 0 a 1 fila. |
+| 5 | Reclamo sobre pedido ajeno | La herramienta lo rechazó; la tabla `reclamos` quedó en 1 (sin escritura). |
+| 6 | Prompt injection | `HTTP 200`, `exito: false`, sin herramientas, latencia ≈ 0 s (no llegó al modelo). |
+| 7 | 1001 caracteres | `HTTP 400` antes del modelo. |
+| 9, 11 | Memoria en el mismo hilo | El segundo turno recordó el pedido 102 del primero (4 mensajes guardados). |
+| 10 | Aislamiento de hilos | El cliente 2 recibió 404 al pedir el hilo del cliente 1. |
+| 13–15 | Reinicio de la API | Las métricas volvieron a 0, el hilo se recuperó del disco (4 mensajes) y el agente retomó la conversación (mencionó el pedido 102). |
+| 16 | Borrado | `DELETE` 200 y `GET` posterior 404. |
+
+`GET /metricas` al cierre de la primera fase informó 11 consultas (9 exitosas,
+0 fallidas, 2 bloqueadas), promedio de 1866,56 ms, herramientas
+(RAG 3, envío 3, reclamo 2) y 0 errores de herramientas. El p95 fue `null`
+porque se alcanzaron 11 de las 20 muestras mínimas, como define el diseño.
+
+Alcance y límites de esta ejecución:
+
+- Una sola corrida, con un caso por escenario y un modelo que no es
+  determinista: demuestra que los flujos funcionan, no una tasa de acierto.
+- El enmascarado de datos personales de salida no se forzó en la corrida real
+  (depende de que el modelo emita un dato personal); se verifica en los tests
+  automáticos.
+- Los reclamos creados quedan en la base de demo (`runtime/ecologix.db`).
+- Las dos corridas con trazas de LangSmith y la medición de costos están en
+  C.6 y C.7.
+
+#### E.1.2 — Tests automáticos (regresión)
+
 Corrida del 15 de noviembre de 2026, en un entorno virtual limpio con las
-dependencias de `requirements.txt` (sin `.env`, sin claves: los tests usan
-modelo falso y bases temporales):
+dependencias de `requirements.txt`. Usan modelo falso y bases temporales, sin
+claves ni llamadas a proveedores:
 
 | Archivo | Casos | Qué valida |
 |---|---:|---|
@@ -418,9 +465,10 @@ modelo falso y bases temporales):
 | `test_schemas.py` | 12 | Contrato de la Entrega 1 |
 | **Total** | **88** | **88 aprobados, 0 fallos** |
 
-Además se validó de forma manual el flujo real con el índice RAG persistido y
-trazas de LangSmith (ver C.6 y C.7). Esa parte depende de claves y cuota del
-proveedor y no corre en la suite automática.
+Estos tests comprueban lógica y garantías (autorización, ausencia de
+escrituras, bloqueos antes del modelo, privacidad de logs), pero al usar un
+modelo falso no dicen nada sobre la calidad de las respuestas reales ni sobre
+la latencia o el costo: para eso está E.1.1.
 
 ### E.2 — Limitaciones conocidas
 

@@ -60,10 +60,14 @@ y se expone por API REST con guardrails y observabilidad.
 
 ## 7. Validación
 
-88 tests automáticos aprobados (15/11/2026) con modelo falso y bases temporales,
-sin claves de proveedor: `test_agente`, `test_memoria`, `test_matriz_agente`,
-`test_herramientas_*`, `test_api`, `test_observabilidad`, `security_tests`,
-`test_schemas`. Flujo real con RAG y LangSmith verificado manualmente.
+- **Ejecución real (16/11/2026):** recorrido contra la API con Gemini
+  (`gemini-3.5-flash-lite`), sin mocks: RAG, envío propio y ajeno, reclamo propio
+  y ajeno, injection, límite de longitud, memoria, aislamiento, persistencia tras
+  reinicio y borrado. 16 de 16 verificaciones cumplen
+  (`docs-resultados/resultados_ejecucion_real.md`). Trazas y costos con
+  LangSmith en el informe (C.6 y C.7).
+- **Tests automáticos (regresión):** 88 aprobados (15/11/2026) con modelo falso y
+  bases temporales; no son evidencia de desempeño.
 
 ## 8. Costos (muestra de 2 solicitudes E2E)
 

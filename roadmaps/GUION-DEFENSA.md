@@ -11,15 +11,19 @@ reparto entre integrantes queda para que el grupo lo defina.
 | 1–4 | Arquitectura | Diagrama del informe: API → guardrails → grafo ReAct → 3 herramientas → memoria → enmascarado. Decisiones: `cliente_id` por contexto confiable, 5 ciclos, 1 tool por decisión. |
 | 4–10 | **Demo en vivo** | Ver guion abajo. |
 | 10–12 | Observabilidad y costos | `/metricas`, logs JSON, traza LangSmith con inputs/outputs ocultos, costo por consulta (≈ USD 0.0014 equivalente; USD 0 en nivel gratuito). |
-| 12–13 | Validación y limitaciones | 88 tests; limitaciones honestas (auth de demo, heurística, un proceso). |
+| 12–13 | Validación y limitaciones | Ejecución real 16/16 (`docs-resultados/resultados_ejecucion_real.md`), 88 tests solo como regresión; limitaciones honestas (auth de demo, heurística, un proceso). |
 | 13–15 | Preguntas | Ver lista probable. |
 
 ## Guion de la demo
 
 Preparación previa (antes de entrar): entorno activo, `.env` completo, índice RAG
 construido, `python inicializar_base_demo.py` corrido, `uvicorn` levantado, una
-terminal con `$headers` listo (README, sección API). Tener un plan B: los 88
-tests verdes y capturas de LangSmith (`evidencias/langsmith/`).
+terminal con `$headers` listo (README, sección API). Tener un plan B: la evidencia de
+`docs-resultados/resultados_ejecucion_real.md` y las capturas de LangSmith
+(`evidencias/langsmith/`). El recorrido completo se puede repetir con
+`python ejecucion/recorrido_real.py --fase 1` (y `--fase 2` tras reiniciar la API).
+Si la base de demo ya tiene reclamos de una corrida anterior, recrearla con
+`python inicializar_base_demo.py --forzar` (con la API detenida).
 
 1. `GET /health` → agente y memoria en `true`.
 2. **RAG:** consulta comercial (por ejemplo zonas de entrega) con `thread_id` `demo-1` → `herramientas_utilizadas` incluye `buscar_conocimiento_ecologix`.
