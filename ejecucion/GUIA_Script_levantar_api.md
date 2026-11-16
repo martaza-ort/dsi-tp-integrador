@@ -148,9 +148,3 @@ demo en `roadmaps/GUION-DEFENSA.md`.
 | Falla al construir el índice              | `chroma/` quedó a medias.            | Borrar la carpeta `chroma/` y volver a ejecutar.      |
 | Acentos rotos en la consola                | Codificación de la consola.            | Probar en Windows Terminal o `chcp 65001`.            |
 | El script no se puede ejecutar             | Política de ejecución de PowerShell.  | Usar el comando con `-ExecutionPolicy Bypass`.        |
-
-## 7. Antes de la defensa
-
-- Ejecutar este recorrido completo en la máquina que se va a usar.
-- Tener la clave de Gemini con cuota disponible el día de la defensa.
-- Ensayar la demo del guion con el modelo real: la defensa exige ejecutarlo en vivo.
