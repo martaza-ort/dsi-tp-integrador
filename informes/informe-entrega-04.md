@@ -1,5 +1,110 @@
 # TP Final Integrador — Agente Inteligente en Producción
 
+**Asignatura:** Desarrollo de Sistemas de Inteligencia Artificial — IADS 3, ORT · **Grupo 1**
+**Entrega y defensa:** 16 de noviembre de 2026
+
+Este informe documenta el sistema final: un agente LangGraph para EcoLogix
+Systems que reutiliza el RAG de la Entrega 3, recuerda la conversación en
+SQLite, se expone como API REST y está protegido con guardrails y observabilidad.
+La versión resumida para consulta rápida está en [`ficha_tecnica.md`](../ficha_tecnica.md).
+
+## Resumen del sistema
+
+```text
+Cliente ──Bearer──▶ FastAPI ──▶ guardrails de entrada (longitud, injection)
+                       │                      │ bloqueo: 200/400, sin agente ni memoria
+                       ▼
+              grafo ReAct (LangGraph) ◀──▶ memoria SQLite por hilo
+                │  agente ⇄ herramientas (máx. 5 ciclos, 1 tool por decisión)
+                ├─ buscar_conocimiento_ecologix  (RAG: 8 candidatos → 4 reranking)
+                ├─ consultar_estado_envio        (sensor, solo pedidos propios)
+                └─ registrar_reclamo             (actuador, solo cliente propio)
+                       ▼
+              enmascarado de datos personales ──▶ respuesta
+Transversal: logs JSON · GET /metricas · trazas LangSmith sin contenido
+```
+
+## A. Agente
+
+### A.1 — Herramientas
+
+| Herramienta | Rol | Qué hace | Límites |
+|---|---|---|---|
+| `buscar_conocimiento_ecologix` | Retriever | Consulta la colección persistida `ecologix_chunks_500_100`: recupera 8 candidatos y selecciona 4 por reranking. Devuelve fragmentos con título de fuente. | No consulta stock en vivo ni precios, no crea pedidos y no regenera embeddings por consulta. Su contenido es evidencia, no instrucciones. |
+| `consultar_estado_envio` | Sensor | Devuelve el estado y las fechas del envío de un pedido. | Solo si el pedido pertenece al cliente autenticado; pedido ajeno, inexistente o sin envío dan la misma respuesta neutra. |
+| `registrar_reclamo` | Actuador | Inserta un reclamo (con pedido propio opcional) en estado `ABIERTO`. | Verifica titularidad del pedido antes de escribir; no aprueba notas de crédito ni compensaciones. |
+
+Las tres tienen docstring completo (propósito, argumentos, resultado, límites).
+Las operativas son simuladas localmente sobre SQLite (`schema.sql`).
+
+**Identidad.** `cliente_id` llega por el contexto confiable de ejecución de
+LangGraph (`ContextoAgente`), queda fuera del esquema que ve el modelo y no se
+persiste en el estado ni en los checkpoints. El LLM no puede elegir ni falsear
+el cliente. La autorización se aplica dentro de cada herramienta, no en el prompt.
+
+### A.2 — Grafo ReAct
+
+Un nodo `agente` y un nodo `herramientas`, con el resultado de cada herramienta
+devuelto al agente hasta la respuesta final. Reglas de seguridad del grafo:
+
+- máximo **5 ciclos** de herramientas por consulta; si el agente pide otra, no
+  se ejecuta y se responde sin afirmar que la operación pendiente se realizó;
+- **una sola herramienta por decisión**: si pide varias en paralelo no se
+  ejecuta ninguna y se responde con un mensaje seguro;
+- los errores de herramientas se propagan, no se presentan como éxito.
+
+### A.3 — Memoria persistente
+
+`langgraph-checkpoint-sqlite`, un hilo por `thread_id`, con deserialización
+restringida de MsgPack. Retención de **30 días** desde la última interacción,
+con una tabla auxiliar que guarda solo la marca de actividad (sin contenido).
+La purga corre al iniciar y cada 24 horas, y borra el hilo completo con
+`delete_thread` del checkpointer. La base vive en `runtime/` (fuera de Git) con
+permisos restringidos (`chmod 600` en Unix; en Windows se requieren ACL
+equivalentes configuradas por quien despliega).
+
+### A.4 — Matriz de validación
+
+`test_matriz_agente.py` usa un modelo falso y SQLite temporal (sin proveedores
+externos ni datos reales) y verifica resultado y efecto observable:
+
+| Escenario | Resultado verificado |
+|---|---|
+| Uso de evidencia RAG | La respuesta se apoya en el fragmento recuperado. |
+| Envío propio | Devuelve el estado autorizado. |
+| Pedido ajeno o inexistente | Respuesta neutra idéntica; sin filtrar existencia. |
+| Reclamo sobre pedido propio | Se inserta una fila con cliente y pedido correctos. |
+| Reclamo sobre pedido ajeno | Se rechaza y no hay escritura en la base. |
+
+## B. API REST
+
+| Endpoint | Auth | Función |
+|---|---|---|
+| `GET /health` | No | Estado de servicio, agente y memoria. |
+| `POST /consultar` | Sí | Consulta al agente; devuelve `thread_id`, `respuesta`, `exito`, `herramientas_utilizadas`. |
+| `GET /estado/{thread_id}` | Sí | Historial de un hilo propio (con datos personales enmascarados). |
+| `DELETE /estado/{thread_id}` | Sí | Borra checkpoints y metadato auxiliar del hilo propio. |
+| `GET /metricas` | No | Métricas de la parte C. |
+
+**Identidad.** `Authorization: Bearer <token>`; el backend resuelve el token a
+`cliente_id` con `API_CLIENTES`. Es una identidad fija para demo y tests, **no**
+autenticación de producción.
+
+**Aislamiento de hilos.** El `thread_id` no es una credencial: internamente se
+usa `HMAC(HILOS_SECRETO, cliente_id:thread_id)`. Otro cliente que conozca el
+`thread_id` recibe 404 y el identificador guardado no revela al cliente.
+
+**Persistencia tras reinicio.** Verificada por el test
+`test_memoria_persiste_via_http_despues_de_reiniciar` y por la demo manual del
+README (consulta, `Ctrl+C`, nuevo arranque, `GET /estado`).
+
+**Errores.** Respuestas neutras (401, 404, 422, 500) que no incluyen la entrada,
+datos personales ni detalles internos de excepciones.
+
+**Otra máquina.** El README documenta entorno virtual, `.env`, preparación del
+índice RAG (`vector_db.py` y `entrega_3.indexar_chunks`), base demo
+(`inicializar_base_demo.py`) y `uvicorn api:app`.
+
 ## C. Observabilidad
 
 ### C.1 — Diseño
@@ -262,3 +367,98 @@ La fuente tarifaria consultada fue la
 (15 de noviembre de 2026). Los valores pueden cambiar y deben verificarse
 nuevamente al actualizar el modelo o repetir el análisis. En el nivel gratuito,
 Google indica que el contenido puede usarse para mejorar sus productos.
+
+## D. Seguridad y pruebas
+
+### D.1 — Guardrails en `POST /consultar`
+
+Implementados en `guardrails.py`, deterministas y sin segundo LLM.
+
+| Control | Momento | Comportamiento |
+|---|---|---|
+| Longitud | Entrada | Más de 1000 caracteres (1000 inclusive es válido): `400`, antes de modelo, memoria y herramientas. El mensaje indica el límite, no el texto ni su longitud. |
+| Prompt injection | Entrada | Patrones por categoría (cambio de reglas, cambio de rol, extracción de instrucciones o credenciales, evasión de validaciones, acceso a otro cliente). Los patrones combinan verbo y objeto, no palabras aisladas. Ante detección: `HTTP 200`, `exito: false`, sin herramientas, sin escritura en memoria. |
+| Enmascarado | Salida | CUIT/CUIL, DNI, correo y teléfono pasan a `[CUIT_CUIL_ENMASCARADO]`, `[DNI_ENMASCARADO]`, `[EMAIL_ENMASCARADO]`, `[TELEFONO_ENMASCARADO]`. No toca números de pedido, SKU ni montos. También se aplica al historial de `GET /estado`. |
+
+Los bloqueos se cuentan como consulta y bloqueo en `/metricas`, con su latencia,
+y no como error técnico. El log `WARNING` solo lleva categoría, resultado y un
+identificador de correlación aleatorio.
+
+El filtro de inyección es heurístico: **no es una garantía completa** ni el
+único control. La autorización real vive en cada herramienta.
+
+### D.2 — Suite `security_tests.py`
+
+25 casos (varios parametrizados) que cubren: bloqueo antes del modelo y de la
+memoria, rechazo por longitud con `400`, contadores de `/metricas` tras
+bloqueos, consultas legítimas del dominio no bloqueadas (falsos positivos),
+rechazo de envío y de reclamo sobre pedido ajeno sin escritura, reclamo propio
+sí registrado, ausencia de texto de la consulta y de datos personales en los
+logs, obligación de ocultar entradas, salidas y metadatos con LangSmith activo,
+y enmascarado correcto sin tocar datos comerciales.
+
+## E. Cierre
+
+### E.1 — Validación
+
+Corrida del 15 de noviembre de 2026, en un entorno virtual limpio con las
+dependencias de `requirements.txt` (sin `.env`, sin claves: los tests usan
+modelo falso y bases temporales):
+
+| Archivo | Casos | Qué valida |
+|---|---:|---|
+| `test_agente.py` | 7 | Flujo ReAct, límite de ciclos, llamadas paralelas, errores de herramientas |
+| `test_memoria.py` | 5 | Persistencia, aislamiento, ausencia de `cliente_id` en estado, purga por TTL |
+| `test_matriz_agente.py` | 6 | Matriz de integración A.4 |
+| `test_herramientas_operativas.py` | 8 | Autorización y escrituras de las tools |
+| `test_herramientas_rag.py` | 4 | Contrato del retriever 8→4 |
+| `test_api.py` | 11 | Endpoints, autenticación, aislamiento, persistencia tras reinicio |
+| `test_observabilidad.py` | 10 | Métricas, p95, alerta, logs |
+| `security_tests.py` | 25 | Guardrails y privacidad |
+| `test_schemas.py` | 12 | Contrato de la Entrega 1 |
+| **Total** | **88** | **88 aprobados, 0 fallos** |
+
+Además se validó de forma manual el flujo real con el índice RAG persistido y
+trazas de LangSmith (ver C.6 y C.7). Esa parte depende de claves y cuota del
+proveedor y no corre en la suite automática.
+
+### E.2 — Limitaciones conocidas
+
+- **Autenticación de demo.** Tokens fijos en `API_CLIENTES`. Producción exige
+  autenticación real (por ejemplo OAuth/JWT) y gestión de secretos.
+- **`GET /metricas` sin autenticación.** No expone contenido ni identidades,
+  pero en producción conviene protegerlo o limitarlo a la red interna.
+- **Un solo proceso.** La memoria SQLite, la purga y las métricas en memoria
+  asumen una instancia. Varios workers requieren coordinación y métricas
+  consolidadas.
+- **Filtro de injection heurístico.** Puede tener falsos negativos con
+  reformulaciones o idiomas no cubiertos, y falsos positivos en frases raras.
+- **Enmascarado por patrones.** Reconoce formatos habituales; DNI y teléfono
+  exigen contexto o formato inequívoco, por lo que algunos casos pueden pasar.
+- **Retención.** La purga lógica a los 30 días no sobrescribe físicamente
+  páginas SQLite ni elimina copias de seguridad previas; WAL/SHM y backups
+  necesitan su propia política. La retención de reclamos y pedidos queda
+  sujeta a definición comercial y revisión legal.
+- **Alcance del RAG.** No informa stock ni precios en vivo; las herramientas
+  operativas son simuladas sobre una base local de demo.
+- **Costos.** El análisis se basa en dos solicitudes; no es proyección de
+  producción. El cargo real fue USD 0 por el nivel gratuito, cuyo contenido
+  Google puede usar para mejorar sus productos: no cargar datos reales.
+- **Muestra mínima de p95.** 20 consultas es un valor inicial por calibrar con
+  tráfico real.
+- **Sin límite de tasa ni de tamaño de cuerpo HTTP.** El límite de 1000
+  caracteres no sustituye controles contra abuso.
+
+### E.3 — Defensa
+
+Guion de 15 minutos, demo y preguntas probables en
+[`roadmaps/GUION-DEFENSA.md`](../roadmaps/GUION-DEFENSA.md).
+
+### E.4 — Archivos de entrega
+
+Código del agente (`agente.py`, `memoria.py`, `herramientas_*.py`,
+`contexto_agente.py`) y de la API (`api.py`, `guardrails.py`,
+`observabilidad.py`), `security_tests.py`, `requirements.txt`, `.env.example`,
+`README.md`, `.gitignore`, `informes/informe-entrega-04.md` y
+`ficha_tecnica.md`. La publicación en el repositorio público (`main`) se
+confirma antes de la defensa con el checklist del guion.
