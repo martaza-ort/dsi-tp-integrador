@@ -47,6 +47,20 @@ def crear_herramienta_rag(
     def buscar_conocimiento_ecologix(consulta: str) -> str:
         """Busca fuentes comerciales pertinentes en la base de conocimiento.
 
+        Usar cuando:
+          El cliente pregunta por productos, características, materiales,
+          políticas comerciales, zonas de cobertura, condiciones o procesos
+          de entrega y otra información documentada en la base de conocimiento.
+
+        NO usar cuando:
+          El cliente pregunta por el estado de un pedido o envío concreto:
+          para eso corresponde consultar_estado_envio.
+
+          El cliente solicita registrar un reclamo: corresponde registrar_reclamo.
+
+          El cliente pregunta por stock o precios en tiempo real, porque
+          esta herramienta no consulta esos datos operativos.
+
         Args:
             consulta: Pregunta concreta sobre productos, políticas, entregas o
                 procesos comerciales de EcoLogix.

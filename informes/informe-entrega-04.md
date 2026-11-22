@@ -68,13 +68,17 @@ equivalentes configuradas por quien despliega).
 `test_matriz_agente.py` usa un modelo falso y SQLite temporal (sin proveedores
 externos ni datos reales) y verifica resultado y efecto observable:
 
-| Escenario                   | Resultado verificado                                |
-| --------------------------- | --------------------------------------------------- |
-| Uso de evidencia RAG        | La respuesta se apoya en el fragmento recuperado.   |
-| Envío propio               | Devuelve el estado autorizado.                      |
-| Pedido ajeno o inexistente  | Respuesta neutra idéntica; sin filtrar existencia. |
-| Reclamo sobre pedido propio | Se inserta una fila con cliente y pedido correctos. |
-| Reclamo sobre pedido ajeno  | Se rechaza y no hay escritura en la base.           |
+
+| Escenario                         | Resultado verificado                                      |
+| --------------------------------- | --------------------------------------------------------- |
+| Conversación general              | Responde sin ejecutar herramientas.                       |
+| Uso de evidencia RAG              | La respuesta se apoya en el fragmento recuperado.         |
+| Envío propio                      | Devuelve el estado autorizado.                            |
+| Pedido ajeno o inexistente        | Respuesta neutra idéntica; sin filtrar existencia.        |
+| Reclamo sobre pedido propio       | Se inserta una fila con cliente y pedido correctos.       |
+| Reclamo sobre pedido ajeno        | Se rechaza y no hay escritura en labase.                  |
+| Consulta y reclamo en un turno    | Ejecuta consultar_estado_envio y luego registrar_reclamo. |
+
 
 ## B. API REST
 
