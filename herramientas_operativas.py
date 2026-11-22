@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -68,6 +69,17 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
     ) -> str:
         """Consulta el estado de envío de un pedido propio del cliente.
 
+        Usar cuando:
+           El cliente pregunta dónde está su pedido, si fue despachado,
+           si está en camino o si fue entregado, y proporciona su número
+           de pedido.
+
+        NO usar cuando:
+          El cliente pregunta por información general sobre entregas,
+          cobertura o políticas comerciales: corresponde buscar_conocimiento_ecologix.
+
+          El cliente quiere registrar un reclamo: corresponde registrar_reclamo.
+
         Args:
             nro_pedido: Número del pedido cuyo envío consulta el cliente.
 
@@ -97,6 +109,12 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
                 consulta,
                 (id_pedido, id_cliente),
             ).fetchone()
+        
+        logging.getLogger("ecologix.herramientas").info(
+          "Evidencia local sanitizada: herramienta=consultar_estado_envio nro_pedido=%s estado=%s",
+           id_pedido,
+           envio["estado"] if envio is not None else "sin_envio",
+        )
 
         if envio is None:
             return "No se encontró un envío disponible para ese pedido."
@@ -115,6 +133,18 @@ def crear_herramientas_operativas(ruta_db: Path) -> list[BaseTool]:
         nro_pedido: int | None = None,
     ) -> str:
         """Registra un reclamo solicitado por el cliente autenticado.
+
+        Usar cuando:
+          El cliente solicita explícitamente registrar o generar un reclamo
+          por un problema con un producto, pedido o entrega.
+
+        NO usar cuando:
+          El cliente solamente pregunta cómo realizar un reclamo o cuáles
+          son las políticas de atención: corresponde buscar_conocimiento_ecologix.
+
+          El cliente solamente quiere conocer el estado de su envío:
+          corresponde consultar_estado_envio.
+
 
         Args:
             motivo: Descripción del problema informado por el cliente.

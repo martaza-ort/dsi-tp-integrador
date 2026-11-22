@@ -321,3 +321,79 @@ def test_matriz_rechaza_reclamo_de_pedido_ajeno_sin_escritura(
     assert len(_mensajes_tool(resultado)) == 1
     assert "No se pudo registrar" in _mensajes_tool(resultado)[0].content
     assert cantidad == 0
+
+def test_matriz_conversacion_general_no_usa_herramientas(
+    base_negocio: Path,
+) -> None:
+    respuesta = "¡Hola! Soy el asistente de EcoLogix. ¿En qué puedo ayudarte?"
+    resultado, modelo = _ejecutar_escenario(
+        base_negocio,
+        [AIMessage(content=respuesta)],
+        "Hola, ¿cómo estás? ¿En qué podés ayudarme?",
+    )
+
+    assert len(_mensajes_tool(resultado)) == 0
+    assert resultado["messages"][-1].content == respuesta
+    assert resultado["ciclos_herramientas"] == 0
+    assert modelo.llamadas_a_modelo == 1
+
+def test_matriz_consulta_y_reclamo_usa_dos_herramientas_secuenciales(
+    base_negocio: Path,
+) -> None:
+    motivo = "El pedido llegó con el embalaje dañado."
+    resultado, modelo = _ejecutar_escenario(
+        base_negocio,
+        [
+            _llamada_tool(
+                "consultar_estado_envio",
+                {"nro_pedido": ID_PEDIDO_PROPIO},
+                identificador="consulta-envio",
+            ),
+            _llamada_tool(
+                "registrar_reclamo",
+                {
+                    "motivo": motivo,
+                    "nro_pedido": ID_PEDIDO_PROPIO,
+                },
+                identificador="registro-reclamo",
+            ),
+            AIMessage(
+                content=(
+                    "El pedido está en camino y el reclamo quedó registrado."
+                )
+            ),
+        ],
+        (
+            f"Consultá el estado del pedido {ID_PEDIDO_PROPIO} y "
+            "registrá un reclamo porque llegó con el embalaje dañado."
+        ),
+    )
+
+    mensajes_tool = _mensajes_tool(resultado)
+    assert [mensaje.name for mensaje in mensajes_tool] == [
+        "consultar_estado_envio",
+        "registrar_reclamo",
+    ]
+    assert "EN_CAMINO" in mensajes_tool[0].content
+    assert resultado["messages"][-1].content == (
+        "El pedido está en camino y el reclamo quedó registrado."
+    )
+    assert resultado["ciclos_herramientas"] == 2
+    assert modelo.llamadas_a_modelo == 3
+
+    with sqlite3.connect(base_negocio) as conexion:
+        reclamos = conexion.execute(
+            """
+            SELECT cliente_id, pedido_id, motivo, estado
+            FROM reclamos
+            """
+        ).fetchall()
+
+    assert reclamos == [
+        (
+            ID_CLIENTE_AUTENTICADO,
+            ID_PEDIDO_PROPIO,
+            motivo,
+            "ABIERTO",
+        )
+    ]
